@@ -1,0 +1,2 @@
+dotnet publish Flow.Launcher.Plugin.OneNote -c Release -r win-x64
+Compress-Archive -LiteralPath Flow.Launcher.Plugin.OneNote/bin/Release/win-x64/publish -DestinationPath Flow.Launcher.Plugin.OneNote/bin/OneNote.zip -Force
