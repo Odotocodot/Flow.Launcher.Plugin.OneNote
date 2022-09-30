@@ -91,6 +91,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     TitleToolTip = "Last Modified: " + page.LastModified,
                     IcoPath = logoPath,
                     ContextData = page,
+                    TitleHighlightData = GetHighlightData(query, page.Name),
                     Action = c =>
                     {
                         OpenInOneNoteWindows10(page);
@@ -105,7 +106,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
-            var resultlist = new List<Result> 
+            var results = new List<Result> 
             {
                 new Result 
                 {
@@ -131,7 +132,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 },
             };
 
-            return resultlist;
+            return results;
         }
 
         private static void OpenInOneNoteWindows10(IOneNoteExtPage page)
@@ -165,7 +166,23 @@ namespace Flow.Launcher.Plugin.OneNote
                 return page.Notebook.Name + " > " + page.Section.Name;
             }
         }
-
+        private static List<int> GetHighlightData(Query query, string stringToCheck,int searchTermsStartIndex = 0, int stringToCheckIndex = 0)
+        {
+            List<int> highlightData = new();
+            for (int i = searchTermsStartIndex; i < query.SearchTerms.Length; i++)
+            {
+                string searchTerm = query.SearchTerms[i];
+                var index = stringToCheck.IndexOf(searchTerm, 0, StringComparison.OrdinalIgnoreCase);
+                if (index != -1)
+                {
+                    for (int j = 0 + stringToCheckIndex; j < searchTerm.Length + stringToCheckIndex; j++)
+                    {
+                        highlightData.Add(index + j);
+                    }
+                }
+            }
+            return highlightData;
+        }
 
     }
 }
