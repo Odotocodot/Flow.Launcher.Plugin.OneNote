@@ -34,7 +34,6 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 hasOneNote = false;
             }
-
         }
         /// <inheritdoc/>
 
@@ -94,7 +93,8 @@ namespace Flow.Launcher.Plugin.OneNote
                     TitleHighlightData = GetHighlightData(query, page.Name),
                     Action = c =>
                     {
-                        OpenInOneNoteWindows10(page);
+                        //OpenInOneNoteWindows10(page);
+                        page.OpenInOneNote();
                         return true;
                     },
                 })
@@ -108,20 +108,20 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             var results = new List<Result> 
             {
+                // new Result 
+                // {
+                //     Title = "Open in OneNote for Windows 10",
+                //     SubTitle = selectedResult.SubTitle + " > " +selectedResult.Title,
+                //     IcoPath = logoPath,
+                //     Action = _ => 
+                //     {
+                //         OpenInOneNoteWindows10((IOneNoteExtPage)selectedResult.ContextData);
+                //         return true;
+                //     },
+                // },
                 new Result 
                 {
-                    Title = "Open in OneNote for Windows 10",
-                    SubTitle = selectedResult.SubTitle + " > " +selectedResult.Title,
-                    IcoPath = logoPath,
-                    Action = _ => 
-                    {
-                        OpenInOneNoteWindows10((IOneNoteExtPage)selectedResult.ContextData);
-                        return true;
-                    },
-                },
-                new Result 
-                {
-                    Title = "Open in OneNote 2016",
+                    Title = "Open in OneNote",
                     SubTitle = selectedResult.SubTitle + " > " +selectedResult.Title,
                     IcoPath = logoPath, 
                     Action = _ => 
@@ -135,23 +135,23 @@ namespace Flow.Launcher.Plugin.OneNote
             return results;
         }
 
-        private static void OpenInOneNoteWindows10(IOneNoteExtPage page)
-        {
-            string link = $"onenote:{page.Section.Path}#{page.Name}";
-            link = link.Replace(" ", "%20");
-            string sectionID = page.Section.ID[..(page.Section.ID.IndexOf('}') + 1)];
-            string pageID = page.ID[..(page.ID.IndexOf('}') + 1)];
-            link = $"{link}&section-id={sectionID}&page-id={pageID}&end";
+        // private static void OpenInOneNoteWindows10(IOneNoteExtPage page)
+        // {
+        //     string link = $"onenote:{page.Section.Path}#{page.Name}";
+        //     link = link.Replace(" ", "%20");
+        //     string sectionID = page.Section.ID[..(page.Section.ID.IndexOf('}') + 1)];
+        //     string pageID = page.ID[..(page.ID.IndexOf('}') + 1)];
+        //     link = $"{link}&section-id={sectionID}&page-id={pageID}&end";
 
 
-            //string link = Utils.CallOneNoteSafely(onenote =>
-            //{
-            //     onenote.GetHyperlinkToObject(page.ID,"",out string link);
-            //     return link;
-            //});
-            var psi = new ProcessStartInfo(link) { UseShellExecute = true };
-            Process.Start(psi);
-        }
+        //     //string link = Utils.CallOneNoteSafely(onenote =>
+        //     //{
+        //     //     onenote.GetHyperlinkToObject(page.ID,"",out string link);
+        //     //     return link;
+        //     //});
+        //     var psi = new ProcessStartInfo(link) { UseShellExecute = true };
+        //     Process.Start(psi);
+        // }
 
         private static string GetReadablePath(IOneNoteExtPage page)
         {
