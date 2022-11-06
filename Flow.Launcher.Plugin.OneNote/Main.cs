@@ -11,6 +11,37 @@ using System.Diagnostics;
 //TODO: add open to use web only -> would need Microsoft.Graph async and Azure  account (for refereshing and keep an access token) nonsense
 namespace Flow.Launcher.Plugin.OneNote
 {
+    public class ContextMenu : IContextMenu
+    {
+        private PluginInitContext context;
+
+        public ContextMenu(PluginInitContext context)
+        {
+            this.context = context;
+        }
+
+        public List<Result> LoadContextMenus(Result selectedResult)
+        {
+            var results = new List<Result>();
+            if(selectedResult.ContextData is IOneNoteExtNotebook notebook)
+            {
+                foreach(var section in notebook.Sections)
+                {
+                    results.Add(new Result
+                    {
+                        Title = section.Name,
+                        SubTitle = section.Color?.ToString(),
+                        //Get Hue of color and Saturation?
+                    });
+                }
+            }
+            if(selectedResult.ContextData is IOneNoteExtSection section1)
+            {
+                
+            }
+            return results;
+        }
+    }
     /// <summary>
     /// 
     /// </summary>
@@ -21,6 +52,8 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly string logoPath = "Images/logo.png";
         private readonly string warningPath = "Images/warning.png";
         private readonly string syncPath = "Images/icons8-refresh-240.png";
+
+        private ContextMenu contextMenu;
         /// <inheritdoc/>
         public void Init(PluginInitContext context)
         {
@@ -34,6 +67,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 hasOneNote = false;
             }
+            contextMenu = new ContextMenu(context);
         }
         /// <inheritdoc/>
 
@@ -53,6 +87,13 @@ namespace Flow.Launcher.Plugin.OneNote
 
             if(string.IsNullOrEmpty(query.Search))
             {
+                var notebooks = OneNoteProvider.NotebookItems.Select(notebook => new Result 
+                {
+                    Title = notebook.Name,
+                    IcoPath = logoPath,
+                    ContextData = notebook,
+                });
+
                 return new List<Result>
                 {
                     new Result
@@ -60,6 +101,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         Title = "Search pages in OneNote",
                         IcoPath = logoPath,
                     },
+
                     new Result
                     {
                         Title = "Sync Notebooks",
@@ -75,7 +117,7 @@ namespace Flow.Launcher.Plugin.OneNote
                                 }
                                 );
                             }
-                            return true;
+                            return false;
                         }
                     }
                 };
@@ -106,33 +148,34 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
-            var results = new List<Result> 
-            {
-                // new Result 
-                // {
-                //     Title = "Open in OneNote for Windows 10",
-                //     SubTitle = selectedResult.SubTitle + " > " +selectedResult.Title,
-                //     IcoPath = logoPath,
-                //     Action = _ => 
-                //     {
-                //         OpenInOneNoteWindows10((IOneNoteExtPage)selectedResult.ContextData);
-                //         return true;
-                //     },
-                // },
-                new Result 
-                {
-                    Title = "Open in OneNote",
-                    SubTitle = selectedResult.SubTitle + " > " +selectedResult.Title,
-                    IcoPath = logoPath, 
-                    Action = _ => 
-                    {
-                        ((IOneNoteExtPage)selectedResult.ContextData).OpenInOneNote();
-                        return true;
-                    },
-                },
-            };
+            return contextMenu.LoadContextMenus(selectedResult);
+            // var results = new List<Result> 
+            // {
+            //     // new Result 
+            //     // {
+            //     //     Title = "Open in OneNote for Windows 10",
+            //     //     SubTitle = selectedResult.SubTitle + " > " +selectedResult.Title,
+            //     //     IcoPath = logoPath,
+            //     //     Action = _ => 
+            //     //     {
+            //     //         OpenInOneNoteWindows10((IOneNoteExtPage)selectedResult.ContextData);
+            //     //         return true;
+            //     //     },
+            //     // },
+            //     new Result 
+            //     {
+            //         Title = "Open in OneNote",
+            //         SubTitle = selectedResult.SubTitle + " > " +selectedResult.Title,
+            //         IcoPath = logoPath, 
+            //         Action = _ => 
+            //         {
+            //             ((IOneNoteExtPage)selectedResult.ContextData).OpenInOneNote();
+            //             return true;
+            //         },
+            //     },
+            // };
 
-            return results;
+            // return results;
         }
 
         // private static void OpenInOneNoteWindows10(IOneNoteExtPage page)
