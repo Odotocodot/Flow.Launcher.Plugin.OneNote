@@ -11,37 +11,6 @@ using System.Diagnostics;
 //TODO: add open to use web only -> would need Microsoft.Graph async and Azure  account (for refereshing and keep an access token) nonsense
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class ContextMenu : IContextMenu
-    {
-        private PluginInitContext context;
-
-        public ContextMenu(PluginInitContext context)
-        {
-            this.context = context;
-        }
-
-        public List<Result> LoadContextMenus(Result selectedResult)
-        {
-            var results = new List<Result>();
-            if(selectedResult.ContextData is IOneNoteExtNotebook notebook)
-            {
-                foreach(var section in notebook.Sections)
-                {
-                    results.Add(new Result
-                    {
-                        Title = section.Name,
-                        SubTitle = section.Color?.ToString(),
-                        //Get Hue of color and Saturation?
-                    });
-                }
-            }
-            if(selectedResult.ContextData is IOneNoteExtSection section1)
-            {
-                
-            }
-            return results;
-        }
-    }
     /// <summary>
     /// 
     /// </summary>
@@ -73,57 +42,87 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public List<Result> Query(Query query)
         {
+            var results = new List<Result>();
             if(!hasOneNote)
             {
-                return new List<Result>
+                results.Add(new Result
                 {
-                    new Result
-                    {
-                        Title = "OneNote is not installed.",
-                        IcoPath = warningPath
-                    }
-                };
+                    Title = "OneNote is not installed.",
+                    IcoPath = warningPath
+                });
+                return results;
+                // return new List<Result>
+                // {
+                //     new Result
+                //     {
+                //         Title = "OneNote is not installed.",
+                //         IcoPath = warningPath
+                //     }
+                // };
             }
 
             if(string.IsNullOrEmpty(query.Search))
             {
-                var notebooks = OneNoteProvider.NotebookItems.Select(notebook => new Result 
+                results.Add(new Result
+                {
+                    Title = "Search pages in OneNote",
+                    IcoPath = logoPath,
+                });
+                results.AddRange(OneNoteProvider.NotebookItems.Select(notebook => new Result 
                 {
                     Title = notebook.Name,
+                    SubTitle = notebook.Color?.ToString(),
                     IcoPath = logoPath,
                     ContextData = notebook,
-                });
-
-                return new List<Result>
+                }));
+                results.Add(new Result
                 {
-                    new Result
+                    Title = "Sync Notebooks",
+                    IcoPath = syncPath,
+                    Action = c =>
                     {
-                        Title = "Search pages in OneNote",
-                        IcoPath = logoPath,
-                    },
-
-                    new Result
-                    {
-                        Title = "Sync Notebooks",
-                        IcoPath = syncPath,
-                        Action = c =>
+                        foreach (var item in OneNoteProvider.NotebookItems)
                         {
-                            foreach (var item in OneNoteProvider.NotebookItems)
+                            Utils.CallOneNoteSafely<object>(oneNote =>
                             {
-                                Utils.CallOneNoteSafely<object>(oneNote =>
-                                {
-                                    oneNote.SyncHierarchy(item.ID);
-                                    return default;
-                                }
-                                );
+                                oneNote.SyncHierarchy(item.ID);
+                                return default;
                             }
-                            return false;
+                            );
                         }
+                        return false;
                     }
-                };
+                });
+                // return new List<Result>
+                // {
+                //     new Result
+                //     {
+                //         Title = "Search pages in OneNote",
+                //         IcoPath = logoPath,
+                //     },
+
+                //     new Result
+                //     {
+                //         Title = "Sync Notebooks",
+                //         IcoPath = syncPath,
+                //         Action = c =>
+                //         {
+                //             foreach (var item in OneNoteProvider.NotebookItems)
+                //             {
+                //                 Utils.CallOneNoteSafely<object>(oneNote =>
+                //                 {
+                //                     oneNote.SyncHierarchy(item.ID);
+                //                     return default;
+                //                 }
+                //                 );
+                //             }
+                //             return false;
+                //         }
+                //     }
+                // };
             }
 
-            List<Result> results = OneNoteProvider
+            results = OneNoteProvider
                 .FindPages(query.Search)
                 .Select(page => new Result
                 {
@@ -132,7 +131,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     TitleToolTip = "Last Modified: " + page.LastModified,
                     IcoPath = logoPath,
                     ContextData = page,
-                    TitleHighlightData = GetHighlightData(query, page.Name),
+                    TitleHighlightData = GetMatchData(query.Search, page.Name),//GetHighlightData(query, page.Name),
                     Action = c =>
                     {
                         //OpenInOneNoteWindows10(page);
@@ -149,53 +148,8 @@ namespace Flow.Launcher.Plugin.OneNote
         public List<Result> LoadContextMenus(Result selectedResult)
         {
             return contextMenu.LoadContextMenus(selectedResult);
-            // var results = new List<Result> 
-            // {
-            //     // new Result 
-            //     // {
-            //     //     Title = "Open in OneNote for Windows 10",
-            //     //     SubTitle = selectedResult.SubTitle + " > " +selectedResult.Title,
-            //     //     IcoPath = logoPath,
-            //     //     Action = _ => 
-            //     //     {
-            //     //         OpenInOneNoteWindows10((IOneNoteExtPage)selectedResult.ContextData);
-            //     //         return true;
-            //     //     },
-            //     // },
-            //     new Result 
-            //     {
-            //         Title = "Open in OneNote",
-            //         SubTitle = selectedResult.SubTitle + " > " +selectedResult.Title,
-            //         IcoPath = logoPath, 
-            //         Action = _ => 
-            //         {
-            //             ((IOneNoteExtPage)selectedResult.ContextData).OpenInOneNote();
-            //             return true;
-            //         },
-            //     },
-            // };
-
-            // return results;
         }
-
-        // private static void OpenInOneNoteWindows10(IOneNoteExtPage page)
-        // {
-        //     string link = $"onenote:{page.Section.Path}#{page.Name}";
-        //     link = link.Replace(" ", "%20");
-        //     string sectionID = page.Section.ID[..(page.Section.ID.IndexOf('}') + 1)];
-        //     string pageID = page.ID[..(page.ID.IndexOf('}') + 1)];
-        //     link = $"{link}&section-id={sectionID}&page-id={pageID}&end";
-
-
-        //     //string link = Utils.CallOneNoteSafely(onenote =>
-        //     //{
-        //     //     onenote.GetHyperlinkToObject(page.ID,"",out string link);
-        //     //     return link;
-        //     //});
-        //     var psi = new ProcessStartInfo(link) { UseShellExecute = true };
-        //     Process.Start(psi);
-        // }
-
+        
         private static string GetReadablePath(IOneNoteExtPage page)
         {
             var sectionPath = page.Section.Path;
@@ -209,8 +163,9 @@ namespace Flow.Launcher.Plugin.OneNote
                 return page.Notebook.Name + " > " + page.Section.Name;
             }
         }
-        private static List<int> GetHighlightData(Query query, string stringToCheck,int searchTermsStartIndex = 0, int stringToCheckIndex = 0)
+        private List<int> GetHighlightData(Query query, string stringToCheck,int searchTermsStartIndex = 0, int stringToCheckIndex = 0)
         {
+            //return context.API.FuzzySearch(query.Search,stringToCheck).MatchData;
             List<int> highlightData = new();
             for (int i = searchTermsStartIndex; i < query.SearchTerms.Length; i++)
             {
@@ -227,5 +182,46 @@ namespace Flow.Launcher.Plugin.OneNote
             return highlightData;
         }
 
+        private List<int> GetMatchData(string query, string stringToCompare)
+        {
+            return context.API.FuzzySearch(query, stringToCompare).MatchData;
+        }
+
+        public class ContextMenu : IContextMenu
+        {
+            private PluginInitContext context;
+
+            public ContextMenu(PluginInitContext context)
+            {
+                this.context = context;
+            }
+
+            public List<Result> LoadContextMenus(Result selectedResult)
+            {
+                var results = new List<Result>();
+                if(selectedResult.ContextData is IOneNoteExtNotebook notebook)
+                {
+                    results.AddRange(notebook.Sections.Select(notebookSection => new Result
+                    {
+                        Title = notebookSection.Name,
+                        SubTitle = notebookSection.Color?.ToString(),
+                        ContextData = notebookSection,
+                        //TitleHighlightData = GetMatchData()
+                        //Get Hue of color and Saturation?
+                    }));
+                }
+                if(selectedResult.ContextData is IOneNoteExtSection section)
+                {
+                    results.AddRange(section.Pages.Cast<IOneNoteExtPage>().Select(sectionPage => new Result
+                    {
+                        Title = sectionPage.Name,
+                        SubTitle = GetReadablePath(sectionPage),
+                        ContextData = sectionPage,
+                    }));
+                }
+                //if(selectedResult.ContextData is IOneNoteExtPage )
+                return results;
+            }
+        }
     }
 }
