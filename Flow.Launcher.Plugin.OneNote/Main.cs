@@ -65,6 +65,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 results.Add(new Result
                 {
                     Title = "Search OneNote pages",
+                    SubTitle = "Type \"nb\\\" to search by notebook structure",
                     IcoPath = logoPath,
                     AutoCompleteText = "Type something",
                     Score = int.MaxValue,
@@ -93,11 +94,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 return results;
             }
 
-            //TODO: add searching capabilites within notebook/section
-            //TODO: if the user deletes some of the search it show only show result to last notebook/section
-            //      unless delete the whole title of the notebook/section
-            //TODO: always show the last selected notebook/section if some of the search texthas been deleted
-            //TODO: clear currentContextData appropriately
             //NOTE: There is no nested sections i.e. there is nothing for the Section Group in the structure 
             if(query.FirstSearch.StartsWith("nb\\"))
             {
@@ -115,21 +111,17 @@ namespace Flow.Launcher.Plugin.OneNote
                         if (string.IsNullOrWhiteSpace(searchString)) // Do a normall notebook search
                         {
                             lastSelectedNotebook = null;
-                            results = OneNoteProvider.NotebookItems.Select(nb => GetResultFromNotebook(nb)).ToList();
-                            return results;
+                            return OneNoteProvider.NotebookItems.Select(nb => GetResultFromNotebook(nb)).ToList();
                         }
 
-                        results = OneNoteProvider.NotebookItems.Where(nb =>
+                        return OneNoteProvider.NotebookItems.Where(nb =>
                         {
                             if (lastSelectedNotebook != null && nb.ID == lastSelectedNotebook.ID)
                                 return true;
-                            var matchResult = context.API.FuzzySearch(searchString, nb.Name);
-                            highlightData = matchResult.MatchData;
-                            return matchResult.IsSearchPrecisionScoreMet();
+                            return TreeQuery(nb.Name, searchString, out highlightData);
                         })
                         .Select(nb => GetResultFromNotebook(nb, highlightData))
                         .ToList();
-                        return results;
                     case 3://Full query for section not complete e.g nb\User Notebook\Happine
                         searchString = searchStrings[2];
 
@@ -139,20 +131,17 @@ namespace Flow.Launcher.Plugin.OneNote
                         if(string.IsNullOrWhiteSpace(searchString))
                         {
                             lastSelectedSection = null;
-                            results = lastSelectedNotebook.Sections.Select(st => GetResultsFromSection(st)).ToList();
-                            return results;
+                            return lastSelectedNotebook.Sections.Select(st => GetResultsFromSection(st,lastSelectedNotebook)).ToList();
                         }
-                        results = lastSelectedNotebook.Sections.Where(st => 
+                        return lastSelectedNotebook.Sections.Where(st => 
                         {
                             if(lastSelectedSection != null && st.ID == lastSelectedSection.ID)
                                 return true;
-                            var matchResult = context.API.FuzzySearch(searchString, st.Name);
-                            highlightData = matchResult.MatchData;
-                            return matchResult.IsSearchPrecisionScoreMet();
+                            return TreeQuery(st.Name,searchString,out highlightData);
                         })
-                        .Select(st => GetResultsFromSection(st, highlightData))
+                        .Select(st => GetResultsFromSection(st, lastSelectedNotebook, highlightData))
                         .ToList();
-                        return results;
+
                     case 4://Searching pages in a section
                         searchString = searchStrings[3];
 
@@ -163,29 +152,26 @@ namespace Flow.Launcher.Plugin.OneNote
                             return new List<Result>();
 
                         if(string.IsNullOrWhiteSpace(searchString))
-                        {
-                            results = lastSelectedSection.Pages.Select(pg => GetResultFromPage(pg, lastSelectedSection)).ToList();
-                            return results;
-                        }
+                            return lastSelectedSection.Pages.Select(pg => GetResultFromPage(pg, lastSelectedSection, lastSelectedNotebook)).ToList();
 
-                        results = lastSelectedSection.Pages.Where(pg => 
-                        {
-                            var matchResult = context.API.FuzzySearch(searchString, pg.Name);
-                            highlightData = matchResult.MatchData;
-                            return matchResult.IsSearchPrecisionScoreMet();
-                        })
-                        .Select(pg => GetResultFromPage(pg, lastSelectedSection,  highlightData))
+                        return lastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name,searchString,out highlightData))
+                        .Select(pg => GetResultFromPage(pg, lastSelectedSection, lastSelectedNotebook, highlightData))
                         .ToList();
-                        return results;
 
                     default:
                         break;
                 }
             }
-            results = OneNoteProvider.FindPages(query.Search)
+            return OneNoteProvider.FindPages(query.Search)
                 .Select(page => GetResultFromPage(page, context.API.FuzzySearch(query.Search, page.Name).MatchData))
                 .ToList();
-            return results;
+
+            bool TreeQuery(string itemName, string searchString, out List<int> highlightData)
+            {
+                var matchResult = context.API.FuzzySearch(searchString, itemName);
+                highlightData = matchResult.MatchData;
+                return matchResult.IsSearchPrecisionScoreMet();
+            }
         }
 
         private bool NotebookValidCheck(string notebookName)
@@ -218,22 +204,26 @@ namespace Flow.Launcher.Plugin.OneNote
             return true;
         }
 
-        
+
         private Result GetResultFromPage(IOneNoteExtPage page, List<int> highlightingData)
         {
-            return GetResultFromPage(page, page.Section, highlightingData);
+            return GetResultFromPage(page, page.Section, page.Notebook, highlightingData);
         }
 
-        private Result GetResultFromPage(IOneNotePage page, IOneNoteSection section, List<int> highlightingData = null)
+        private Result GetResultFromPage(IOneNotePage page, IOneNoteSection section, IOneNoteNotebook notebook, List<int> highlightingData = null)
         {
+            var sectionPath = section.Path;
+            var index = sectionPath.IndexOf(notebook.Name);
+            var path = sectionPath[index .. ^4].Replace("/", " > "); //"+4" is to remove the ".one" from the path
             return new Result
             {
                 Title = page.Name,
-                SubTitle = section.Path,//GetReadablePath(page),
+                SubTitle = path,
                 TitleToolTip = "Last Modified: " + page.LastModified,
+                SubTitleToolTip = "Created: " + page.DateTime,
                 IcoPath = logoPath,
                 ContextData = page,
-                TitleHighlightData = highlightingData,//GetHighlightData(query, page.Name),
+                TitleHighlightData = highlightingData,
                 Action = c =>
                 {
                     lastSelectedNotebook = null;
@@ -244,16 +234,18 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
 
-        private Result GetResultsFromSection(IOneNoteExtSection section, List<int> highlightData = null)
+        private Result GetResultsFromSection(IOneNoteExtSection section, IOneNoteExtNotebook notebook,List<int> highlightData = null)
         {
+            var sectionPath = section.Path;
+            var index = sectionPath.IndexOf(notebook.Name);
+            var path = sectionPath[index .. ^(section.Name.Length+5)].Replace("/", " > "); //The "+5" is to remove the ".one" and "/" from the path
             return new Result
             {
                 Title = section.Name,
-                SubTitle = section.Path,
+                SubTitle = path, // + " | " + section.Pages.Count().ToString(),
                 TitleHighlightData = highlightData,
                 Action = c =>
                 {
-                    //currentContextData = (notebook, section);
                     lastSelectedSection = section;
                     context.API.ChangeQuery($"on nb\\{lastSelectedNotebook.Name}\\{section.Name}\\");
                     return false;
@@ -266,13 +258,12 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = notebook.Name,
-                SubTitle = notebook.Path,
+                //SubTitle = notebook.Sections.Count().ToString(),
                 //SubTitle = notebook..?.ToString(),
                 //IcoPath = GetNotebookImage(notebook.Color),
                 TitleHighlightData = highlightData,
                 Action = c =>
                 {
-                    //currentContextData = notebook;
                     lastSelectedNotebook = notebook;
                     context.API.ChangeQuery($"on nb\\{notebook.Name}\\");
                     return false;
@@ -280,52 +271,25 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
         
-        //FIXME: make we work if OneNote is not in the title, i.e use the name of the notebook
-        private static string GetReadablePath(IOneNoteExtPage page)
-        {
-            var sectionPath = page.Section.Path;
-            var index = sectionPath.IndexOf("OneNote/");
-            if(index != -1)
-            {
-                return sectionPath[(index + 8)..^4].Replace("/" , " > ");
-            }
-            else
-            {
-                return page.Notebook.Name + " > " + page.Section.Name;
-            }
-        }
-        private static string GetReadablePath(IOneNoteExtSection section)
-        {
-            var sectionPath = section.Path;
-            var index = sectionPath.IndexOf("OneNote/");
-            if(index != -1)
-            {
-                return sectionPath[(index + 8)..^4].Replace("/" , " > ");
-            }
-            else
-            {
-                return section.Name;
-            }
-        }
-        private List<int> GetHighlightData(Query query, string stringToCheck,int searchTermsStartIndex = 0, int stringToCheckIndex = 0)
-        {
-            //return context.API.FuzzySearch(query.Search,stringToCheck).MatchData;
-            List<int> highlightData = new();
-            for (int i = searchTermsStartIndex; i < query.SearchTerms.Length; i++)
-            {
-                string searchTerm = query.SearchTerms[i];
-                var index = stringToCheck.IndexOf(searchTerm, 0, StringComparison.OrdinalIgnoreCase);
-                if (index != -1)
-                {
-                    for (int j = 0 + stringToCheckIndex; j < searchTerm.Length + stringToCheckIndex; j++)
-                    {
-                        highlightData.Add(index + j);
-                    }
-                }
-            }
-            return highlightData;
-        }
+        // private List<int> GetHighlightData(Query query, string stringToCheck,int searchTermsStartIndex = 0, int stringToCheckIndex = 0)
+        // {
+        //     List<int> highlightData = new();
+        //     for (int i = searchTermsStartIndex; i < query.SearchTerms.Length; i++)
+        //     {
+        //         string searchTerm = query.SearchTerms[i];
+        //         var index = stringToCheck.IndexOf(searchTerm, 0, StringComparison.OrdinalIgnoreCase);
+        //         if (index != -1)
+        //         {
+        //             for (int j = 0 + stringToCheckIndex; j < searchTerm.Length + stringToCheckIndex; j++)
+        //             {
+        //                 highlightData.Add(index + j);
+        //             }
+        //         }
+        //     }
+        //     return highlightData;
+        // }
 
+        //TODO: Image of notebook and section then dune
         //Create Image
         //Double check how to colour of image in C# and wee gooooooooooooooooooooooooooooood to gos
         //Change Hue depending on colour and set Value to 100 for all pixels that arent transparent
