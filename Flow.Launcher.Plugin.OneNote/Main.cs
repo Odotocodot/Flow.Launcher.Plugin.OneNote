@@ -2,17 +2,26 @@ using System;
 using System.Collections.Generic;
 using ScipBe.Common.Office.OneNote;
 using System.Linq;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Runtime.InteropServices;
 
 //https://github.com/microsoft/PowerToys/blob/9b7a7f93b716afbbc476efaa2a57fb0f365b126b/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote/Main.cs
 //Icon8
 //Flaticon
-//TODO: add settings to change default open oneNote.
 //TODO: add open to use web only -> would need Microsoft.Graph async and Azure  account (for refereshing and keep an access token) nonsense
 namespace Flow.Launcher.Plugin.OneNote
 {
+    // public static class Constants
+    // {
+    //     private readonly string logoIconPath = "Images/logo.png";
+    //     private readonly string warningIconPath = "Images/warning.png";
+    //     private readonly string syncIconPath = "Images/icons8-refresh-240.png";
+    //     private readonly string notebookIconPath = "Images/notebook.png";
+    //     private readonly string sectionIconPath = "Images/section.png";
+    // }
+
     /// <summary>
     /// 
     /// </summary>
@@ -20,14 +29,17 @@ namespace Flow.Launcher.Plugin.OneNote
     {
         private PluginInitContext context;
         private bool hasOneNote;
-        private readonly string logoPath = "Images/logo.png";
-        private readonly string warningPath = "Images/warning.png";
-        private readonly string syncPath = "Images/icons8-refresh-240.png";
-        private readonly string notebookPath = "Images/notebook.png";
-        private Image notebookImage;
+        private readonly string logoIconPath = "Images/logo.png";
+        private readonly string warningIconPath = "Images/warning.png";
+        private readonly string syncIconPath = "Images/icons8-refresh-240.png";
+        private readonly string notebookIconPath = "Images/notebook.png";
+        private readonly string sectionIconPath = "Images/section.png";
 
         private IOneNoteExtNotebook lastSelectedNotebook;
-        private IOneNoteExtSection lastSelectedSection;      
+        private IOneNoteExtSection lastSelectedSection;
+        private DirectoryInfo notebookIconDirectory;
+
+        private Dictionary<Color,string> notebookIcons;
 
         /// <inheritdoc/>
         public void Init(PluginInitContext context)
@@ -41,32 +53,56 @@ namespace Flow.Launcher.Plugin.OneNote
             catch (Exception)
             {
                 hasOneNote = false;
-            }            
+            }
+            // notebookColors = new HashSet<Color>();
+            // using (var bitmap = new Bitmap(NotebookIconFullPath))
+            // {
+            //     for (int i = 0; i < bitmap.Width; i++)
+            //     {
+            //         for (int j = 0; j < bitmap.Height; j++)
+            //         {
+            //             var color = bitmap.GetPixel(i,j);
+            //             if(color.A != 0)
+            //             {
+            //                 notebookColors.Add(color);
+            //             }
+            //         }
+            //     }
+            // }
+            notebookIconDirectory = Directory.CreateDirectory(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "NotebookIcons"));
+            notebookIcons = new Dictionary<Color, string>();
+            foreach (var fileInfo in notebookIconDirectory.GetFiles())
+            {
+                if(int.TryParse(fileInfo.Name, out int argb))
+                    notebookIcons.Add(Color.FromArgb(argb), fileInfo.FullName);
+            }
+
         }
     
         /// <inheritdoc/>
 
         public List<Result> Query(Query query)
         {
-            var results = new List<Result>();
             if (!hasOneNote)
             {
-                results.Add(new Result
+                return new List<Result>()
                 {
-                    Title = "OneNote is not installed.",
-                    IcoPath = warningPath
-                });
-                return results;
-
+                    new Result
+                    {
+                        Title = "OneNote is not installed.",
+                        IcoPath = warningIconPath
+                    }
+                };
             }
             //TODO: Cache all NotebookItems searchs
             if (string.IsNullOrEmpty(query.Search))
             {
+                var results = new List<Result>();
                 results.Add(new Result
                 {
                     Title = "Search OneNote pages",
                     SubTitle = "Type \"nb\\\" to search by notebook structure",
-                    IcoPath = logoPath,
+                    IcoPath = logoIconPath,
                     AutoCompleteText = "Type something",
                     Score = int.MaxValue,
                 });
@@ -75,7 +111,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 results.Add(new Result
                 {
                     Title = "Sync Notebooks",
-                    IcoPath = syncPath,
+                    IcoPath = syncIconPath,
                     Score = int.MinValue,
                     Action = c =>
                     {
@@ -104,7 +140,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 switch (searchStrings.Length)
                 {
                     case 2://Full query for notebook not complete e.g. nb\User Noteb 
-                        
                         //Get matching notebooks and create results.
                         searchString = searchStrings[1];
                         
@@ -122,10 +157,11 @@ namespace Flow.Launcher.Plugin.OneNote
                         })
                         .Select(nb => GetResultFromNotebook(nb, highlightData))
                         .ToList();
+                        
                     case 3://Full query for section not complete e.g nb\User Notebook\Happine
                         searchString = searchStrings[2];
 
-                        if(!NotebookValidCheck(searchStrings[1]))
+                        if(!ValidateNotebook(searchStrings[1]))
                             return new List<Result>();
 
                         if(string.IsNullOrWhiteSpace(searchString))
@@ -145,10 +181,10 @@ namespace Flow.Launcher.Plugin.OneNote
                     case 4://Searching pages in a section
                         searchString = searchStrings[3];
 
-                        if(!NotebookValidCheck(searchStrings[1]))
+                        if(!ValidateNotebook(searchStrings[1]))
                             return new List<Result>();
 
-                        if(!SectionValidCheck(searchStrings[2]))
+                        if(!ValidateSection(searchStrings[2]))
                             return new List<Result>();
 
                         if(string.IsNullOrWhiteSpace(searchString))
@@ -162,6 +198,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         break;
                 }
             }
+            
             return OneNoteProvider.FindPages(query.Search)
                 .Select(page => GetResultFromPage(page, context.API.FuzzySearch(query.Search, page.Name).MatchData))
                 .ToList();
@@ -174,7 +211,7 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
 
-        private bool NotebookValidCheck(string notebookName)
+        private bool ValidateNotebook(string notebookName)
         {
             if(lastSelectedNotebook == null)
             {
@@ -189,7 +226,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return true;
         }
 
-        private bool SectionValidCheck(string sectionName)
+        private bool ValidateSection(string sectionName)
         {
             if(lastSelectedSection == null) //Check if section is valid
             {
@@ -203,7 +240,6 @@ namespace Flow.Launcher.Plugin.OneNote
             }
             return true;
         }
-
 
         private Result GetResultFromPage(IOneNoteExtPage page, List<int> highlightingData)
         {
@@ -221,7 +257,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 SubTitle = path,
                 TitleToolTip = "Last Modified: " + page.LastModified,
                 SubTitleToolTip = "Created: " + page.DateTime,
-                IcoPath = logoPath,
+                IcoPath = logoIconPath,
                 ContextData = page,
                 TitleHighlightData = highlightingData,
                 Action = c =>
@@ -244,6 +280,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = section.Name,
                 SubTitle = path, // + " | " + section.Pages.Count().ToString(),
                 TitleHighlightData = highlightData,
+                IcoPath = sectionIconPath,
                 Action = c =>
                 {
                     lastSelectedSection = section;
@@ -258,9 +295,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = notebook.Name,
-                //SubTitle = notebook.Sections.Count().ToString(),
-                //SubTitle = notebook..?.ToString(),
-                //IcoPath = GetNotebookImage(notebook.Color),
+                IcoPath = GetNotebookIcon(notebook.Color.Value),
                 TitleHighlightData = highlightData,
                 Action = c =>
                 {
@@ -290,22 +325,67 @@ namespace Flow.Launcher.Plugin.OneNote
         // }
 
         //TODO: Image of notebook and section then dune
-        //Create Image
-        //Double check how to colour of image in C# and wee gooooooooooooooooooooooooooooood to gos
-        //Change Hue depending on colour and set Value to 100 for all pixels that arent transparent
-        // private string CreateCacheImage(string name)
-        // {
-        //     using (var bitmap = new Bitmap(IMG_SIZE, IMG_SIZE))
-        //     using (var graphics = Graphics.FromImage(bitmap))
-        //     {
-        //         var color = ColorTranslator.FromHtml(name);
-        //         graphics.Clear(color);
+        //https://stackoverflow.com/questions/24701703/c-sharp-faster-alternatives-to-setpixel-and-getpixel-for-bitmaps-for-windows-f
+        private string GetNotebookIcon(Color color)
+        {
+            if (!notebookIcons.TryGetValue(color, out string path))
+            {
+                using (var bitmap = new Bitmap(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, notebookIconPath)))
+                {
+                    BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
+                    int bytesPerPixel = Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
+                    byte[] pixels = new byte[bitmapData.Stride * bitmap.Height];
+                    IntPtr pointer = bitmapData.Scan0;
+                    Marshal.Copy(pointer, pixels, 0, pixels.Length);
+                    int bytesWidth = bitmapData.Width * bytesPerPixel;
 
-        //         var path = Path.Combine(ColorsDirectory.FullName, name+".png");
-        //         bitmap.Save(path, ImageFormat.Png);
-        //         return path;
-        //     }
-        // }
+                    for (int j = 0; j < bitmapData.Height; j++)
+                    {
+                        int line = j * bitmapData.Stride;
+                        for (int i = 0; i < bytesWidth; i = i + bytesPerPixel)
+                        {
+                            pixels[line + i] = color.B;
+                            pixels[line + i + 1] = color.G;
+                            pixels[line + i + 2] = color.R;
+                        }
+                    }
+
+                    Marshal.Copy(pixels, 0, pointer, pixels.Length);
+                    bitmap.UnlockBits(bitmapData);
+                    path = Path.Combine(notebookIconDirectory.FullName, color.ToArgb() + ".png");
+                    bitmap.Save(path, ImageFormat.Png);
+                }
+                notebookIcons.Add(color,path);
+            }
+            return path;
+
+            // var colorMap = new ColorMap[notebookColors.Count];
+
+            // for (int i = 0; i < colorMap.Length; i++)
+            // {
+            //     var map = new ColorMap();
+            //     Color oldColor = notebookColors.ElementAt(i);
+            //     map.OldColor = oldColor;
+            //     map.NewColor = Color.FromArgb(((byte)oldColor.A), color.R,color.G,color.B);
+            //     colorMap[i] = map;
+            // }
+            // //context.API.LogInfo(nameof(OneNote),colorMap.Length.ToString(),nameof(CreateCacheImage));
+
+            // var imageAttributes = new ImageAttributes();
+            // imageAttributes.SetRemapTable(colorMap,ColorAdjustType.Bitmap);
+            // using (var bitmap = new Bitmap(NotebookIconFullPath))
+            // {
+            //     using (var graphics = Graphics.FromImage(bitmap))
+            //     {
+            //         var rect = new Rectangle(Point.Empty,bitmap.Size);
+            //         graphics.DrawImage(bitmap,rect,0,0,bitmap.Width,bitmap.Height,GraphicsUnit.Pixel,imageAttributes);
+
+            //         var path = Path.Combine(notebookIconDirectory.FullName, color.ToString() +".png");
+            //         bitmap.Save(path, ImageFormat.Png);
+            //         return path;
+            //     }
+            // }
+        }
     }
 }
