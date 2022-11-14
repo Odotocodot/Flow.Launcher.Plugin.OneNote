@@ -13,18 +13,6 @@ using System.Runtime.InteropServices;
 //TODO: add open to use web only -> would need Microsoft.Graph async and Azure  account (for refereshing and keep an access token) nonsense
 namespace Flow.Launcher.Plugin.OneNote
 {
-    // public static class Constants
-    // {
-    //     private readonly string logoIconPath = "Images/logo.png";
-    //     private readonly string warningIconPath = "Images/warning.png";
-    //     private readonly string syncIconPath = "Images/icons8-refresh-240.png";
-    //     private readonly string notebookIconPath = "Images/notebook.png";
-    //     private readonly string sectionIconPath = "Images/section.png";
-    // }
-
-    /// <summary>
-    /// 
-    /// </summary>
     public class OneNote : IPlugin 
     {
         private PluginInitContext context;
@@ -32,16 +20,18 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly string logoIconPath = "Images/logo.png";
         private readonly string warningIconPath = "Images/warning.png";
         private readonly string syncIconPath = "Images/icons8-refresh-240.png";
-        private readonly string notebookIconPath = "Images/notebook.png";
-        private readonly string sectionIconPath = "Images/section.png";
+        private readonly string notebookBaseIconPath = "Images/notebook.png";
+        private readonly string sectionBaseIconPath = "Images/section.png";
 
         private IOneNoteExtNotebook lastSelectedNotebook;
         private IOneNoteExtSection lastSelectedSection;
         private DirectoryInfo notebookIconDirectory;
+        private DirectoryInfo sectionIconDirectory;
 
         private Dictionary<Color,string> notebookIcons;
+        private Dictionary<Color,string> sectionIcons;
 
-        /// <inheritdoc/>
+
         public void Init(PluginInitContext context)
         {
             this.context = context;
@@ -53,33 +43,26 @@ namespace Flow.Launcher.Plugin.OneNote
             catch (Exception)
             {
                 hasOneNote = false;
+                return;
             }
-            // notebookColors = new HashSet<Color>();
-            // using (var bitmap = new Bitmap(NotebookIconFullPath))
-            // {
-            //     for (int i = 0; i < bitmap.Width; i++)
-            //     {
-            //         for (int j = 0; j < bitmap.Height; j++)
-            //         {
-            //             var color = bitmap.GetPixel(i,j);
-            //             if(color.A != 0)
-            //             {
-            //                 notebookColors.Add(color);
-            //             }
-            //         }
-            //     }
-            // }
+
             notebookIconDirectory = Directory.CreateDirectory(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "NotebookIcons"));
+            sectionIconDirectory = Directory.CreateDirectory(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "SectionIcons"));
             notebookIcons = new Dictionary<Color, string>();
+            sectionIcons = new Dictionary<Color, string>();
+
             foreach (var fileInfo in notebookIconDirectory.GetFiles())
             {
                 if(int.TryParse(fileInfo.Name, out int argb))
                     notebookIcons.Add(Color.FromArgb(argb), fileInfo.FullName);
             }
+            foreach (var fileInfo in sectionIconDirectory.GetFiles())
+            {
+                if(int.TryParse(fileInfo.Name, out int argb))
+                    sectionIcons.Add(Color.FromArgb(argb), fileInfo.FullName);
+            }
 
         }
-    
-        /// <inheritdoc/>
 
         public List<Result> Query(Query query)
         {
@@ -94,7 +77,6 @@ namespace Flow.Launcher.Plugin.OneNote
                     }
                 };
             }
-            //TODO: Cache all NotebookItems searchs
             if (string.IsNullOrEmpty(query.Search))
             {
                 var results = new List<Result>();
@@ -108,6 +90,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 });
 
                 results.AddRange(OneNoteProvider.NotebookItems.Select(nb => GetResultFromNotebook(nb)));
+                //This doesnt work probably remove it.
                 results.Add(new Result
                 {
                     Title = "Sync Notebooks",
@@ -130,6 +113,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 return results;
             }
 
+            //Search via notebook structure
             //NOTE: There is no nested sections i.e. there is nothing for the Section Group in the structure 
             if(query.FirstSearch.StartsWith("nb\\"))
             {
@@ -199,6 +183,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
             }
             
+
+            //Default search
             return OneNoteProvider.FindPages(query.Search)
                 .Select(page => GetResultFromPage(page, context.API.FuzzySearch(query.Search, page.Name).MatchData))
                 .ToList();
@@ -280,7 +266,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = section.Name,
                 SubTitle = path, // + " | " + section.Pages.Count().ToString(),
                 TitleHighlightData = highlightData,
-                IcoPath = sectionIconPath,
+                IcoPath = GetSectionIcon(section.Color.Value),
                 Action = c =>
                 {
                     lastSelectedSection = section;
@@ -324,68 +310,68 @@ namespace Flow.Launcher.Plugin.OneNote
         //     return highlightData;
         // }
 
-        //TODO: Image of notebook and section then dune
         //https://stackoverflow.com/questions/24701703/c-sharp-faster-alternatives-to-setpixel-and-getpixel-for-bitmaps-for-windows-f
         private string GetNotebookIcon(Color color)
         {
-            if (!notebookIcons.TryGetValue(color, out string path))
+            return GetColoredImaged(color,
+                            Path.Combine(context.CurrentPluginMetadata.PluginDirectory, notebookBaseIconPath),
+                            notebookIcons,
+                            notebookIconDirectory);
+            // if (!notebookIcons.TryGetValue(color, out string path))
+            // {
+            //     path = CreateColoredImage(color, Path.Combine(context.CurrentPluginMetadata.PluginDirectory, notebookIconPath), notebookIconDirectory);
+            //     notebookIcons.Add(color, path);
+            // }
+            // return path;
+        }
+
+        private string GetSectionIcon(Color color) => GetColoredImaged(color,
+                                    Path.Combine(context.CurrentPluginMetadata.PluginDirectory, sectionBaseIconPath),
+                                    sectionIcons,
+                                    sectionIconDirectory);
+
+
+        private string GetColoredImaged(Color color, string imageFileName, Dictionary<Color, string> iconsDictonary, DirectoryInfo directoryInfo)
+        {
+            if (!iconsDictonary.TryGetValue(color, out string path))
             {
-                using (var bitmap = new Bitmap(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, notebookIconPath)))
-                {
-                    BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
-
-                    int bytesPerPixel = Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-                    byte[] pixels = new byte[bitmapData.Stride * bitmap.Height];
-                    IntPtr pointer = bitmapData.Scan0;
-                    Marshal.Copy(pointer, pixels, 0, pixels.Length);
-                    int bytesWidth = bitmapData.Width * bytesPerPixel;
-
-                    for (int j = 0; j < bitmapData.Height; j++)
-                    {
-                        int line = j * bitmapData.Stride;
-                        for (int i = 0; i < bytesWidth; i = i + bytesPerPixel)
-                        {
-                            pixels[line + i] = color.B;
-                            pixels[line + i + 1] = color.G;
-                            pixels[line + i + 2] = color.R;
-                        }
-                    }
-
-                    Marshal.Copy(pixels, 0, pointer, pixels.Length);
-                    bitmap.UnlockBits(bitmapData);
-                    path = Path.Combine(notebookIconDirectory.FullName, color.ToArgb() + ".png");
-                    bitmap.Save(path, ImageFormat.Png);
-                }
-                notebookIcons.Add(color,path);
+                path = CreateColoredImage(color, imageFileName, directoryInfo);
+                iconsDictonary.Add(color, path);
             }
             return path;
+        }
 
-            // var colorMap = new ColorMap[notebookColors.Count];
+        private string CreateColoredImage(Color color, string imageFileName, DirectoryInfo saveDirectory)
+        {
+            string path;
+            using (var bitmap = new Bitmap(imageFileName))
+            {
+                BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
-            // for (int i = 0; i < colorMap.Length; i++)
-            // {
-            //     var map = new ColorMap();
-            //     Color oldColor = notebookColors.ElementAt(i);
-            //     map.OldColor = oldColor;
-            //     map.NewColor = Color.FromArgb(((byte)oldColor.A), color.R,color.G,color.B);
-            //     colorMap[i] = map;
-            // }
-            // //context.API.LogInfo(nameof(OneNote),colorMap.Length.ToString(),nameof(CreateCacheImage));
+                int bytesPerPixel = Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
+                byte[] pixels = new byte[bitmapData.Stride * bitmap.Height];
+                IntPtr pointer = bitmapData.Scan0;
+                Marshal.Copy(pointer, pixels, 0, pixels.Length);
+                int bytesWidth = bitmapData.Width * bytesPerPixel;
 
-            // var imageAttributes = new ImageAttributes();
-            // imageAttributes.SetRemapTable(colorMap,ColorAdjustType.Bitmap);
-            // using (var bitmap = new Bitmap(NotebookIconFullPath))
-            // {
-            //     using (var graphics = Graphics.FromImage(bitmap))
-            //     {
-            //         var rect = new Rectangle(Point.Empty,bitmap.Size);
-            //         graphics.DrawImage(bitmap,rect,0,0,bitmap.Width,bitmap.Height,GraphicsUnit.Pixel,imageAttributes);
+                for (int j = 0; j < bitmapData.Height; j++)
+                {
+                    int line = j * bitmapData.Stride;
+                    for (int i = 0; i < bytesWidth; i = i + bytesPerPixel)
+                    {
+                        pixels[line + i] = color.B;
+                        pixels[line + i + 1] = color.G;
+                        pixels[line + i + 2] = color.R;
+                    }
+                }
 
-            //         var path = Path.Combine(notebookIconDirectory.FullName, color.ToString() +".png");
-            //         bitmap.Save(path, ImageFormat.Png);
-            //         return path;
-            //     }
-            // }
+                Marshal.Copy(pixels, 0, pointer, pixels.Length);
+                bitmap.UnlockBits(bitmapData);
+                path = Path.Combine(saveDirectory.FullName, color.ToArgb() + ".png");
+                bitmap.Save(path, ImageFormat.Png);
+            }
+
+            return path;
         }
     }
 }
