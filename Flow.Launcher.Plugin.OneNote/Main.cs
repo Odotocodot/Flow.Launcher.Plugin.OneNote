@@ -18,13 +18,14 @@ namespace Flow.Launcher.Plugin.OneNote
         private PluginInitContext context;
         private bool hasOneNote;
         private readonly string logoIconPath = "Images/logo.png";
-        private readonly string warningIconPath = "Images/warning.png";
+        private readonly string warningIconPath = "Images/icons8-unavailable-240.png";
         private readonly string syncIconPath = "Images/icons8-refresh-240.png";
         private readonly string notebookBaseIconPath = "Images/notebook.png";
         private readonly string sectionBaseIconPath = "Images/section.png";
 
         private IOneNoteExtNotebook lastSelectedNotebook;
         private IOneNoteExtSection lastSelectedSection;
+
         private DirectoryInfo notebookIconDirectory;
         private DirectoryInfo sectionIconDirectory;
 
@@ -187,8 +188,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         break;
                 }
             }
-            
-
+        
             //Default search
             return OneNoteProvider.FindPages(query.Search)
                 .Select(page => GetResultFromPage(page, context.API.FuzzySearch(query.Search, page.Name).MatchData))
@@ -261,7 +261,7 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
 
-        private Result GetResultsFromSection(IOneNoteExtSection section, IOneNoteExtNotebook notebook,List<int> highlightData = null)
+        private Result GetResultsFromSection(IOneNoteExtSection section, IOneNoteExtNotebook notebook, List<int> highlightData = null)
         {
             var sectionPath = section.Path;
             var index = sectionPath.IndexOf(notebook.Name);
@@ -296,86 +296,60 @@ namespace Flow.Launcher.Plugin.OneNote
                 },
             };
         }
-        
-        // private List<int> GetHighlightData(Query query, string stringToCheck,int searchTermsStartIndex = 0, int stringToCheckIndex = 0)
-        // {
-        //     List<int> highlightData = new();
-        //     for (int i = searchTermsStartIndex; i < query.SearchTerms.Length; i++)
-        //     {
-        //         string searchTerm = query.SearchTerms[i];
-        //         var index = stringToCheck.IndexOf(searchTerm, 0, StringComparison.OrdinalIgnoreCase);
-        //         if (index != -1)
-        //         {
-        //             for (int j = 0 + stringToCheckIndex; j < searchTerm.Length + stringToCheckIndex; j++)
-        //             {
-        //                 highlightData.Add(index + j);
-        //             }
-        //         }
-        //     }
-        //     return highlightData;
-        // }
 
-        //https://stackoverflow.com/questions/24701703/c-sharp-faster-alternatives-to-setpixel-and-getpixel-for-bitmaps-for-windows-f
-        private string GetNotebookIcon(Color color)
+        private string GetNotebookIcon(Color color) 
         {
             return GetColoredImaged(color,
-                            Path.Combine(context.CurrentPluginMetadata.PluginDirectory, notebookBaseIconPath),
-                            notebookIcons,
-                            notebookIconDirectory);
-            // if (!notebookIcons.TryGetValue(color, out string path))
-            // {
-            //     path = CreateColoredImage(color, Path.Combine(context.CurrentPluginMetadata.PluginDirectory, notebookIconPath), notebookIconDirectory);
-            //     notebookIcons.Add(color, path);
-            // }
-            // return path;
+                                    Path.Combine(context.CurrentPluginMetadata.PluginDirectory, notebookBaseIconPath),
+                                    notebookIcons,
+                                    notebookIconDirectory);
         }
 
-        private string GetSectionIcon(Color color) => GetColoredImaged(color,
+
+        
+
+        private string GetSectionIcon(Color color)
+        {
+            return GetColoredImaged(color,
                                     Path.Combine(context.CurrentPluginMetadata.PluginDirectory, sectionBaseIconPath),
                                     sectionIcons,
                                     sectionIconDirectory);
-
-
+        }
+ 
+        //TODO convert dictionary, imagefilename, and directory info into a class;
         private string GetColoredImaged(Color color, string imageFileName, Dictionary<Color, string> iconsDictonary, DirectoryInfo directoryInfo)
         {
             if (!iconsDictonary.TryGetValue(color, out string path))
             {
-                path = CreateColoredImage(color, imageFileName, directoryInfo);
+                //Create Colored Image
+                using (var bitmap = new Bitmap(imageFileName))
+                    {
+                        BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
+
+                        int bytesPerPixel = Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
+                        byte[] pixels = new byte[bitmapData.Stride * bitmap.Height];
+                        IntPtr pointer = bitmapData.Scan0;
+                        Marshal.Copy(pointer, pixels, 0, pixels.Length);
+                        int bytesWidth = bitmapData.Width * bytesPerPixel;
+
+                        for (int j = 0; j < bitmapData.Height; j++)
+                        {
+                            int line = j * bitmapData.Stride;
+                            for (int i = 0; i < bytesWidth; i = i + bytesPerPixel)
+                            {
+                                pixels[line + i] = color.B;
+                                pixels[line + i + 1] = color.G;
+                                pixels[line + i + 2] = color.R;
+                            }
+                        }
+
+                        Marshal.Copy(pixels, 0, pointer, pixels.Length);
+                        bitmap.UnlockBits(bitmapData);
+                        path = Path.Combine(directoryInfo.FullName, color.ToArgb() + ".png");
+                        bitmap.Save(path, ImageFormat.Png);
+                    }
                 iconsDictonary.Add(color, path);
             }
-            return path;
-        }
-
-        private string CreateColoredImage(Color color, string imageFileName, DirectoryInfo saveDirectory)
-        {
-            string path;
-            using (var bitmap = new Bitmap(imageFileName))
-            {
-                BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
-
-                int bytesPerPixel = Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-                byte[] pixels = new byte[bitmapData.Stride * bitmap.Height];
-                IntPtr pointer = bitmapData.Scan0;
-                Marshal.Copy(pointer, pixels, 0, pixels.Length);
-                int bytesWidth = bitmapData.Width * bytesPerPixel;
-
-                for (int j = 0; j < bitmapData.Height; j++)
-                {
-                    int line = j * bitmapData.Stride;
-                    for (int i = 0; i < bytesWidth; i = i + bytesPerPixel)
-                    {
-                        pixels[line + i] = color.B;
-                        pixels[line + i + 1] = color.G;
-                        pixels[line + i + 2] = color.R;
-                    }
-                }
-
-                Marshal.Copy(pixels, 0, pointer, pixels.Length);
-                bitmap.UnlockBits(bitmapData);
-                path = Path.Combine(saveDirectory.FullName, color.ToArgb() + ".png");
-                bitmap.Save(path, ImageFormat.Png);
-            }
-
             return path;
         }
     }
