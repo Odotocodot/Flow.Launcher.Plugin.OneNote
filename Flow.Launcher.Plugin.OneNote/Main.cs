@@ -7,10 +7,6 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 
-//https://github.com/microsoft/PowerToys/blob/9b7a7f93b716afbbc476efaa2a57fb0f365b126b/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote/Main.cs
-//Icon8
-//Flaticon
-//TODO: add open to use web only -> would need Microsoft.Graph async and Azure  account (for refereshing and keep an access token) nonsense
 namespace Flow.Launcher.Plugin.OneNote
 {
     public class OneNote : IPlugin 
@@ -18,20 +14,41 @@ namespace Flow.Launcher.Plugin.OneNote
         private PluginInitContext context;
         private bool hasOneNote;
         private readonly string logoIconPath = "Images/logo.png";
-        private readonly string warningIconPath = "Images/icons8-unavailable-240.png";
-        private readonly string syncIconPath = "Images/icons8-refresh-240.png";
-        private readonly string notebookBaseIconPath = "Images/notebook.png";
-        private readonly string sectionBaseIconPath = "Images/section.png";
+        private readonly string unavailableIconPath = "Images/unavailable.png";
+        private readonly string syncIconPath = "Images/refresh.png";
+        // private readonly string notebookBaseIconPath = "Images/notebook.png";
+        // private readonly string sectionBaseIconPath = "Images/section.png";
 
         private IOneNoteExtNotebook lastSelectedNotebook;
         private IOneNoteExtSection lastSelectedSection;
 
-        private DirectoryInfo notebookIconDirectory;
-        private DirectoryInfo sectionIconDirectory;
+        // private DirectoryInfo notebookIconDirectory;
+        // private DirectoryInfo sectionIconDirectory;
 
-        private Dictionary<Color,string> notebookIcons;
-        private Dictionary<Color,string> sectionIcons;
+        // private Dictionary<Color,string> notebookIcons;
+        // private Dictionary<Color,string> sectionIcons;
 
+        private ItemInfo notebookInfo;
+        private ItemInfo sectionInfo;
+
+        private class ItemInfo
+        {
+            public Dictionary<Color, string> icons;
+            public DirectoryInfo iconDirectory;
+            public readonly string baseIconPath;
+
+            public ItemInfo(string folderName, string iconName, PluginInitContext context)
+            {
+                this.icons = new Dictionary<Color, string>();
+                this.iconDirectory = Directory.CreateDirectory(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, folderName));
+                this.baseIconPath = Path.Combine(context.CurrentPluginMetadata.PluginDirectory,"Images/"+iconName);
+                foreach (var fileInfo in iconDirectory.GetFiles())
+                {
+                    if(int.TryParse(fileInfo.Name, out int argb))
+                        icons.Add(Color.FromArgb(argb), fileInfo.FullName);
+                }
+            }
+        }
 
         public void Init(PluginInitContext context)
         {
@@ -47,21 +64,24 @@ namespace Flow.Launcher.Plugin.OneNote
                 return;
             }
 
-            notebookIconDirectory = Directory.CreateDirectory(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "NotebookIcons"));
-            sectionIconDirectory = Directory.CreateDirectory(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "SectionIcons"));
-            notebookIcons = new Dictionary<Color, string>();
-            sectionIcons = new Dictionary<Color, string>();
+            notebookInfo = new ItemInfo("NotebookIcons","notebook.png",context);
+            sectionInfo = new ItemInfo("SectionIcons","section.png",context);
 
-            foreach (var fileInfo in notebookIconDirectory.GetFiles())
-            {
-                if(int.TryParse(fileInfo.Name, out int argb))
-                    notebookIcons.Add(Color.FromArgb(argb), fileInfo.FullName);
-            }
-            foreach (var fileInfo in sectionIconDirectory.GetFiles())
-            {
-                if(int.TryParse(fileInfo.Name, out int argb))
-                    sectionIcons.Add(Color.FromArgb(argb), fileInfo.FullName);
-            }
+            // notebookIconDirectory = Directory.CreateDirectory(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "NotebookIcons"));
+            // sectionIconDirectory = Directory.CreateDirectory(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "SectionIcons"));
+            // notebookIcons = new Dictionary<Color, string>();
+            // sectionIcons = new Dictionary<Color, string>();
+
+            // foreach (var fileInfo in notebookIconDirectory.GetFiles())
+            // {
+            //     if(int.TryParse(fileInfo.Name, out int argb))
+            //         notebookIcons.Add(Color.FromArgb(argb), fileInfo.FullName);
+            // }
+            // foreach (var fileInfo in sectionIconDirectory.GetFiles())
+            // {
+            //     if(int.TryParse(fileInfo.Name, out int argb))
+            //         sectionIcons.Add(Color.FromArgb(argb), fileInfo.FullName);
+            // }
 
         }
 
@@ -74,7 +94,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     new Result
                     {
                         Title = "OneNote is not installed.",
-                        IcoPath = warningIconPath
+                        IcoPath = unavailableIconPath
                     }
                 };
             }
@@ -96,7 +116,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 });
 
                 //results.AddRange(OneNoteProvider.NotebookItems.Select(nb => GetResultFromNotebook(nb)));
-                //This doesnt work probably remove it.
+                //Unsure if this actually works.
                 results.Add(new Result
                 {
                     Title = "Sync Notebooks",
@@ -104,15 +124,16 @@ namespace Flow.Launcher.Plugin.OneNote
                     Score = int.MinValue,
                     Action = c =>
                     {
-                        foreach (var item in OneNoteProvider.NotebookItems)
-                        {
-                            Utils.CallOneNoteSafely<object>(oneNote =>
-                            {
-                                oneNote.SyncHierarchy(item.ID);
-                                return default;
-                            }
-                            );
-                        }
+                        OneNoteProvider.NotebookItems.Sync();
+                        // foreach (var item in OneNoteProvider.NotebookItems)
+                        // {
+                        //     Utils.CallOneNoteSafely<object>(oneNote =>
+                        //     {
+                        //         oneNote.SyncHierarchy(item.ID);
+                        //         return default;
+                        //     }
+                        //     );
+                        // }
                         return false;
                     }
                 });
@@ -157,15 +178,15 @@ namespace Flow.Launcher.Plugin.OneNote
                         if(string.IsNullOrWhiteSpace(searchString))
                         {
                             lastSelectedSection = null;
-                            return lastSelectedNotebook.Sections.Select(st => GetResultsFromSection(st,lastSelectedNotebook)).ToList();
+                            return lastSelectedNotebook.Sections.Select(s => GetResultsFromSection(s,lastSelectedNotebook)).ToList();
                         }
-                        return lastSelectedNotebook.Sections.Where(st => 
+                        return lastSelectedNotebook.Sections.Where(s => 
                         {
-                            if(lastSelectedSection != null && st.ID == lastSelectedSection.ID)
+                            if(lastSelectedSection != null && s.ID == lastSelectedSection.ID)
                                 return true;
-                            return TreeQuery(st.Name,searchString,out highlightData);
+                            return TreeQuery(s.Name,searchString,out highlightData);
                         })
-                        .Select(st => GetResultsFromSection(st, lastSelectedNotebook, highlightData))
+                        .Select(s => GetResultsFromSection(s, lastSelectedNotebook, highlightData))
                         .ToList();
 
                     case 4://Searching pages in a section
@@ -208,9 +229,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 var notebook = OneNoteProvider.NotebookItems.FirstOrDefault(nb => nb.Name == notebookName);
                 if (notebook == null)
-                {
                     return false;
-                }
                 lastSelectedNotebook = notebook;
                 return true;
             }
@@ -221,11 +240,9 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             if(lastSelectedSection == null) //Check if section is valid
             {
-                var section = lastSelectedNotebook.Sections.FirstOrDefault(st => st.Name == sectionName);
+                var section = lastSelectedNotebook.Sections.FirstOrDefault(s => s.Name == sectionName);
                 if (section == null)
-                {
                     return false;
-                }
                 lastSelectedSection = section;
                 return true;
             }
@@ -246,8 +263,8 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = page.Name,
                 SubTitle = path,
-                TitleToolTip = "Last Modified: " + page.LastModified,
-                SubTitleToolTip = "Created: " + page.DateTime,
+                TitleToolTip = "Created: " + page.DateTime + "\nLast Modified: " + page.LastModified,
+                SubTitleToolTip = path,
                 IcoPath = logoIconPath,
                 ContextData = page,
                 TitleHighlightData = highlightingData,
@@ -271,7 +288,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = section.Name,
                 SubTitle = path, // + " | " + section.Pages.Count().ToString(),
                 TitleHighlightData = highlightData,
-                IcoPath = GetSectionIcon(section.Color.Value),
+                IcoPath = GetIcon(section.Color.Value,sectionInfo),//GetSectionIcon(section.Color.Value),
                 Action = c =>
                 {
                     lastSelectedSection = section;
@@ -286,7 +303,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = notebook.Name,
-                IcoPath = GetNotebookIcon(notebook.Color.Value),
+                IcoPath = GetIcon(notebook.Color.Value, notebookInfo),//GetNotebookIcon(notebook.Color.Value),
                 TitleHighlightData = highlightData,
                 Action = c =>
                 {
@@ -297,26 +314,27 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
 
-        private string GetNotebookIcon(Color color) 
+        // private string GetNotebookIcon(Color color) 
+        // {
+        //     return GetColoredImaged(color,
+        //                             Path.Combine(context.CurrentPluginMetadata.PluginDirectory, notebookBaseIconPath),
+        //                             notebookIcons,
+        //                             notebookIconDirectory);
+        // }        
+
+        // private string GetSectionIcon(Color color)
+        // {
+        //     return GetColoredImaged(color,
+        //                             Path.Combine(context.CurrentPluginMetadata.PluginDirectory, sectionBaseIconPath),
+        //                             sectionIcons,
+        //                             sectionIconDirectory);
+        // }
+
+        private string GetIcon(Color color, ItemInfo item)
         {
-            return GetColoredImaged(color,
-                                    Path.Combine(context.CurrentPluginMetadata.PluginDirectory, notebookBaseIconPath),
-                                    notebookIcons,
-                                    notebookIconDirectory);
-        }
-
-
-        
-
-        private string GetSectionIcon(Color color)
-        {
-            return GetColoredImaged(color,
-                                    Path.Combine(context.CurrentPluginMetadata.PluginDirectory, sectionBaseIconPath),
-                                    sectionIcons,
-                                    sectionIconDirectory);
+            return GetColoredImaged(color, item.baseIconPath, item.icons, item.iconDirectory);
         }
  
-        //TODO convert dictionary, imagefilename, and directory info into a class;
         private string GetColoredImaged(Color color, string imageFileName, Dictionary<Color, string> iconsDictonary, DirectoryInfo directoryInfo)
         {
             if (!iconsDictonary.TryGetValue(color, out string path))

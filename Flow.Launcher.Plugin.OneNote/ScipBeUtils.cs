@@ -25,7 +25,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.Office.Interop.OneNote;
 
-namespace Flow.Launcher.Plugin.OneNote
+namespace Flow.Launcher.Plugin.OneNote.ScipBeUtils
 {
     /// <summary>
     /// <para>Utils from ScipBe.Common.Office.OneNote </para>
@@ -67,7 +67,7 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
 
-        internal static T CallOneNoteSafely<T>(Func<Application, T> action)
+        internal static void CallOneNoteSafely(Action<Application> action)
         {
             Application oneNote = null;
             try
@@ -77,7 +77,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     TimeSpan.FromMilliseconds(100),
                     3,
                     ex => System.Diagnostics.Trace.TraceError(ex.Message));
-                return action(oneNote);
+                action(oneNote);
             }
             finally
             {
