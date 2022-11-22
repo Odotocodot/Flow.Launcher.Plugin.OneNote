@@ -83,13 +83,18 @@ namespace Flow.Launcher.Plugin.OneNote
                 results.Add(new Result
                 {
                     Title = "Search OneNote pages",
-                    SubTitle = "Type \"nb\\\" to search by notebook structure",
+                    SubTitle = "Type \"nb\\\" to search by notebook structure or select this option",
                     IcoPath = logoIconPath,
                     AutoCompleteText = "Type something",
+                    Action = c =>
+                    {
+                        context.API.ChangeQuery($"on nb\\");
+                        return false;
+                    },
                     Score = int.MaxValue,
                 });
 
-                results.AddRange(OneNoteProvider.NotebookItems.Select(nb => GetResultFromNotebook(nb)));
+                //results.AddRange(OneNoteProvider.NotebookItems.Select(nb => GetResultFromNotebook(nb)));
                 //This doesnt work probably remove it.
                 results.Add(new Result
                 {
