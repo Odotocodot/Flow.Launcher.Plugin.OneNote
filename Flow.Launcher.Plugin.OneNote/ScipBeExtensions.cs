@@ -4,7 +4,7 @@ using static Flow.Launcher.Plugin.OneNote.ScipBeUtils.Utils;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public static class Extensions
+    public static class ScipBeExtensions
     {
         
         public static void Sync(this IOneNotePage item)
@@ -51,5 +51,5 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
             });
         }
-    }    
+    }
 }

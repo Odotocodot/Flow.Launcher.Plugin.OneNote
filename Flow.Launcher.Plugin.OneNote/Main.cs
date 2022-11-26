@@ -2,45 +2,27 @@ using System;
 using System.Collections.Generic;
 using ScipBe.Common.Office.OneNote;
 using System.Linq;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Runtime.InteropServices;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNote : IPlugin 
+    public class OneNote : IPlugin,  IContextMenu
     {
         private PluginInitContext context;
         private bool hasOneNote;
         private readonly string logoIconPath = "Images/logo.png";
         private readonly string unavailableIconPath = "Images/unavailable.png";
         private readonly string syncIconPath = "Images/refresh.png";
+        private readonly string recentIconPath = "Images/recent.png";
+        
+        private readonly string structureKeyword = "nb\\";
+        private readonly string recentKeyword = "rcntpgs:";
+        private readonly int recentPagesCount = 7;
 
         private IOneNoteExtNotebook lastSelectedNotebook;
         private IOneNoteExtSection lastSelectedSection;
 
-        private ItemInfo notebookInfo;
-        private ItemInfo sectionInfo;
-
-        private class ItemInfo
-        {
-            public Dictionary<Color, string> icons;
-            public DirectoryInfo iconDirectory;
-            public readonly string baseIconPath;
-
-            public ItemInfo(string folderName, string iconName, PluginInitContext context)
-            {
-                this.icons = new Dictionary<Color, string>();
-                this.iconDirectory = Directory.CreateDirectory(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, folderName));
-                this.baseIconPath = Path.Combine(context.CurrentPluginMetadata.PluginDirectory,"Images/"+iconName);
-                foreach (var fileInfo in iconDirectory.GetFiles())
-                {
-                    if(int.TryParse(fileInfo.Name, out int argb))
-                        icons.Add(Color.FromArgb(argb), fileInfo.FullName);
-                }
-            }
-        }
+        private OneNoteItemInfo notebookInfo;
+        private OneNoteItemInfo sectionInfo;
 
         public void Init(PluginInitContext context)
         {
@@ -56,8 +38,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 return;
             }
 
-            notebookInfo = new ItemInfo("NotebookIcons","notebook.png",context);
-            sectionInfo = new ItemInfo("SectionIcons","section.png",context);
+            notebookInfo = new OneNoteItemInfo("NotebookIcons","notebook.png",context);
+            sectionInfo = new OneNoteItemInfo("SectionIcons","section.png",context);
         }
 
         public List<Result> Query(Query query)
@@ -79,26 +61,37 @@ namespace Flow.Launcher.Plugin.OneNote
                 results.Add(new Result
                 {
                     Title = "Search OneNote pages",
-                    SubTitle = "Type \"nb\\\" to search by notebook structure or select this option",
+                    SubTitle = "Type \""+structureKeyword+"\" to search by notebook structure or select this option",
+                    AutoCompleteText = context.CurrentPluginMetadata.ActionKeyword + " "+structureKeyword,
                     IcoPath = logoIconPath,
-                    AutoCompleteText = "Type something",
+                    Score = 2000,
                     Action = c =>
                     {
-                        context.API.ChangeQuery($"on nb\\");
+                        context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {structureKeyword}");
                         return false;
                     },
-                    Score = int.MaxValue,
                 });
-
-                //results.AddRange(OneNoteProvider.NotebookItems.Select(nb => GetResultFromNotebook(nb)));
-                //Unsure if this actually works.
                 results.Add(new Result
                 {
-                    Title = "Sync Notebooks",
+                    Title = "See recent pages",
+                    SubTitle = "Type \""+recentKeyword+"\" to see last modified pages or select this option",
+                    AutoCompleteText = context.CurrentPluginMetadata.ActionKeyword + " " + recentKeyword,
+                    IcoPath = recentIconPath,
+                    Score = -1000,
+                    Action = c =>
+                    {
+                        context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword + " " + recentKeyword);
+                        return false;
+                    },
+                });
+                results.Add(new Result
+                {
+                    Title = "Open and sync notebooks",
                     IcoPath = syncIconPath,
                     Score = int.MinValue,
                     Action = c =>
                     {
+                        OneNoteProvider.PageItems.First().OpenInOneNote();
                         OneNoteProvider.NotebookItems.Sync();
                         return false;
                     }
@@ -106,9 +99,17 @@ namespace Flow.Launcher.Plugin.OneNote
                 return results;
             }
 
+            if(query.FirstSearch == recentKeyword)
+            {
+                return OneNoteProvider.PageItems.OrderByDescending(pg => pg.LastModified)
+                    .Select(pg => GetResultFromPage(pg,null))
+                    .Take(recentPagesCount)
+                    .ToList();
+            }
+
             //Search via notebook structure
             //NOTE: There is no nested sections i.e. there is nothing for the Section Group in the structure 
-            if(query.FirstSearch.StartsWith("nb\\"))
+            if(query.FirstSearch.StartsWith(structureKeyword))
             {
                 string[] searchStrings = query.Search.Split('\\',StringSplitOptions.None);
                 string searchString;
@@ -116,7 +117,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 //Could replace switch case with for loop
                 switch (searchStrings.Length)
                 {
-                    case 2://Full query for notebook not complete e.g. nb\User Noteb 
+                    case 2://Full query for notebook not complete e.g. nb\User Noteb
                         //Get matching notebooks and create results.
                         searchString = searchStrings[1];
                         
@@ -150,7 +151,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         {
                             if(lastSelectedSection != null && s.ID == lastSelectedSection.ID)
                                 return true;
-                            return TreeQuery(s.Name,searchString,out highlightData);
+                            return TreeQuery(s.Name, searchString, out highlightData);
                         })
                         .Select(s => GetResultsFromSection(s, lastSelectedNotebook, highlightData))
                         .ToList();
@@ -176,7 +177,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
             }
         
-            //Default search
+            //Default search 
             return OneNoteProvider.FindPages(query.Search)
                 .Select(page => GetResultFromPage(page, context.API.FuzzySearch(query.Search, page.Name).MatchData))
                 .ToList();
@@ -188,6 +189,50 @@ namespace Flow.Launcher.Plugin.OneNote
                 return matchResult.IsSearchPrecisionScoreMet();
             }
         }
+
+        public List<Result> LoadContextMenus(Result selectedResult)
+        {
+            switch(selectedResult.ContextData)
+            {
+                case IOneNoteExtNotebook notebook:
+                    return new List<Result>{new Result
+                    {
+                        Title = "Open and sync notebook",
+                        SubTitle = notebook.Name,
+                        IcoPath = notebookInfo.GetIcon(notebook.Color.Value),
+                        Action = c =>
+                        {
+                            notebook.Sections.First().Pages
+                                .OrderByDescending(pg => pg.LastModified)
+                                .First()
+                                .OpenInOneNote();
+                            notebook.Sync();
+                            return true;
+                        }
+                    }};
+                case IOneNoteExtSection section:
+                    return new List<Result>{
+                    new Result
+                    {
+                        Title = "Open and sync section",
+                        SubTitle = section.Name,
+                        IcoPath = sectionInfo.GetIcon(section.Color.Value),
+                        Action = c =>
+                        {
+                            section.Pages.OrderByDescending(pg => pg.LastModified)
+                                .First()
+                                .OpenInOneNote();
+                            section.Sync();
+                            return true;
+                        }
+                    }};
+
+                default:
+                    return new List<Result>();
+            }
+        }
+
+
 
         private bool ValidateNotebook(string notebookName)
         {
@@ -254,11 +299,12 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = section.Name,
                 SubTitle = path, // + " | " + section.Pages.Count().ToString(),
                 TitleHighlightData = highlightData,
-                IcoPath = GetIcon(section.Color.Value,sectionInfo),//GetSectionIcon(section.Color.Value),
+                ContextData = section,
+                IcoPath = sectionInfo.GetIcon(section.Color.Value),
                 Action = c =>
                 {
                     lastSelectedSection = section;
-                    context.API.ChangeQuery($"on nb\\{lastSelectedNotebook.Name}\\{section.Name}\\");
+                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {structureKeyword}{lastSelectedNotebook.Name}\\{section.Name}\\");
                     return false;
                 },
             };
@@ -269,51 +315,16 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = notebook.Name,
-                IcoPath = GetIcon(notebook.Color.Value, notebookInfo),
                 TitleHighlightData = highlightData,
+                ContextData = notebook,
+                IcoPath = notebookInfo.GetIcon(notebook.Color.Value),
                 Action = c =>
                 {
                     lastSelectedNotebook = notebook;
-                    context.API.ChangeQuery($"on nb\\{notebook.Name}\\");
+                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {structureKeyword}{notebook.Name}\\"); 
                     return false;
                 },
             };
         }
- 
-        private string GetIcon(Color color, ItemInfo item)
-        {
-            if (!item.icons.TryGetValue(color, out string path))
-            {
-                //Create Colored Image
-                using (var bitmap = new Bitmap(item.baseIconPath))
-                    {
-                        BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
-
-                        int bytesPerPixel = Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-                        byte[] pixels = new byte[bitmapData.Stride * bitmap.Height];
-                        IntPtr pointer = bitmapData.Scan0;
-                        Marshal.Copy(pointer, pixels, 0, pixels.Length);
-                        int bytesWidth = bitmapData.Width * bytesPerPixel;
-
-                        for (int j = 0; j < bitmapData.Height; j++)
-                        {
-                            int line = j * bitmapData.Stride;
-                            for (int i = 0; i < bytesWidth; i = i + bytesPerPixel)
-                            {
-                                pixels[line + i] = color.B;
-                                pixels[line + i + 1] = color.G;
-                                pixels[line + i + 2] = color.R;
-                            }
-                        }
-
-                        Marshal.Copy(pixels, 0, pointer, pixels.Length);
-                        bitmap.UnlockBits(bitmapData);
-                        path = Path.Combine(item.iconDirectory.FullName, color.ToArgb() + ".png");
-                        bitmap.Save(path, ImageFormat.Png);
-                    }
-                item.icons.Add(color, path);
-            }
-            return path;
-        }
-    }
+     }
 }
