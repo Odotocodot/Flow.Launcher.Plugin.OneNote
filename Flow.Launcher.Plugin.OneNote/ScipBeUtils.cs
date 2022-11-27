@@ -86,5 +86,5 @@ namespace Flow.Launcher.Plugin.OneNote.ScipBeUtils
                 }
             }
         }
-    }    
+    }
 }

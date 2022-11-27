@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNote : IPlugin,  IContextMenu
+    public class OneNote : IPlugin, IContextMenu
     {
         private PluginInitContext context;
         private bool hasOneNote;
@@ -13,10 +13,10 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly string unavailableIconPath = "Images/unavailable.png";
         private readonly string syncIconPath = "Images/refresh.png";
         private readonly string recentIconPath = "Images/recent.png";
-        
+
         private readonly string structureKeyword = "nb\\";
         private readonly string recentKeyword = "rcntpgs:";
-        private readonly int recentPagesCount = 7;
+        private readonly int recentPagesCount = 5;
 
         private IOneNoteExtNotebook lastSelectedNotebook;
         private IOneNoteExtSection lastSelectedSection;
@@ -38,8 +38,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 return;
             }
 
-            notebookInfo = new OneNoteItemInfo("NotebookIcons","notebook.png",context);
-            sectionInfo = new OneNoteItemInfo("SectionIcons","section.png",context);
+            notebookInfo = new OneNoteItemInfo("NotebookIcons", "notebook.png", context);
+            sectionInfo = new OneNoteItemInfo("SectionIcons", "section.png", context);
         }
 
         public List<Result> Query(Query query)
@@ -61,8 +61,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 results.Add(new Result
                 {
                     Title = "Search OneNote pages",
-                    SubTitle = "Type \""+structureKeyword+"\" to search by notebook structure or select this option",
-                    AutoCompleteText = context.CurrentPluginMetadata.ActionKeyword + " "+structureKeyword,
+                    SubTitle = "Type \"" + structureKeyword + "\" to search by notebook structure or select this option",
+                    AutoCompleteText = context.CurrentPluginMetadata.ActionKeyword + " " + structureKeyword,
                     IcoPath = logoIconPath,
                     Score = 2000,
                     Action = c =>
@@ -74,7 +74,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 results.Add(new Result
                 {
                     Title = "See recent pages",
-                    SubTitle = "Type \""+recentKeyword+"\" to see last modified pages or select this option",
+                    SubTitle = "Type \"" + recentKeyword + "\" to see last modified pages or select this option",
                     AutoCompleteText = context.CurrentPluginMetadata.ActionKeyword + " " + recentKeyword,
                     IcoPath = recentIconPath,
                     Score = -1000,
@@ -98,20 +98,25 @@ namespace Flow.Launcher.Plugin.OneNote
                 });
                 return results;
             }
-
-            if(query.FirstSearch == recentKeyword)
+            if (query.FirstSearch.StartsWith(recentKeyword))
             {
+                int count = recentPagesCount;
+                if (query.FirstSearch.Length > recentKeyword.Length && int.TryParse(query.FirstSearch[recentKeyword.Length..], out int userChosenCount))
+                {
+                    count = userChosenCount;
+                }
+
                 return OneNoteProvider.PageItems.OrderByDescending(pg => pg.LastModified)
-                    .Select(pg => GetResultFromPage(pg,null))
-                    .Take(recentPagesCount)
+                    .Select(pg => GetResultFromPage(pg, null))
+                    .Take(count)
                     .ToList();
             }
 
             //Search via notebook structure
             //NOTE: There is no nested sections i.e. there is nothing for the Section Group in the structure 
-            if(query.FirstSearch.StartsWith(structureKeyword))
+            if (query.FirstSearch.StartsWith(structureKeyword))
             {
-                string[] searchStrings = query.Search.Split('\\',StringSplitOptions.None);
+                string[] searchStrings = query.Search.Split('\\', StringSplitOptions.None);
                 string searchString;
                 List<int> highlightData = null;
                 //Could replace switch case with for loop
@@ -120,7 +125,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     case 2://Full query for notebook not complete e.g. nb\User Noteb
                         //Get matching notebooks and create results.
                         searchString = searchStrings[1];
-                        
+
                         if (string.IsNullOrWhiteSpace(searchString)) // Do a normall notebook search
                         {
                             lastSelectedNotebook = null;
@@ -135,21 +140,21 @@ namespace Flow.Launcher.Plugin.OneNote
                         })
                         .Select(nb => GetResultFromNotebook(nb, highlightData))
                         .ToList();
-                        
+
                     case 3://Full query for section not complete e.g nb\User Notebook\Happine
                         searchString = searchStrings[2];
 
-                        if(!ValidateNotebook(searchStrings[1]))
+                        if (!ValidateNotebook(searchStrings[1]))
                             return new List<Result>();
 
-                        if(string.IsNullOrWhiteSpace(searchString))
+                        if (string.IsNullOrWhiteSpace(searchString))
                         {
                             lastSelectedSection = null;
-                            return lastSelectedNotebook.Sections.Select(s => GetResultsFromSection(s,lastSelectedNotebook)).ToList();
+                            return lastSelectedNotebook.Sections.Select(s => GetResultsFromSection(s, lastSelectedNotebook)).ToList();
                         }
-                        return lastSelectedNotebook.Sections.Where(s => 
+                        return lastSelectedNotebook.Sections.Where(s =>
                         {
-                            if(lastSelectedSection != null && s.ID == lastSelectedSection.ID)
+                            if (lastSelectedSection != null && s.ID == lastSelectedSection.ID)
                                 return true;
                             return TreeQuery(s.Name, searchString, out highlightData);
                         })
@@ -159,16 +164,16 @@ namespace Flow.Launcher.Plugin.OneNote
                     case 4://Searching pages in a section
                         searchString = searchStrings[3];
 
-                        if(!ValidateNotebook(searchStrings[1]))
+                        if (!ValidateNotebook(searchStrings[1]))
                             return new List<Result>();
 
-                        if(!ValidateSection(searchStrings[2]))
+                        if (!ValidateSection(searchStrings[2]))
                             return new List<Result>();
 
-                        if(string.IsNullOrWhiteSpace(searchString))
+                        if (string.IsNullOrWhiteSpace(searchString))
                             return lastSelectedSection.Pages.Select(pg => GetResultFromPage(pg, lastSelectedSection, lastSelectedNotebook)).ToList();
 
-                        return lastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name,searchString,out highlightData))
+                        return lastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name, searchString, out highlightData))
                         .Select(pg => GetResultFromPage(pg, lastSelectedSection, lastSelectedNotebook, highlightData))
                         .ToList();
 
@@ -176,7 +181,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         break;
                 }
             }
-        
+
             //Default search 
             return OneNoteProvider.FindPages(query.Search)
                 .Select(page => GetResultFromPage(page, context.API.FuzzySearch(query.Search, page.Name).MatchData))
@@ -192,7 +197,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
-            switch(selectedResult.ContextData)
+            switch (selectedResult.ContextData)
             {
                 case IOneNoteExtNotebook notebook:
                     return new List<Result>{new Result
@@ -236,7 +241,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private bool ValidateNotebook(string notebookName)
         {
-            if(lastSelectedNotebook == null)
+            if (lastSelectedNotebook == null)
             {
                 var notebook = OneNoteProvider.NotebookItems.FirstOrDefault(nb => nb.Name == notebookName);
                 if (notebook == null)
@@ -249,7 +254,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private bool ValidateSection(string sectionName)
         {
-            if(lastSelectedSection == null) //Check if section is valid
+            if (lastSelectedSection == null) //Check if section is valid
             {
                 var section = lastSelectedNotebook.Sections.FirstOrDefault(s => s.Name == sectionName);
                 if (section == null)
@@ -269,7 +274,7 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             var sectionPath = section.Path;
             var index = sectionPath.IndexOf(notebook.Name);
-            var path = sectionPath[index .. ^4].Replace("/", " > "); //"+4" is to remove the ".one" from the path
+            var path = sectionPath[index..^4].Replace("/", " > "); //"+4" is to remove the ".one" from the path
             return new Result
             {
                 Title = page.Name,
@@ -293,7 +298,7 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             var sectionPath = section.Path;
             var index = sectionPath.IndexOf(notebook.Name);
-            var path = sectionPath[index .. ^(section.Name.Length+5)].Replace("/", " > "); //The "+5" is to remove the ".one" and "/" from the path
+            var path = sectionPath[index..^(section.Name.Length + 5)].Replace("/", " > "); //The "+5" is to remove the ".one" and "/" from the path
             return new Result
             {
                 Title = section.Name,
@@ -321,10 +326,10 @@ namespace Flow.Launcher.Plugin.OneNote
                 Action = c =>
                 {
                     lastSelectedNotebook = notebook;
-                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {structureKeyword}{notebook.Name}\\"); 
+                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {structureKeyword}{notebook.Name}\\");
                     return false;
                 },
             };
         }
-     }
+    }
 }
