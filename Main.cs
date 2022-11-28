@@ -14,7 +14,7 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly string syncIconPath = "Images/refresh.png";
         private readonly string recentIconPath = "Images/recent.png";
 
-        private readonly string structureKeyword = "nb\\";
+        private readonly string structureKeyword = "nb:\\";
         private readonly string recentKeyword = "rcntpgs:";
         private readonly int recentPagesCount = 5;
 
@@ -107,7 +107,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
 
                 return OneNoteProvider.PageItems.OrderByDescending(pg => pg.LastModified)
-                    .Select(pg => GetResultFromPage(pg, null))
+                    .Select(pg => CreatePageResult(pg, null))
                     .Take(count)
                     .ToList();
             }
@@ -129,7 +129,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         if (string.IsNullOrWhiteSpace(searchString)) // Do a normall notebook search
                         {
                             lastSelectedNotebook = null;
-                            return OneNoteProvider.NotebookItems.Select(nb => GetResultFromNotebook(nb)).ToList();
+                            return OneNoteProvider.NotebookItems.Select(nb => CreateNotebookResult(nb)).ToList();
                         }
 
                         return OneNoteProvider.NotebookItems.Where(nb =>
@@ -138,7 +138,7 @@ namespace Flow.Launcher.Plugin.OneNote
                                 return true;
                             return TreeQuery(nb.Name, searchString, out highlightData);
                         })
-                        .Select(nb => GetResultFromNotebook(nb, highlightData))
+                        .Select(nb => CreateNotebookResult(nb, highlightData))
                         .ToList();
 
                     case 3://Full query for section not complete e.g nb\User Notebook\Happine
@@ -150,7 +150,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         if (string.IsNullOrWhiteSpace(searchString))
                         {
                             lastSelectedSection = null;
-                            return lastSelectedNotebook.Sections.Select(s => GetResultsFromSection(s, lastSelectedNotebook)).ToList();
+                            return lastSelectedNotebook.Sections.Select(s => CreateSectionResult(s, lastSelectedNotebook)).ToList();
                         }
                         return lastSelectedNotebook.Sections.Where(s =>
                         {
@@ -158,7 +158,7 @@ namespace Flow.Launcher.Plugin.OneNote
                                 return true;
                             return TreeQuery(s.Name, searchString, out highlightData);
                         })
-                        .Select(s => GetResultsFromSection(s, lastSelectedNotebook, highlightData))
+                        .Select(s => CreateSectionResult(s, lastSelectedNotebook, highlightData))
                         .ToList();
 
                     case 4://Searching pages in a section
@@ -171,10 +171,10 @@ namespace Flow.Launcher.Plugin.OneNote
                             return new List<Result>();
 
                         if (string.IsNullOrWhiteSpace(searchString))
-                            return lastSelectedSection.Pages.Select(pg => GetResultFromPage(pg, lastSelectedSection, lastSelectedNotebook)).ToList();
+                            return lastSelectedSection.Pages.Select(pg => CreatePageResult(pg, lastSelectedSection, lastSelectedNotebook)).ToList();
 
                         return lastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name, searchString, out highlightData))
-                        .Select(pg => GetResultFromPage(pg, lastSelectedSection, lastSelectedNotebook, highlightData))
+                        .Select(pg => CreatePageResult(pg, lastSelectedSection, lastSelectedNotebook, highlightData))
                         .ToList();
 
                     default:
@@ -184,7 +184,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
             //Default search 
             return OneNoteProvider.FindPages(query.Search)
-                .Select(page => GetResultFromPage(page, context.API.FuzzySearch(query.Search, page.Name).MatchData))
+                .Select(page => CreatePageResult(page, context.API.FuzzySearch(query.Search, page.Name).MatchData))
                 .ToList();
 
             bool TreeQuery(string itemName, string searchString, out List<int> highlightData)
@@ -230,14 +230,28 @@ namespace Flow.Launcher.Plugin.OneNote
                             section.Sync();
                             return true;
                         }
-                    }};
+                    },
+                    new Result 
+                    {
+                        Title = "One and sync notebook",
+                        SubTitle = lastSelectedNotebook.Name,
+                        IcoPath = notebookInfo.GetIcon(lastSelectedNotebook.Color.Value),
+                        Action = c =>
+                        {
+                            lastSelectedNotebook.Sections.First().Pages
+                                .OrderByDescending(pg => pg.LastModified)
+                                .First()
+                                .OpenInOneNote();
+                            lastSelectedNotebook.Sync();
+                            return true;
+                        }
+                    }
+                    };
 
                 default:
                     return new List<Result>();
             }
         }
-
-
 
         private bool ValidateNotebook(string notebookName)
         {
@@ -265,12 +279,12 @@ namespace Flow.Launcher.Plugin.OneNote
             return true;
         }
 
-        private Result GetResultFromPage(IOneNoteExtPage page, List<int> highlightingData)
+        private Result CreatePageResult(IOneNoteExtPage page, List<int> highlightingData)
         {
-            return GetResultFromPage(page, page.Section, page.Notebook, highlightingData);
+            return CreatePageResult(page, page.Section, page.Notebook, highlightingData);
         }
 
-        private Result GetResultFromPage(IOneNotePage page, IOneNoteSection section, IOneNoteNotebook notebook, List<int> highlightingData = null)
+        private Result CreatePageResult(IOneNotePage page, IOneNoteSection section, IOneNoteNotebook notebook, List<int> highlightingData = null)
         {
             var sectionPath = section.Path;
             var index = sectionPath.IndexOf(notebook.Name);
@@ -294,7 +308,7 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
 
-        private Result GetResultsFromSection(IOneNoteExtSection section, IOneNoteExtNotebook notebook, List<int> highlightData = null)
+        private Result CreateSectionResult(IOneNoteExtSection section, IOneNoteExtNotebook notebook, List<int> highlightData = null)
         {
             var sectionPath = section.Path;
             var index = sectionPath.IndexOf(notebook.Name);
@@ -315,7 +329,7 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
 
-        private Result GetResultFromNotebook(IOneNoteExtNotebook notebook, List<int> highlightData = null)
+        private Result CreateNotebookResult(IOneNoteExtNotebook notebook, List<int> highlightData = null)
         {
             return new Result
             {
