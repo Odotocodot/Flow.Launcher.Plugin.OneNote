@@ -37,7 +37,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 hasOneNote = false;
                 return;
             }
-
+            
             notebookInfo = new OneNoteItemInfo("NotebookIcons", "notebook.png", context);
             sectionInfo = new OneNoteItemInfo("SectionIcons", "section.png", context);
         }
@@ -61,8 +61,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 results.Add(new Result
                 {
                     Title = "Search OneNote pages",
-                    SubTitle = "Type \"" + structureKeyword + "\" to search by notebook structure or select this option",
-                    AutoCompleteText = context.CurrentPluginMetadata.ActionKeyword + " " + structureKeyword,
+                    SubTitle = $"Type \"{structureKeyword}\" to search by notebook structure or select this option",
+                    AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {structureKeyword}",
                     IcoPath = logoIconPath,
                     Score = 2000,
                     Action = c =>
@@ -74,13 +74,13 @@ namespace Flow.Launcher.Plugin.OneNote
                 results.Add(new Result
                 {
                     Title = "See recent pages",
-                    SubTitle = "Type \"" + recentKeyword + "\" to see last modified pages or select this option",
-                    AutoCompleteText = context.CurrentPluginMetadata.ActionKeyword + " " + recentKeyword,
+                    SubTitle = $"Type \"{recentKeyword}\" to see last modified pages or select this option",
+                    AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {recentKeyword}",
                     IcoPath = recentIconPath,
                     Score = -1000,
                     Action = c =>
                     {
-                        context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword + " " + recentKeyword);
+                        context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {recentKeyword}");
                         return false;
                     },
                 });
@@ -293,7 +293,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = page.Name,
                 SubTitle = path,
-                TitleToolTip = "Created: " + page.DateTime + "\nLast Modified: " + page.LastModified,
+                TitleToolTip = $"Created: {page.DateTime}\nLast Modified: {page.LastModified}",
                 SubTitleToolTip = path,
                 IcoPath = logoIconPath,
                 ContextData = page,
