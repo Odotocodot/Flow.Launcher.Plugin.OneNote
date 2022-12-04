@@ -3,6 +3,8 @@ Flow.Launcher.Plugin.OneNote
 
 A OneNote plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher).
 
+![demo](./demo.gif)
+
 ## Usage
 
 | Keyword                         | Description          |
