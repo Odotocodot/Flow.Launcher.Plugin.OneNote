@@ -7,7 +7,7 @@ A OneNote plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.L
 
 | Keyword                         | Description          |
 |---------------------------------|----------------------|
-| `` on {onenote search query} `` | Search onenote pages |
+| `` on {onenote search query} `` | Search onenote pages, searches page title and content |
 | `` on nb:\ ``                   | Navigate notebooks, sections and pages explorer style |
 | `` on rcntpgs: ``               | View recently modified pages |
 
