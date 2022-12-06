@@ -288,7 +288,9 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             var sectionPath = section.Path;
             var index = sectionPath.IndexOf(notebook.Name);
-            var path = sectionPath[index..^4].Replace("/", " > "); //"+4" is to remove the ".one" from the path
+            var path = sectionPath[index..^4] //"+4" is to remove the ".one" from the path
+                    .Replace("/", " > ")
+                    .Replace("\\", " > "); 
             return new Result
             {
                 Title = page.Name,
@@ -312,7 +314,10 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             var sectionPath = section.Path;
             var index = sectionPath.IndexOf(notebook.Name);
-            var path = sectionPath[index..^(section.Name.Length + 5)].Replace("/", " > "); //The "+5" is to remove the ".one" and "/" from the path
+            var path = sectionPath[index..^(section.Name.Length + 5)] //The "+5" is to remove the ".one" and "/" from the path
+                    .Replace("/", " > ")
+                    .Replace("\\", " > "); 
+            
             return new Result
             {
                 Title = section.Name,
