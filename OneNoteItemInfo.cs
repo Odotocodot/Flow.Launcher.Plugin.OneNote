@@ -9,19 +9,20 @@ namespace Flow.Launcher.Plugin.OneNote
 {
     public class OneNoteItemInfo
     {
-        private Dictionary<Color, string> icons;
-        private DirectoryInfo iconDirectory;
+        private readonly Dictionary<Color, string> icons;
+        private readonly string iconDirectory;
         private readonly string baseIconPath;
 
         public OneNoteItemInfo(string folderName, string iconName, PluginInitContext context)
         {
-            this.icons = new Dictionary<Color, string>();
-            this.iconDirectory = Directory.CreateDirectory(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images/" + folderName));
-            this.baseIconPath = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images/" + iconName);
-            foreach (var fileInfo in iconDirectory.GetFiles())
+            icons = new Dictionary<Color, string>();
+            iconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images/" + folderName);
+            baseIconPath = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images/" + iconName);
+            Directory.CreateDirectory(iconDirectory);
+            foreach (var imagePath in Directory.GetFiles(iconDirectory))
             {
-                if (int.TryParse(fileInfo.Name, out int argb))
-                    icons.Add(Color.FromArgb(argb), fileInfo.FullName);
+                if (int.TryParse(Path.GetFileNameWithoutExtension(imagePath), out int argb))
+                    icons.Add(Color.FromArgb(argb), imagePath);
             }
         }
         public string GetIcon(Color color)
@@ -52,7 +53,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     Marshal.Copy(pixels, 0, pointer, pixels.Length);
                     bitmap.UnlockBits(bitmapData);
-                    path = Path.Combine(iconDirectory.FullName, color.ToArgb() + ".png");
+                    path = Path.Combine(iconDirectory, color.ToArgb() + ".png");
                     bitmap.Save(path, ImageFormat.Png);
                 }
                 icons.Add(color, path);
