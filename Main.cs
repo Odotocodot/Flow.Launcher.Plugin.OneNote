@@ -13,6 +13,7 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly string unavailableIconPath = "Images/unavailable.png";
         private readonly string syncIconPath = "Images/refresh.png";
         private readonly string recentIconPath = "Images/recent.png";
+        private readonly string recentPageIconPath = "Images/recent_page.png";
 
         private readonly string structureKeyword = "nb:\\";
         private readonly string recentKeyword = "rcntpgs:";
@@ -102,13 +103,17 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 int count = recentPagesCount;
                 if (query.FirstSearch.Length > recentKeyword.Length && int.TryParse(query.FirstSearch[recentKeyword.Length..], out int userChosenCount))
-                {
                     count = userChosenCount;
-                }
-
+                   
                 return OneNoteProvider.PageItems.OrderByDescending(pg => pg.LastModified)
-                    .Select(pg => CreatePageResult(pg, null))
                     .Take(count)
+                    .Select(pg =>
+                    {
+                        Result result = CreatePageResult(pg, null);
+                        result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
+                        result.IcoPath = recentPageIconPath;
+                        return result;
+                    })
                     .ToList();
             }
 
@@ -349,6 +354,30 @@ namespace Flow.Launcher.Plugin.OneNote
                     return false;
                 },
             };
+        }
+        private static string GetLastEdited(TimeSpan diff)
+        {
+            string lastEdited = "Last editied ";
+            if (PluralCheck(diff.TotalDays, "day", ref lastEdited) 
+            || PluralCheck(diff.TotalHours, "hour", ref lastEdited) 
+            || PluralCheck(diff.TotalMinutes, "min", ref lastEdited) 
+            || PluralCheck(diff.TotalSeconds, "sec", ref lastEdited))
+                return lastEdited;
+            else
+                return lastEdited += "Now.";
+            bool PluralCheck(double totalTime, string timeType, ref string lastEdited)
+            {
+                var roundedTime = (int)Math.Round(totalTime);
+                if(roundedTime > 0)
+                {
+                    string plural = roundedTime == 1 ? "" : "s";
+                    lastEdited += $"{roundedTime} {timeType}{plural} ago.";
+                    return true;
+                }
+                else
+                    return false;
+
+            }
         }
     }
 }
