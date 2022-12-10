@@ -4,22 +4,25 @@ using ScipBe.Common.Office.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public static class ResultCreator
+    public class ResultCreator
     {
-        private static OneNoteItemInfo notebookInfo;
-        private static OneNoteItemInfo sectionInfo;
+        private PluginInitContext context;
+        private OneNotePlugin oneNotePlugin;
+        private OneNoteItemInfo notebookInfo;
+        private OneNoteItemInfo sectionInfo;
 
-        static ResultCreator()
+        public ResultCreator(PluginInitContext context, OneNotePlugin oneNotePlugin)
         {
-            notebookInfo = new OneNoteItemInfo("NotebookIcons", "notebook.png", OneNote.Context);
-            sectionInfo = new OneNoteItemInfo("SectionIcons", "section.png", OneNote.Context);
+            this.context = context;
+            notebookInfo = new OneNoteItemInfo("NotebookIcons", "notebook.png", context);
+            sectionInfo = new OneNoteItemInfo("SectionIcons", "section.png", context);
         }
-        public static Result CreateResult(this IOneNoteExtPage page, List<int> highlightingData = null)
+        public Result CreatePageResult(IOneNoteExtPage page, List<int> highlightingData = null)
         {
-            return CreateResult(page, page.Section, page.Notebook, highlightingData);
+            return CreatePageResult(page, page.Section, page.Notebook, highlightingData);
         }
 
-        public static Result CreateResult(this IOneNotePage page, IOneNoteSection section, IOneNoteNotebook notebook, List<int> highlightingData = null)
+        public Result CreatePageResult(IOneNotePage page, IOneNoteSection section, IOneNoteNotebook notebook, List<int> highlightingData = null)
         {
             var sectionPath = section.Path;
             var index = sectionPath.IndexOf(notebook.Name);
@@ -37,15 +40,15 @@ namespace Flow.Launcher.Plugin.OneNote
                 TitleHighlightData = highlightingData,
                 Action = c =>
                 {
-                    OneNote.LastSelectedNotebook = null;
-                    OneNote.LastSelectedSection = null;
+                    oneNotePlugin.lastSelectedNotebook = null;
+                    oneNotePlugin.lastSelectedSection = null;
                     page.OpenInOneNote();
                     return true;
                 },
             };
         }
 
-        public static Result CreateResult(this IOneNoteExtSection section, IOneNoteExtNotebook notebook, List<int> highlightData = null)
+        public Result CreateSectionResult(IOneNoteExtSection section, IOneNoteExtNotebook notebook, List<int> highlightData = null)
         {
             var sectionPath = section.Path;
             var index = sectionPath.IndexOf(notebook.Name);
@@ -62,14 +65,14 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = sectionInfo.GetIcon(section.Color.Value),
                 Action = c =>
                 {
-                    OneNote.LastSelectedSection = section;
-                    OneNote.Context.API.ChangeQuery($"{OneNote.Context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}{OneNote.LastSelectedNotebook.Name}\\{section.Name}\\");
+                    oneNotePlugin.lastSelectedSection = section;
+                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}{oneNotePlugin.lastSelectedNotebook.Name}\\{section.Name}\\");
                     return false;
                 },
             };
         }
 
-        public static Result CreateResult(this IOneNoteExtNotebook notebook, List<int> highlightData = null)
+        public Result CreateNotebookResult(IOneNoteExtNotebook notebook, List<int> highlightData = null)
         {
             return new Result
             {
@@ -79,8 +82,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = notebookInfo.GetIcon(notebook.Color.Value),
                 Action = c =>
                 {
-                    OneNote.LastSelectedNotebook = notebook;
-                    OneNote.Context.API.ChangeQuery($"{OneNote.Context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}{notebook.Name}\\");
+                    oneNotePlugin.lastSelectedNotebook = notebook;
+                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}{notebook.Name}\\");
                     return false;
                 },
             };

@@ -5,9 +5,20 @@ using System.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public static class NotebookExplorer
+    public class NotebookExplorer
     {
-        public static List<Result> Explore(Query query)
+        private PluginInitContext context;
+        private OneNotePlugin oneNotePlugin;
+        private ResultCreator rc;
+
+        public NotebookExplorer(PluginInitContext context, OneNotePlugin oneNotePlugin, ResultCreator resultCreator)
+        {
+            this.context = context;
+            this.oneNotePlugin = oneNotePlugin;
+            rc = resultCreator;
+        }
+
+        public List<Result> Explore(Query query)
         {
             string[] searchStrings = query.Search.Split('\\', StringSplitOptions.None);
             string searchString;
@@ -21,17 +32,17 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     if (string.IsNullOrWhiteSpace(searchString)) // Do a normall notebook search
                     {
-                        OneNote.LastSelectedNotebook = null;
-                        return OneNoteProvider.NotebookItems.Select(nb => nb.CreateResult()).ToList();
+                        oneNotePlugin.lastSelectedNotebook = null;
+                        return OneNoteProvider.NotebookItems.Select(nb => rc.CreateNotebookResult(nb)).ToList();
                     }
 
                     return OneNoteProvider.NotebookItems.Where(nb =>
                     {
-                        if (OneNote.LastSelectedNotebook != null && nb.ID == OneNote.LastSelectedNotebook.ID)
+                        if (oneNotePlugin.lastSelectedNotebook != null && nb.ID == oneNotePlugin.lastSelectedNotebook.ID)
                             return true;
                         return TreeQuery(nb.Name, searchString, out highlightData);
                     })
-                    .Select(nb => nb.CreateResult(highlightData))
+                    .Select(nb =>  rc.CreateNotebookResult(nb, highlightData))
                     .ToList();
 
                 case 3://Full query for section not complete e.g nb\User Notebook\Happine
@@ -42,16 +53,16 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     if (string.IsNullOrWhiteSpace(searchString))
                     {
-                        OneNote.LastSelectedSection = null;
-                        return OneNote.LastSelectedNotebook.Sections.Select(s => s.CreateResult(OneNote.LastSelectedNotebook)).ToList();
+                        oneNotePlugin.lastSelectedSection = null;
+                        return oneNotePlugin.lastSelectedNotebook.Sections.Select(s => rc.CreateSectionResult(s,oneNotePlugin.lastSelectedNotebook)).ToList();
                     }
-                    return OneNote.LastSelectedNotebook.Sections.Where(s =>
+                    return oneNotePlugin.lastSelectedNotebook.Sections.Where(s =>
                     {
-                        if (OneNote.LastSelectedSection != null && s.ID == OneNote.LastSelectedSection.ID)
+                        if (oneNotePlugin.lastSelectedSection != null && s.ID == oneNotePlugin.lastSelectedSection.ID)
                             return true;
                         return TreeQuery(s.Name, searchString, out highlightData);
                     })
-                    .Select(s => s.CreateResult(OneNote.LastSelectedNotebook, highlightData))
+                    .Select(s => rc.CreateSectionResult(s, oneNotePlugin.lastSelectedNotebook, highlightData))
                     .ToList();
 
                 case 4://Searching pages in a section
@@ -64,10 +75,10 @@ namespace Flow.Launcher.Plugin.OneNote
                         return new List<Result>();
 
                     if (string.IsNullOrWhiteSpace(searchString))
-                        return OneNote.LastSelectedSection.Pages.Select(pg => pg.CreateResult(OneNote.LastSelectedSection, OneNote.LastSelectedNotebook)).ToList();
+                        return oneNotePlugin.lastSelectedSection.Pages.Select(pg => rc.CreatePageResult(pg,oneNotePlugin.lastSelectedSection, oneNotePlugin.lastSelectedNotebook)).ToList();
 
-                    return OneNote.LastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name, searchString, out highlightData))
-                    .Select(pg => pg.CreateResult(OneNote.LastSelectedSection, OneNote.LastSelectedNotebook, highlightData))
+                    return oneNotePlugin.lastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name, searchString, out highlightData))
+                    .Select(pg => rc.CreatePageResult(pg,oneNotePlugin.lastSelectedSection, oneNotePlugin.lastSelectedNotebook, highlightData))
                     .ToList();
 
                 default:
@@ -76,34 +87,34 @@ namespace Flow.Launcher.Plugin.OneNote
                 
         }
     
-        private static bool ValidateNotebook(string notebookName)
+        private bool ValidateNotebook(string notebookName)
         {
-            if (OneNote.LastSelectedNotebook == null)
+            if (oneNotePlugin.lastSelectedNotebook == null)
             {
                 var notebook = OneNoteProvider.NotebookItems.FirstOrDefault(nb => nb.Name == notebookName);
                 if (notebook == null)
                     return false;
-                OneNote.LastSelectedNotebook = notebook;
+                oneNotePlugin.lastSelectedNotebook = notebook;
                 return true;
             }
             return true;
         }
 
-        private static bool ValidateSection(string sectionName)
+        private bool ValidateSection(string sectionName)
         {
-            if (OneNote.LastSelectedSection == null) //Check if section is valid
+            if (oneNotePlugin.lastSelectedSection == null) //Check if section is valid
             {
-                var section = OneNote.LastSelectedNotebook.Sections.FirstOrDefault(s => s.Name == sectionName);
+                var section = oneNotePlugin.lastSelectedNotebook.Sections.FirstOrDefault(s => s.Name == sectionName);
                 if (section == null)
                     return false;
-                OneNote.LastSelectedSection = section;
+                oneNotePlugin.lastSelectedSection = section;
                 return true;
             }
             return true;
         }
-        private static bool TreeQuery(string itemName, string searchString, out List<int> highlightData)
+        private bool TreeQuery(string itemName, string searchString, out List<int> highlightData)
         {
-            var matchResult = OneNote.Context.API.FuzzySearch(searchString, itemName);
+            var matchResult = context.API.FuzzySearch(searchString, itemName);
             highlightData = matchResult.MatchData;
             return matchResult.IsSearchPrecisionScoreMet();
         }

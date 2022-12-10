@@ -5,21 +5,20 @@ using System.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNote : IPlugin, IContextMenu
+    public class OneNotePlugin : IPlugin, IContextMenu
     {
-        private static PluginInitContext context;
+        private PluginInitContext context;
         private bool hasOneNote;
         private readonly int recentPagesCount = 5;
-        private static IOneNoteExtNotebook lastSelectedNotebook;
-        private static IOneNoteExtSection lastSelectedSection;
+        public IOneNoteExtNotebook lastSelectedNotebook;
+        public IOneNoteExtSection lastSelectedSection;
 
-        public static PluginInitContext Context => context;
-        public static IOneNoteExtNotebook LastSelectedNotebook { get => lastSelectedNotebook; set => lastSelectedNotebook = value; }
-        public static IOneNoteExtSection LastSelectedSection { get => lastSelectedSection; set => lastSelectedSection = value; }
+        private NotebookExplorer notebookExplorer;
+        private ResultCreator rc;
 
         public void Init(PluginInitContext context)
         {
-            OneNote.context = context;
+            this.context = context;
             try
             {
                 _ = OneNoteProvider.PageItems.Any();
@@ -30,6 +29,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 hasOneNote = false;
                 return;
             }
+            rc = new ResultCreator(context, this);
+            notebookExplorer = new NotebookExplorer(context, this, rc);
         }
 
         public List<Result> Query(Query query)
@@ -52,12 +53,12 @@ namespace Flow.Launcher.Plugin.OneNote
                 {
                     Title = "Search OneNote pages",
                     SubTitle = $"Type \"{Constants.StructureKeyword}\" to search by notebook structure or select this option",
-                    AutoCompleteText = $"{Context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}",
+                    AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}",
                     IcoPath = Constants.LogoIconPath,
                     Score = 2000,
                     Action = c =>
                     {
-                        Context.API.ChangeQuery($"{Context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}");
+                        context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}");
                         return false;
                     },
                 });
@@ -65,12 +66,12 @@ namespace Flow.Launcher.Plugin.OneNote
                 {
                     Title = "See recent pages",
                     SubTitle = $"Type \"{Constants.RecentKeyword}\" to see last modified pages or select this option",
-                    AutoCompleteText = $"{Context.CurrentPluginMetadata.ActionKeyword} {Constants.RecentKeyword}",
+                    AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Constants.RecentKeyword}",
                     IcoPath = Constants.RecentIconPath,
                     Score = -1000,
                     Action = c =>
                     {
-                        Context.API.ChangeQuery($"{Context.CurrentPluginMetadata.ActionKeyword} {Constants.RecentKeyword}");
+                        context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Constants.RecentKeyword}");
                         return false;
                     },
                 });
@@ -98,7 +99,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     .Take(count)
                     .Select(pg =>
                     {
-                        Result result = pg.CreateResult();
+                        Result result = rc.CreatePageResult(pg);
                         result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
                         result.IcoPath = Constants.RecentPageIconPath;
                         return result;
@@ -109,11 +110,11 @@ namespace Flow.Launcher.Plugin.OneNote
             //Search via notebook structure
             //NOTE: There is no nested sections i.e. there is nothing for the Section Group in the structure 
             if (query.FirstSearch.StartsWith(Constants.StructureKeyword))
-                return NotebookExplorer.Explore(query);
+                return notebookExplorer.Explore(query);
 
             //Default search 
             return OneNoteProvider.FindPages(query.Search)
-                .Select(page => page.CreateResult(Context.API.FuzzySearch(query.Search, page.Name).MatchData))
+                .Select(pg => rc.CreatePageResult(pg,context.API.FuzzySearch(query.Search, pg.Name).MatchData))
                 .ToList();
 
         }
@@ -123,7 +124,7 @@ namespace Flow.Launcher.Plugin.OneNote
             switch (selectedResult.ContextData)
             {
                 case IOneNoteExtNotebook notebook:
-                    Result result = notebook.CreateResult();
+                    Result result = rc.CreateNotebookResult(notebook);
                     result.Title = "Open and sync notebook";
                     result.SubTitle = notebook.Name;
                     result.ContextData = null;
@@ -134,12 +135,12 @@ namespace Flow.Launcher.Plugin.OneNote
                             .First()
                             .OpenInOneNote();
                         notebook.Sync();
-                        LastSelectedNotebook = null;
+                        lastSelectedNotebook = null;
                         return true;
                     };
                     return new List<Result>{result};
                 case IOneNoteExtSection section:
-                    Result sResult = section.CreateResult(LastSelectedNotebook);
+                    Result sResult = rc.CreateSectionResult(section, lastSelectedNotebook);
                     sResult.Title = "Open and sync section";
                     sResult.SubTitle = section.Name;
                     sResult.ContextData = null;
@@ -149,22 +150,22 @@ namespace Flow.Launcher.Plugin.OneNote
                                 .First()
                                 .OpenInOneNote();
                             section.Sync();
-                            LastSelectedNotebook = null;
-                            LastSelectedSection = null;
+                            lastSelectedNotebook = null;
+                            lastSelectedSection = null;
                             return true;
                     };
-                    Result nbResult = lastSelectedNotebook.CreateResult();
+                    Result nbResult = rc.CreateNotebookResult(lastSelectedNotebook);
                     nbResult.Title = "Open and sync notebook";
                     nbResult.SubTitle = lastSelectedNotebook.Name;
                     nbResult.Action = c =>
                     {
-                            LastSelectedNotebook.Sections.First().Pages
+                            lastSelectedNotebook.Sections.First().Pages
                                 .OrderByDescending(pg => pg.LastModified)
                                 .First()
                                 .OpenInOneNote();
-                            LastSelectedNotebook.Sync();
-                            LastSelectedNotebook = null;
-                            LastSelectedSection = null;
+                            lastSelectedNotebook.Sync();
+                            lastSelectedNotebook = null;
+                            lastSelectedSection = null;
                             return true;
                     };
                     return new List<Result> { sResult, nbResult, };

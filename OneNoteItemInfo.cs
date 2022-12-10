@@ -9,9 +9,9 @@ namespace Flow.Launcher.Plugin.OneNote
 {
     public class OneNoteItemInfo
     {
-        private readonly Dictionary<Color, string> icons;
-        private readonly string iconDirectory;
-        private readonly string baseIconPath;
+        private Dictionary<Color, string> icons;
+        private string iconDirectory;
+        private string baseIconPath;
 
         public OneNoteItemInfo(string folderName, string iconName, PluginInitContext context)
         {
