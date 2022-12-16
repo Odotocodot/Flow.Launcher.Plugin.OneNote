@@ -14,6 +14,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public ResultCreator(PluginInitContext context, OneNotePlugin oneNotePlugin)
         {
             this.context = context;
+            this.oneNotePlugin = oneNotePlugin;
             notebookInfo = new OneNoteItemInfo("NotebookIcons", "notebook.png", context);
             sectionInfo = new OneNoteItemInfo("SectionIcons", "section.png", context);
         }
