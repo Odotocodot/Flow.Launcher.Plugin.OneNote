@@ -112,6 +112,17 @@ namespace Flow.Launcher.Plugin.OneNote
             if (query.FirstSearch.StartsWith(Constants.StructureKeyword))
                 return notebookExplorer.Explore(query);
 
+            //Check for invalid start of query i.e. symbols
+            if (!char.IsLetterOrDigit(query.Search[0]))
+                return new List<Result>()
+                {
+                    new Result
+                    {
+                        Title = "Invalid query",
+                        SubTitle = "The first character of the search must be a letter or a digit",
+                        IcoPath = Constants.WarningLogoPath,
+                    }
+                };
             //Default search 
             var searches = OneNoteProvider.FindPages(query.Search)
                 .Select(pg => rc.CreatePageResult(pg, context.API.FuzzySearch(query.Search, pg.Name).MatchData));

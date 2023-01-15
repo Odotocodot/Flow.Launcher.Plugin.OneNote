@@ -7,7 +7,8 @@ namespace Flow.Launcher.Plugin.OneNote
         public const string SyncIconPath = "Images/refresh.png";
         public const string RecentIconPath = "Images/recent.png";
         public const string RecentPageIconPath = "Images/recent_page.png";
-
+        public const string WarningLogoPath = "Images/warning.png";
+        
         public const string StructureKeyword = "nb:\\";
         public const string RecentKeyword = "rcntpgs:";
     }
