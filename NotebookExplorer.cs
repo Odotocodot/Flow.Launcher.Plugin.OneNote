@@ -9,8 +9,14 @@ namespace Flow.Launcher.Plugin.OneNote
     {
         private PluginInitContext context;
         private OneNotePlugin oneNotePlugin;
+
+        private IOneNoteExtNotebook LastSelectedNotebook { get => oneNotePlugin.lastSelectedNotebook; set => oneNotePlugin.lastSelectedNotebook = value; }
+        private IOneNoteExtSection LastSelectedSection { get => oneNotePlugin.lastSelectedSection; set => oneNotePlugin.lastSelectedSection = value; }
+
         private ResultCreator rc;
 
+        private List<Result> NoResults => new List<Result>();
+        
         public NotebookExplorer(PluginInitContext context, OneNotePlugin oneNotePlugin, ResultCreator resultCreator)
         {
             this.context = context;
@@ -32,14 +38,15 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     if (string.IsNullOrWhiteSpace(searchString)) // Do a normall notebook search
                     {
-                        oneNotePlugin.lastSelectedNotebook = null;
+                        LastSelectedNotebook = null;
                         return OneNoteProvider.NotebookItems.Select(nb => rc.CreateNotebookResult(nb)).ToList();
                     }
 
                     return OneNoteProvider.NotebookItems.Where(nb =>
                     {
-                        if (oneNotePlugin.lastSelectedNotebook != null && nb.ID == oneNotePlugin.lastSelectedNotebook.ID)
+                        if (LastSelectedNotebook != null && nb.ID == LastSelectedNotebook.ID)
                             return true;
+
                         return TreeQuery(nb.Name, searchString, out highlightData);
                     })
                     .Select(nb =>  rc.CreateNotebookResult(nb, highlightData))
@@ -49,52 +56,58 @@ namespace Flow.Launcher.Plugin.OneNote
                     searchString = searchStrings[2];
 
                     if (!ValidateNotebook(searchStrings[1]))
-                        return new List<Result>();
+                        return NoResults;
 
                     if (string.IsNullOrWhiteSpace(searchString))
                     {
-                        oneNotePlugin.lastSelectedSection = null;
-                        return oneNotePlugin.lastSelectedNotebook.Sections.Select(s => rc.CreateSectionResult(s,oneNotePlugin.lastSelectedNotebook)).ToList();
+                        LastSelectedSection = null;
+                        return LastSelectedNotebook.Sections.Where(s => !s.Encrypted)
+                            .Select(s => rc.CreateSectionResult(s, LastSelectedNotebook))
+                            .ToList();
                     }
-                    return oneNotePlugin.lastSelectedNotebook.Sections.Where(s =>
+                    return LastSelectedNotebook.Sections.Where(s =>
                     {
-                        if (oneNotePlugin.lastSelectedSection != null && s.ID == oneNotePlugin.lastSelectedSection.ID)
+                        if(s.Encrypted)
+                            return false;
+                            
+                        if (LastSelectedSection != null && s.ID == LastSelectedSection.ID)
                             return true;
+
                         return TreeQuery(s.Name, searchString, out highlightData);
                     })
-                    .Select(s => rc.CreateSectionResult(s, oneNotePlugin.lastSelectedNotebook, highlightData))
+                    .Select(s => rc.CreateSectionResult(s, LastSelectedNotebook, highlightData))
                     .ToList();
 
                 case 4://Searching pages in a section
                     searchString = searchStrings[3];
 
                     if (!ValidateNotebook(searchStrings[1]))
-                        return new List<Result>();
+                        return NoResults;
 
                     if (!ValidateSection(searchStrings[2]))
-                        return new List<Result>();
+                        return NoResults;
 
                     if (string.IsNullOrWhiteSpace(searchString))
-                        return oneNotePlugin.lastSelectedSection.Pages.Select(pg => rc.CreatePageResult(pg,oneNotePlugin.lastSelectedSection, oneNotePlugin.lastSelectedNotebook)).ToList();
+                        return LastSelectedSection.Pages.Select(pg => rc.CreatePageResult(pg,LastSelectedSection, LastSelectedNotebook)).ToList();
 
-                    return oneNotePlugin.lastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name, searchString, out highlightData))
-                    .Select(pg => rc.CreatePageResult(pg,oneNotePlugin.lastSelectedSection, oneNotePlugin.lastSelectedNotebook, highlightData))
+                    return LastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name, searchString, out highlightData))
+                    .Select(pg => rc.CreatePageResult(pg,LastSelectedSection, LastSelectedNotebook, highlightData))
                     .ToList();
 
                 default:
-                    return new List<Result>();
+                    return NoResults;
             }
                 
         }
     
         private bool ValidateNotebook(string notebookName)
         {
-            if (oneNotePlugin.lastSelectedNotebook == null)
+            if (LastSelectedNotebook == null)
             {
                 var notebook = OneNoteProvider.NotebookItems.FirstOrDefault(nb => nb.Name == notebookName);
                 if (notebook == null)
                     return false;
-                oneNotePlugin.lastSelectedNotebook = notebook;
+                LastSelectedNotebook = notebook;
                 return true;
             }
             return true;
@@ -102,12 +115,12 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private bool ValidateSection(string sectionName)
         {
-            if (oneNotePlugin.lastSelectedSection == null) //Check if section is valid
+            if (LastSelectedSection == null) //Check if section is valid
             {
-                var section = oneNotePlugin.lastSelectedNotebook.Sections.FirstOrDefault(s => s.Name == sectionName);
-                if (section == null)
+                var section = LastSelectedNotebook.Sections.FirstOrDefault(s => s.Name == sectionName);
+                if (section == null || section.Encrypted)
                     return false;
-                oneNotePlugin.lastSelectedSection = section;
+                LastSelectedSection = section;
                 return true;
             }
             return true;

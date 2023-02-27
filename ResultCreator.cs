@@ -11,6 +11,10 @@ namespace Flow.Launcher.Plugin.OneNote
         private OneNoteItemInfo notebookInfo;
         private OneNoteItemInfo sectionInfo;
 
+        private IOneNoteExtNotebook LastSelectedNotebook { get => oneNotePlugin.lastSelectedNotebook; set => oneNotePlugin.lastSelectedNotebook = value; }
+        private IOneNoteExtSection LastSelectedSection { get => oneNotePlugin.lastSelectedSection; set => oneNotePlugin.lastSelectedSection = value; }
+
+
         public ResultCreator(PluginInitContext context, OneNotePlugin oneNotePlugin)
         {
             this.context = context;
@@ -41,8 +45,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 TitleHighlightData = highlightingData,
                 Action = c =>
                 {
-                    oneNotePlugin.lastSelectedNotebook = null;
-                    oneNotePlugin.lastSelectedSection = null;
+                    LastSelectedNotebook = null;
+                    LastSelectedSection = null;
                     page.OpenInOneNote();
                     return true;
                 },
@@ -66,8 +70,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = sectionInfo.GetIcon(section.Color.Value),
                 Action = c =>
                 {
-                    oneNotePlugin.lastSelectedSection = section;
-                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}{oneNotePlugin.lastSelectedNotebook.Name}\\{section.Name}\\");
+                    LastSelectedSection = section;
+                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}{LastSelectedNotebook.Name}\\{section.Name}\\");
                     return false;
                 },
             };
@@ -83,7 +87,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = notebookInfo.GetIcon(notebook.Color.Value),
                 Action = c =>
                 {
-                    oneNotePlugin.lastSelectedNotebook = notebook;
+                    LastSelectedNotebook = notebook;
                     context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}{notebook.Name}\\");
                     return false;
                 },
