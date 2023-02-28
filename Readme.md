@@ -1,20 +1,32 @@
-Flow.Launcher.Plugin.OneNote
-==================
+# OneNote for Flow Launcher
 
 A OneNote plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher).
 
-![demo](./demo.gif)
+![demo](doc/demo.gif)
 
 ## Usage
 
-| Keyword                         | Description          |
-|---------------------------------|----------------------|
-| `` on {onenote search query} `` | Search onenote pages, searches page title and content |
-| `` on nb:\ ``                   | Navigate notebooks, sections and pages explorer style |
-| `` on rcntpgs: ``               | View recently modified pages |
+| Keyword                         | Name | Description          |
+|---------------------------------|------|---------------|
+| `` on {onenote search query} `` | [Default Search](#default-search) | Search onenote pages, searches page title and content |
+| `` on nb:\ ``                   | [Notebook Explorer](#notebook-explorer)     | Navigate notebooks, sections and pages explorer style |
+| `` on rcntpgs: ``               | [Recent Pages](#recent-pages) | View recently modified pages |
 
-Acknowledgements
-======
+### Default Search
+
+![searchgif](doc/searchpages.gif)
+
+### Notebook Explorer
+
+When using `` nb:\ `` encrypted sections are hidden.
+![notebookgif](doc/notebookexplorer.gif)
+
+### Recent Pages
+
+Append a number after `` rcntpgs: `` to display that number of recent pages. E.g. `` rcntpgs:10 `` will show the last modified 10 pages.
+![recentgif](doc/recentpages.gif)
+
+## Acknowledgements
 
 Inpsired by the OneNote plugin for [Powertoy](https://github.com/microsoft/PowerToys/tree/main/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote) (Its a port with extra features)
 
