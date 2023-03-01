@@ -9,89 +9,65 @@ namespace Flow.Launcher.Plugin.OneNote
 {
     public static class ScipBeExtensions
     {
-
-        public static void Sync(this IOneNotePage item)
+        public static void OpenAndSync(this IOneNoteSection section)
         {
-            CallOneNoteSafely(onenote => onenote.SyncHierarchy(item.ID));
-        }
-        public static void Sync(this IEnumerable<IOneNotePage> items)
-        {
-            CallOneNoteSafely(onenote =>
+            CallOneNoteSafely(oneNote =>
             {
-                foreach (var item in items)
-                {
-                    onenote.SyncHierarchy(item.ID);
-                }
+                oneNote.NavigateTo(section.ID);
+                oneNote.SyncHierarchy(section.ID);
             });
         }
 
-        public static void Sync(this IOneNoteSection item)
+        public static void OpenAndSync(this IOneNoteNotebook notebook)
         {
-            CallOneNoteSafely(onenote => onenote.SyncHierarchy(item.ID));
-        }
-        public static void Sync(this IEnumerable<IOneNoteSection> items)
-        {
-            CallOneNoteSafely(onenote =>
+            CallOneNoteSafely(oneNote =>
             {
-                foreach (var item in items)
-                {
-                    onenote.SyncHierarchy(item.ID);
-                }
+                oneNote.NavigateTo(notebook.ID);
+                oneNote.SyncHierarchy(notebook.ID);
             });
         }
-
-        public static void Sync(this IOneNoteNotebook item)
+        public static void OpenAndSync(this IEnumerable<IOneNoteNotebook> notebooks, IOneNotePage lastModifiedPage)
         {
-            CallOneNoteSafely(onenote => onenote.SyncHierarchy(item.ID));
-        }
-        public static void Sync(this IEnumerable<IOneNoteNotebook> items)
-        {
-            CallOneNoteSafely(onenote =>
+            CallOneNoteSafely(oneNote =>
             {
-                foreach (var item in items)
+                foreach (var notebook in notebooks)
                 {
-                    onenote.SyncHierarchy(item.ID);
+                    oneNote.SyncHierarchy(notebook.ID);
                 }
+                oneNote.NavigateTo(lastModifiedPage.ID);
             });
         }
 
         public static string GetDefaultNotebookLocation()
         {
-            return CallOneNoteSafely(onenote =>
+            return CallOneNoteSafely(oneNote =>
             {
-                onenote.GetSpecialLocation(SpecialLocation.slDefaultNotebookFolder, out string path);
+                oneNote.GetSpecialLocation(SpecialLocation.slDefaultNotebookFolder, out string path);
                 return path;
             });
         }
-
-        public static string GetDefaultPageLocation()
-        {
-            return CallOneNoteSafely(onenote =>
-            {
-                onenote.GetSpecialLocation(SpecialLocation.slUnfiledNotesSection, out string path);
-                return path;
-            });
-        }
-
         public static void CreateAndOpenPage(IOneNoteSection section, string pageTitle)
         {
-            CallOneNoteSafely(onenote =>
+            CallOneNoteSafely(oneNote =>
             {
-                onenote.GetHierarchy(null, HierarchyScope.hsNotebooks, out string xmlNb);
+                oneNote.GetHierarchy(null, HierarchyScope.hsNotebooks, out string xmlNb);
 
                 XNamespace ns = XDocument.Parse(xmlNb).Root.Name.Namespace;
                 
-                onenote.CreateNewPage(section.ID, out string pageID, NewPageStyle.npsBlankPageWithTitle);
+                oneNote.CreateNewPage(section.ID, out string pageID, NewPageStyle.npsBlankPageWithTitle);
 
-                onenote.GetPageContent(pageID, out string xml, PageInfo.piBasic);
-                var doc = XDocument.Parse(xml);
-                var Xtitle = doc.Descendants(ns + "T").First();
+                oneNote.GetPageContent(pageID, out string xml, PageInfo.piBasic);
+                XDocument doc = XDocument.Parse(xml);
+                XElement Xtitle = doc.Descendants(ns + "T").First();
                 Xtitle.Value = pageTitle;
 
-                onenote.UpdatePageContent(doc.ToString());
+                oneNote.UpdatePageContent(doc.ToString());
 
-                onenote.SyncHierarchy(pageID);
-                onenote.NavigateTo(pageID);
+                oneNote.SyncHierarchy(pageID);
+                oneNote.NavigateTo(pageID);
+            });
+        }
+
         public static void CreateAndOpenPage()
         {
             CallOneNoteSafely(oneNote =>
@@ -108,25 +84,25 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public static void CreateAndOpenSection(this IOneNoteNotebook notebook, string title)
         {
-            CallOneNoteSafely(onenote =>
+            CallOneNoteSafely(oneNote =>
             {
-                onenote.OpenHierarchy(title + ".one", notebook.ID, out string sectionID, CreateFileType.cftSection);
+                oneNote.OpenHierarchy(title + ".one", notebook.ID, out string sectionID, CreateFileType.cftSection);
                 
-                onenote.SyncHierarchy(sectionID);
-                onenote.NavigateTo(sectionID);
+                oneNote.SyncHierarchy(sectionID);
+                oneNote.NavigateTo(sectionID);
             });
         }
 
         public static void CreateAndOpenNotebook(PluginInitContext context,string title)
         {
-            CallOneNoteSafely(onenote =>
+            CallOneNoteSafely(oneNote =>
             {
-                onenote.GetSpecialLocation(SpecialLocation.slDefaultNotebookFolder, out string path);
+                oneNote.GetSpecialLocation(SpecialLocation.slDefaultNotebookFolder, out string path);
                 
-                onenote.OpenHierarchy($"{path}\\{title}", null, out string notebookID, CreateFileType.cftNotebook);
+                oneNote.OpenHierarchy($"{path}\\{title}", null, out string notebookID, CreateFileType.cftNotebook);
                 
-                onenote.SyncHierarchy(notebookID);
-                onenote.NavigateTo(notebookID);
+                oneNote.SyncHierarchy(notebookID);
+                oneNote.NavigateTo(notebookID);
             });
         }
     

@@ -94,9 +94,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     Score = int.MinValue,
                     Action = c =>
                     {
-                        //TODO Create method OpenAndSync
-                        OneNoteProvider.PageItems.First().OpenInOneNote();
-                        OneNoteProvider.NotebookItems.Sync();
+                        OneNoteProvider.NotebookItems.OpenAndSync(OneNoteProvider.PageItems.First());
                         return false;
                     }
                 });
@@ -158,7 +156,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
-            //TODO: Clean up
+            List<Result> results = new List<Result>();
             switch (selectedResult.ContextData)
             {
                 case IOneNoteExtNotebook notebook:
@@ -168,15 +166,12 @@ namespace Flow.Launcher.Plugin.OneNote
                     result.ContextData = null;
                     result.Action = c =>
                     {
-                        notebook.Sections.First().Pages
-                            .OrderByDescending(pg => pg.LastModified)
-                            .First()
-                            .OpenInOneNote();
-                        notebook.Sync();
+                        notebook.OpenAndSync();
                         lastSelectedNotebook = null;
                         return true;
                     };
-                    return new List<Result> { result };
+                    results.Add(result);
+                    break;
                 case IOneNoteExtSection section:
                     Result sResult = rc.CreateSectionResult(section, lastSelectedNotebook);
                     sResult.Title = "Open and sync section";
@@ -184,10 +179,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     sResult.ContextData = null;
                     sResult.Action = c =>
                     {
-                        section.Pages.OrderByDescending(pg => pg.LastModified)
-                            .First()
-                            .OpenInOneNote();
-                        section.Sync();
+                        section.OpenAndSync();
                         lastSelectedNotebook = null;
                         lastSelectedSection = null;
                         return true;
@@ -197,19 +189,16 @@ namespace Flow.Launcher.Plugin.OneNote
                     nbResult.SubTitle = lastSelectedNotebook.Name;
                     nbResult.Action = c =>
                     {
-                        lastSelectedNotebook.Sections.First().Pages
-                            .OrderByDescending(pg => pg.LastModified)
-                            .First()
-                            .OpenInOneNote();
-                        lastSelectedNotebook.Sync();
+                        lastSelectedNotebook.OpenAndSync();
                         lastSelectedNotebook = null;
                         lastSelectedSection = null;
                         return true;
                     };
-                    return new List<Result> { sResult, nbResult, };
-                default:
-                    return new List<Result>();
+                    results.Add(sResult);
+                    results.Add(nbResult);
+                    break;
             }
+            return results;
         }
 
         private static string GetLastEdited(TimeSpan diff)
