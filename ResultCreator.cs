@@ -100,6 +100,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 },
             };
         }
+        
+        
         public Result CreateNewPageResult(IOneNoteSection section, IOneNoteNotebook notebook, string pageTitle)
         {
             pageTitle = pageTitle.Trim();
@@ -107,7 +109,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = $"Create page: \"{pageTitle}\"",
                 SubTitle = $"Path: {GetNicePath(section,notebook,true)}",
-                //IcoPath = Constants.LogoIconPath,
+                IcoPath = Icons.NewPage,
                 Action = c =>
                 {
                     ScipBeExtensions.CreateAndOpenPage(LastSelectedSection, pageTitle);
@@ -125,6 +127,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = $"Create section: \"{sectionTitle}\"",
                 SubTitle = $"Path: {notebook.Name}",
+                IcoPath = Icons.NewSection,
                 Action = c =>
                 {
                     ScipBeExtensions.CreateAndOpenSection(LastSelectedNotebook,sectionTitle);
@@ -144,7 +147,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = $"Create notebook: \"{notebookTitle}\"",
                 //TitleHighlightData = context.API.FuzzySearch(notebookTitle,title).MatchData,
                 SubTitle = $"Location: {ScipBeExtensions.GetDefaultNotebookLocation()}",
-                //IcoPath =
+                IcoPath = Icons.NewNotebook,
                 Action = c =>
                 {
                     ScipBeExtensions.CreateAndOpenNotebook(context,notebookTitle);

@@ -11,7 +11,10 @@ namespace Flow.Launcher.Plugin.OneNote
         public const string Warning = "Images/warning.png";
 
         public const string Section = "Images/section.png";
-        public const string Notebook = "Images/section.png";
+        public const string Notebook = "Images/notebook.png";
+        public const string NewPage = "Images/new_page.png";
+        public const string NewSection = "Images/new_section.png";
+        public const string NewNotebook = "Images/new_notebook.png";
     }
     public static class Keywords
     {
