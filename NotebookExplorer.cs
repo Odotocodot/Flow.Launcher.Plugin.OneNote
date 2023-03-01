@@ -50,6 +50,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         return TreeQuery(nb.Name, searchString, out highlightData);
                     })
                     .Select(nb =>  rc.CreateNotebookResult(nb, highlightData))
+                    .Append(rc.CreateNewNotebookResult(searchString))
                     .ToList();
 
                 case 3://Full query for section not complete e.g nb\User Notebook\Happine
@@ -60,6 +61,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     if (string.IsNullOrWhiteSpace(searchString))
                     {
+                        //TODO: if no sections/page show default result type name to create section/page
                         LastSelectedSection = null;
                         return LastSelectedNotebook.Sections.Where(s => !s.Encrypted)
                             .Select(s => rc.CreateSectionResult(s, LastSelectedNotebook))
@@ -76,6 +78,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         return TreeQuery(s.Name, searchString, out highlightData);
                     })
                     .Select(s => rc.CreateSectionResult(s, LastSelectedNotebook, highlightData))
+                    .Append(rc.CreateNewSectionResult(LastSelectedNotebook,searchString))
                     .ToList();
 
                 case 4://Searching pages in a section
@@ -91,7 +94,8 @@ namespace Flow.Launcher.Plugin.OneNote
                         return LastSelectedSection.Pages.Select(pg => rc.CreatePageResult(pg,LastSelectedSection, LastSelectedNotebook)).ToList();
 
                     return LastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name, searchString, out highlightData))
-                    .Select(pg => rc.CreatePageResult(pg,LastSelectedSection, LastSelectedNotebook, highlightData))
+                    .Select(pg => rc.CreatePageResult(pg, LastSelectedSection, LastSelectedNotebook, highlightData))
+                    .Append(rc.CreateNewPageResult(LastSelectedSection, LastSelectedNotebook, searchString))
                     .ToList();
 
                 default:

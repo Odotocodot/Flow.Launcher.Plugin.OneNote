@@ -82,6 +82,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     Score = int.MinValue,
                     Action = c =>
                     {
+                        //TODO Create method OpenAndSync
                         OneNoteProvider.PageItems.First().OpenInOneNote();
                         OneNoteProvider.NotebookItems.Sync();
                         return false;
@@ -143,6 +144,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
+            //TODO: Clean up
             switch (selectedResult.ContextData)
             {
                 case IOneNoteExtNotebook notebook:
@@ -206,6 +208,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 return lastEdited;
             else
                 return lastEdited += "Now.";
+
             bool PluralCheck(double totalTime, string timeType, ref string lastEdited)
             {
                 var roundedTime = (int)Math.Round(totalTime);
