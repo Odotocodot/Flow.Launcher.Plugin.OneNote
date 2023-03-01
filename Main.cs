@@ -77,6 +77,18 @@ namespace Flow.Launcher.Plugin.OneNote
                 });
                 results.Add(new Result
                 {
+                    Title = "New quick note",
+                    Score = -4000,
+                    IcoPath = Icons.NewPage,
+                    Action = c =>
+                    {
+                        ScipBeExtensions.CreateAndOpenPage();
+                        return true;
+                    }
+                });
+
+                results.Add(new Result
+                {
                     Title = "Open and sync notebooks",
                     IcoPath = Icons.Sync,
                     Score = int.MinValue,

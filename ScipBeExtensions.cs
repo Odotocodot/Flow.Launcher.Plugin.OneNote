@@ -92,6 +92,17 @@ namespace Flow.Launcher.Plugin.OneNote
 
                 onenote.SyncHierarchy(pageID);
                 onenote.NavigateTo(pageID);
+        public static void CreateAndOpenPage()
+        {
+            CallOneNoteSafely(oneNote =>
+            {
+                oneNote.GetSpecialLocation(SpecialLocation.slUnfiledNotesSection, out string path);
+                oneNote.OpenHierarchy(path, null, out string sectionID, CreateFileType.cftNone);
+                
+                oneNote.CreateNewPage(sectionID, out string pageID, NewPageStyle.npsDefault);
+                
+                oneNote.SyncHierarchy(pageID);
+                oneNote.NavigateTo(pageID);
             });
         }
 
