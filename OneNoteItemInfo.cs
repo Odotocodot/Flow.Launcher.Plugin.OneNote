@@ -16,8 +16,8 @@ namespace Flow.Launcher.Plugin.OneNote
         public OneNoteItemInfo(string folderName, string iconName, PluginInitContext context)
         {
             icons = new Dictionary<Color, string>();
-            iconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images/" + folderName);
-            baseIconPath = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images/" + iconName);
+            iconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, folderName);
+            baseIconPath = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, iconName);
             Directory.CreateDirectory(iconDirectory);
             foreach (var imagePath in Directory.GetFiles(iconDirectory))
             {

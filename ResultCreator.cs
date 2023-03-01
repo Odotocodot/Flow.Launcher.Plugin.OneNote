@@ -20,8 +20,8 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             this.context = context;
             this.oneNotePlugin = oneNotePlugin;
-            notebookInfo = new OneNoteItemInfo("NotebookIcons", "notebook.png", context);
-            sectionInfo = new OneNoteItemInfo("SectionIcons", "section.png", context);
+            notebookInfo = new OneNoteItemInfo("Images/NotebookIcons", Icons.Notebook, context);
+            sectionInfo = new OneNoteItemInfo("Images/SectionIcons", Icons.Section, context);
         }
         
         private string GetNicePath(IOneNoteSection section, IOneNoteNotebook notebook, bool isPage)
@@ -52,7 +52,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 SubTitle = path,
                 TitleToolTip = $"Created: {page.DateTime}\nLast Modified: {page.LastModified}",
                 SubTitleToolTip = path,
-                IcoPath = Constants.LogoIconPath,
+                IcoPath = Icons.Logo,
                 ContextData = page,
                 TitleHighlightData = highlightingData,
                 Action = c =>
@@ -78,7 +78,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Action = c =>
                 {
                     LastSelectedSection = section;
-                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}{LastSelectedNotebook.Name}\\{section.Name}\\");
+                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{LastSelectedNotebook.Name}\\{section.Name}\\");
                     return false;
                 },
             };
@@ -95,7 +95,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Action = c =>
                 {
                     LastSelectedNotebook = notebook;
-                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Constants.StructureKeyword}{notebook.Name}\\");
+                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}\\");
                     return false;
                 },
             };
