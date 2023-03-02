@@ -1,6 +1,7 @@
 # OneNote for Flow Launcher
 
-A OneNote plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher).
+A OneNote plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher).\
+Allowing for searching your OneNote pages on your deivce as well as shortcuts for creating new ones.\
 
 ![demo](doc/demo.gif)
 
@@ -18,12 +19,12 @@ A OneNote plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.L
 
 ### Notebook Explorer
 
-When using `` nb:\ `` encrypted sections are hidden.
+When using `` nb:\ `` encrypted sections are hidden.\
 ![notebookgif](doc/notebookexplorer.gif)
 
 ### Recent Pages
 
-Append a number after `` rcntpgs: `` to display that number of recent pages. E.g. `` rcntpgs:10 `` will show the last modified 10 pages.
+Append a number after `` rcntpgs: `` to display that number of recent pages. E.g. `` rcntpgs:10 `` will show the last modified 10 pages.\
 ![recentgif](doc/recentpages.gif)
 
 ## Acknowledgements
