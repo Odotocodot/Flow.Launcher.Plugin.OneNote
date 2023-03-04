@@ -15,7 +15,6 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private ResultCreator rc;
 
-        private List<Result> NoResults => new List<Result>();
         
         public NotebookExplorer(PluginInitContext context, OneNotePlugin oneNotePlugin, ResultCreator resultCreator)
         {
@@ -27,79 +26,145 @@ namespace Flow.Launcher.Plugin.OneNote
         public List<Result> Explore(Query query)
         {
             string[] searchStrings = query.Search.Split('\\', StringSplitOptions.None);
-            string searchString;
-            List<int> highlightData = null;
             //Could replace switch case with for loop
             switch (searchStrings.Length)
             {
                 case 2://Full query for notebook not complete e.g. nb\User Noteb
-                    //Get matching notebooks and create results.
-                    searchString = searchStrings[1];
-
-                    if (string.IsNullOrWhiteSpace(searchString)) // Do a normall notebook search
-                    {
-                        LastSelectedNotebook = null;
-                        return OneNoteProvider.NotebookItems.Select(nb => rc.CreateNotebookResult(nb)).ToList();
-                    }
-
-                    return OneNoteProvider.NotebookItems.Where(nb =>
-                    {
-                        if (LastSelectedNotebook != null && nb.ID == LastSelectedNotebook.ID)
-                            return true;
-
-                        return TreeQuery(nb.Name, searchString, out highlightData);
-                    })
-                    .Select(nb =>  rc.CreateNotebookResult(nb, highlightData))
-                    .ToList();
+                       //Get matching notebooks and create results.
+                    return GetNotebooks(searchStrings);
 
                 case 3://Full query for section not complete e.g nb\User Notebook\Happine
-                    searchString = searchStrings[2];
-
-                    if (!ValidateNotebook(searchStrings[1]))
-                        return NoResults;
-
-                    if (string.IsNullOrWhiteSpace(searchString))
-                    {
-                        LastSelectedSection = null;
-                        return LastSelectedNotebook.Sections.Where(s => !s.Encrypted)
-                            .Select(s => rc.CreateSectionResult(s, LastSelectedNotebook))
-                            .ToList();
-                    }
-                    return LastSelectedNotebook.Sections.Where(s =>
-                    {
-                        if(s.Encrypted)
-                            return false;
-                            
-                        if (LastSelectedSection != null && s.ID == LastSelectedSection.ID)
-                            return true;
-
-                        return TreeQuery(s.Name, searchString, out highlightData);
-                    })
-                    .Select(s => rc.CreateSectionResult(s, LastSelectedNotebook, highlightData))
-                    .ToList();
+                    return GetSections(searchStrings);
 
                 case 4://Searching pages in a section
-                    searchString = searchStrings[3];
-
-                    if (!ValidateNotebook(searchStrings[1]))
-                        return NoResults;
-
-                    if (!ValidateSection(searchStrings[2]))
-                        return NoResults;
-
-                    if (string.IsNullOrWhiteSpace(searchString))
-                        return LastSelectedSection.Pages.Select(pg => rc.CreatePageResult(pg,LastSelectedSection, LastSelectedNotebook)).ToList();
-
-                    return LastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name, searchString, out highlightData))
-                    .Select(pg => rc.CreatePageResult(pg,LastSelectedSection, LastSelectedNotebook, highlightData))
-                    .ToList();
+                    return GetPages(searchStrings);
 
                 default:
-                    return NoResults;
+                    return new List<Result>();
             }
-                
         }
-    
+
+        private List<Result> GetNotebooks(string[] searchStrings)
+        {
+            List<Result> results = new List<Result>();
+            string query = searchStrings[1];
+
+            if (string.IsNullOrWhiteSpace(query)) // Do a normal notebook search
+            {
+                LastSelectedNotebook = null;
+                results = OneNoteProvider.NotebookItems.Select(nb => rc.CreateNotebookResult(nb)).ToList();
+                return results;
+            }
+            List<int> highlightData = null;
+
+            results = OneNoteProvider.NotebookItems.Where(nb =>
+            {
+                if (LastSelectedNotebook != null && nb.ID == LastSelectedNotebook.ID)
+                    return true;
+
+                return TreeQuery(nb.Name, query, out highlightData);
+            })
+            .Select(nb => rc.CreateNotebookResult(nb, highlightData))
+            .ToList();
+
+            if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
+            {
+                results.Add(rc.CreateNewNotebookResult(query));
+            }
+            return results;
+        }
+
+        private List<Result> GetSections(string[] searchStrings)
+        {
+            List<Result> results = new List<Result>();
+
+            string query = searchStrings[2];
+
+            if (!ValidateNotebook(searchStrings[1]))
+                return results;
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                LastSelectedSection = null;
+                results = LastSelectedNotebook.Sections.Where(s => !s.Encrypted)
+                    .Select(s => rc.CreateSectionResult(s, LastSelectedNotebook))
+                    .ToList();
+
+                //if no sections show ability to create section
+                if (!results.Any())
+                {
+                    results.Add(new Result
+                    {
+                        Title = "Create section: \"\"",
+                        SubTitle = "No (unencrypted) sections found. Type a valid title to create one",
+                        IcoPath = Icons.NewSection
+                    });
+                }
+                return results;
+            }
+
+            List<int> highlightData = null;
+
+            results = LastSelectedNotebook.Sections.Where(s =>
+            {
+                if (s.Encrypted)
+                    return false;
+
+                if (LastSelectedSection != null && s.ID == LastSelectedSection.ID)
+                    return true;
+
+                return TreeQuery(s.Name, query, out highlightData);
+            })
+            .Select(s => rc.CreateSectionResult(s, LastSelectedNotebook, highlightData))
+            .ToList();
+            if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
+            {
+                results.Add(rc.CreateNewSectionResult(LastSelectedNotebook, query));
+            }
+            return results;
+        }
+        
+        private List<Result> GetPages(string[] searchStrings)
+        {
+            List<Result> results = new List<Result>();
+
+            string query = searchStrings[3];
+
+            if (!ValidateNotebook(searchStrings[1]))
+                return results;
+
+            if (!ValidateSection(searchStrings[2]))
+                return results;
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                results = LastSelectedSection.Pages.Select(pg => rc.CreatePageResult(pg, LastSelectedSection, LastSelectedNotebook)).ToList();
+                //if no sections show ability to create section
+                if (!results.Any())
+                {
+                    results.Add(new Result
+                    {
+                        Title = "Create page: \"\"",
+                        SubTitle = "No pages found. Type a valid title to create one",
+                        IcoPath = Icons.NewPage
+                    });
+                }
+                return results;
+            }
+
+            List<int> highlightData = null;
+
+            results =  LastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name, query, out highlightData))
+            .Select(pg => rc.CreatePageResult(pg, LastSelectedSection, LastSelectedNotebook, highlightData))
+            .ToList();
+            if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
+            {
+                results.Add(rc.CreateNewPageResult(LastSelectedSection, LastSelectedNotebook, query));
+            }
+            return results;
+        }
+
+
         private bool ValidateNotebook(string notebookName)
         {
             if (LastSelectedNotebook == null)

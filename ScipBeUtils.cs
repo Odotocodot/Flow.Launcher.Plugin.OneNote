@@ -86,5 +86,25 @@ namespace Flow.Launcher.Plugin.OneNote.ScipBeUtils
                 }
             }
         }
+        internal static T CallOneNoteSafely<T>(Func<Application, T> action)
+        {
+            Application oneNote = null;
+            try
+            {
+                oneNote = TryCatchAndRetry<Application, COMException>(
+                    () => new Application(),
+                    TimeSpan.FromMilliseconds(100),
+                    3,
+                    ex => System.Diagnostics.Trace.TraceError(ex.Message));
+                return action(oneNote);
+            }
+            finally
+            {
+                if (oneNote != null)
+                {
+                    Marshal.ReleaseComObject(oneNote);
+                }
+            }
+        }
     }
 }
