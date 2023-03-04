@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ScipBe.Common.Office.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote
@@ -45,16 +46,15 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public Result CreatePageResult(IOneNotePage page, IOneNoteSection section, IOneNoteNotebook notebook, List<int> highlightingData = null)
         {
-            var path = GetNicePath(section, notebook, true);
             return new Result
             {
                 Title = page.Name,
-                SubTitle = path,
                 TitleToolTip = $"Created: {page.DateTime}\nLast Modified: {page.LastModified}",
-                SubTitleToolTip = path,
+                TitleHighlightData = highlightingData,
+                SubTitle = GetNicePath(section, notebook, true),
+                AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{LastSelectedNotebook.Name}\\{section.Name}\\{page.Name}",
                 IcoPath = Icons.Logo,
                 ContextData = page,
-                TitleHighlightData = highlightingData,
                 Action = c =>
                 {
                     LastSelectedNotebook = null;
@@ -67,18 +67,21 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public Result CreateSectionResult(IOneNoteExtSection section, IOneNoteExtNotebook notebook, List<int> highlightData = null)
         {
-            var path = GetNicePath(section, notebook, false);
+            string path = GetNicePath(section, notebook, false);
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{LastSelectedNotebook.Name}\\{section.Name}\\";
             return new Result
             {
                 Title = section.Name,
-                SubTitle = path, // + " | " + section.Pages.Count().ToString(),
                 TitleHighlightData = highlightData,
+                SubTitle = path,
+                SubTitleToolTip = $"{path} | Number of pages: {section.Pages.Count()}",
+                AutoCompleteText = autoCompleteText,
                 ContextData = section,
                 IcoPath = sectionInfo.GetIcon(section.Color.Value),
                 Action = c =>
                 {
                     LastSelectedSection = section;
-                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{LastSelectedNotebook.Name}\\{section.Name}\\");
+                    context.API.ChangeQuery(autoCompleteText);
                     return false;
                 },
             };
@@ -86,16 +89,19 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public Result CreateNotebookResult(IOneNoteExtNotebook notebook, List<int> highlightData = null)
         {
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}\\";
             return new Result
             {
                 Title = notebook.Name,
+                TitleToolTip = $"Number of sections: {notebook.Sections.Count()}",
                 TitleHighlightData = highlightData,
+                AutoCompleteText = autoCompleteText,
                 ContextData = notebook,
                 IcoPath = notebookInfo.GetIcon(notebook.Color.Value),
                 Action = c =>
                 {
                     LastSelectedNotebook = notebook;
-                    context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}\\");
+                    context.API.ChangeQuery(autoCompleteText);
                     return false;
                 },
             };
