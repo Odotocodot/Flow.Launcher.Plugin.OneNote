@@ -1,7 +1,6 @@
 # OneNote for Flow Launcher
 
 A OneNote plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher), allowing for the ability to quickly access and create notes.
-![demo](doc/default.png)
 ![demo](doc/demo.png)
 
 ## Features and Usage
