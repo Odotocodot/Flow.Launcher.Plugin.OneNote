@@ -96,7 +96,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     results.Add(new Result
                     {
                         Title = "Create section: \"\"",
-                        SubTitle = "No (unecrypted) sections found. Type a valid title to create one",
+                        SubTitle = "No (unencrypted) sections found. Type a valid title to create one",
                         IcoPath = Icons.NewSection
                     });
                 }

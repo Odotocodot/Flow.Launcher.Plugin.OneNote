@@ -53,7 +53,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     new Result
                     {
                         Title = "Search OneNote pages",
-                        SubTitle = $"Type \"{Keywords.NotebookExplorer}\" to search by notebook structure or select this option",
+                        SubTitle = $"Type \"{Keywords.NotebookExplorer}\" or select this option to search by notebook structure ",
                         AutoCompleteText = $"{query.ActionKeyword} {Keywords.NotebookExplorer}",
                         IcoPath = Icons.Logo,
                         Score = 2000,
@@ -66,7 +66,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     new Result
                     {
                         Title = "See recent pages",
-                        SubTitle = $"Type \"{Keywords.RecentPages}\" to see last modified pages or select this option",
+                        SubTitle = $"Type \"{Keywords.RecentPages}\" or select this option to see recently modified pages",
                         AutoCompleteText = $"{query.ActionKeyword} {Keywords.RecentPages}",
                         IcoPath = Icons.Recent,
                         Score = -1000,
@@ -201,7 +201,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private static string GetLastEdited(TimeSpan diff)
         {
-            string lastEdited = "Last editied ";
+            string lastEdited = "Last edited ";
             if (PluralCheck(diff.TotalDays, "day", ref lastEdited)
             || PluralCheck(diff.TotalHours, "hour", ref lastEdited)
             || PluralCheck(diff.TotalMinutes, "min", ref lastEdited)

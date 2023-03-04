@@ -29,8 +29,8 @@ Append a number after `` rcntpgs: `` to display that number of recent pages. E.g
 
 ## Acknowledgements
 
-Inpsired by the OneNote plugin for [Powertoy](https://github.com/microsoft/PowerToys/tree/main/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote) (Its a port with extra features)
+Inspired by the OneNote plugin for [PowerToys](https://github.com/microsoft/PowerToys/tree/main/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote) (Its a port with extra features)
 
 Icons from [Icons8](https://icons8.com)
 
-Created with [Scipe](https://github.com/scipbe/ScipBe-Common-Office) OneNote tools
+Created with [ScipBe](https://github.com/scipbe/ScipBe-Common-Office) OneNote tools
