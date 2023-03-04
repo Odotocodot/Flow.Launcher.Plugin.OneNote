@@ -48,59 +48,57 @@ namespace Flow.Launcher.Plugin.OneNote
             }
             if (string.IsNullOrEmpty(query.Search))
             {
-                var results = new List<Result>();
-                results.Add(new Result
+                return new List<Result>()
                 {
-                    Title = "Search OneNote pages",
-                    SubTitle = $"Type \"{Keywords.NotebookExplorer}\" to search by notebook structure or select this option",
-                    AutoCompleteText = $"{query.ActionKeyword} {Keywords.NotebookExplorer}",
-                    IcoPath = Icons.Logo,
-                    Score = 2000,
-                    Action = c =>
+                    new Result
                     {
-                        context.API.ChangeQuery($"{query.ActionKeyword} {Keywords.NotebookExplorer}");
-                        return false;
+                        Title = "Search OneNote pages",
+                        SubTitle = $"Type \"{Keywords.NotebookExplorer}\" to search by notebook structure or select this option",
+                        AutoCompleteText = $"{query.ActionKeyword} {Keywords.NotebookExplorer}",
+                        IcoPath = Icons.Logo,
+                        Score = 2000,
+                        Action = c =>
+                        {
+                            context.API.ChangeQuery($"{query.ActionKeyword} {Keywords.NotebookExplorer}");
+                            return false;
+                        },
                     },
-                });
-                results.Add(new Result
-                {
-                    Title = "See recent pages",
-                    SubTitle = $"Type \"{Keywords.RecentPages}\" to see last modified pages or select this option",
-                    AutoCompleteText = $"{query.ActionKeyword} {Keywords.RecentPages}",
-                    IcoPath = Icons.Recent,
-                    Score = -1000,
-                    Action = c =>
+                    new Result
                     {
-                        context.API.ChangeQuery($"{query.ActionKeyword} {Keywords.RecentPages}");
-                        return false;
+                        Title = "See recent pages",
+                        SubTitle = $"Type \"{Keywords.RecentPages}\" to see last modified pages or select this option",
+                        AutoCompleteText = $"{query.ActionKeyword} {Keywords.RecentPages}",
+                        IcoPath = Icons.Recent,
+                        Score = -1000,
+                        Action = c =>
+                        {
+                            context.API.ChangeQuery($"{query.ActionKeyword} {Keywords.RecentPages}");
+                            return false;
+                        },
                     },
-                });
-                results.Add(new Result
-                {
-                    Title = "New quick note",
-                    Score = -4000,
-                    IcoPath = Icons.NewPage,
-                    Action = c =>
+                    new Result
                     {
-                        ScipBeExtensions.CreateAndOpenPage();
-                        return true;
-                    }
-                });
-
-                results.Add(new Result
-                {
-                    Title = "Open and sync notebooks",
-                    IcoPath = Icons.Sync,
-                    Score = int.MinValue,
-                    Action = c =>
+                        Title = "New quick note",
+                        IcoPath = Icons.NewPage,
+                        Score = -4000,
+                        Action = c =>
+                        {
+                            ScipBeExtensions.CreateAndOpenPage();
+                            return true;
+                        }
+                    },
+                    new Result
                     {
-                        OneNoteProvider.NotebookItems.OpenAndSync(OneNoteProvider.PageItems.First());
-                        return false;
-                    }
-                });
-
-
-                return results;
+                        Title = "Open and sync notebooks",
+                        IcoPath = Icons.Sync,
+                        Score = int.MinValue,
+                        Action = c =>
+                        {
+                            OneNoteProvider.NotebookItems.OpenAndSync(OneNoteProvider.PageItems.First());
+                            return false;
+                        }
+                    },
+                };
             }
             if (query.FirstSearch.StartsWith(Keywords.RecentPages))
             {

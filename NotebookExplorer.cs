@@ -26,8 +26,6 @@ namespace Flow.Launcher.Plugin.OneNote
         public List<Result> Explore(Query query)
         {
             string[] searchStrings = query.Search.Split('\\', StringSplitOptions.None);
-            string searchString;
-            List<int> highlightData = null;
             //Could replace switch case with for loop
             switch (searchStrings.Length)
             {
