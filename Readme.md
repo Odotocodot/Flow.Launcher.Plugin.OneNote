@@ -1,31 +1,35 @@
 # OneNote for Flow Launcher
 
-A OneNote plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher).\
-Allowing for searching your OneNote pages on your deivce as well as shortcuts for creating new ones.\
+A OneNote plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher), allowing for the ability to quickly access and create notes.
+![demo](doc/default.png)
+![demo](doc/demo.png)
 
-![demo](doc/demo.gif)
+## Features and Usage
 
-## Usage
-
-| Keyword                         | Name | Description          |
+| Keyword                         | Name | Description   |
 |---------------------------------|------|---------------|
-| `` on {onenote search query} `` | [Default Search](#default-search) | Search onenote pages, searches page title and content |
+| `` on {OneNote search query} `` | [Default Search](#default-search) | Search OneNote pages, searches page title and content |
 | `` on nb:\ ``                   | [Notebook Explorer](#notebook-explorer)     | Navigate notebooks, sections and pages explorer style |
 | `` on rcntpgs: ``               | [Recent Pages](#recent-pages) | View recently modified pages |
 
 ### Default Search
 
-![searchgif](doc/searchpages.gif)
+![searchgif](doc/search_pages.gif)
 
 ### Notebook Explorer
 
-When using `` nb:\ `` encrypted sections are hidden.\
-![notebookgif](doc/notebookexplorer.gif)
+- Allows for creating notebooks at the default notebook location (set in OneNote) as well as sections and pages at the current path.
+- Pressing <kbd>⏎ Enter</kbd> or <kbd>⇥ Tab</kbd> on a notebook or section will auto complete the query.
+- Pressing <kbd>⇧ Shift</kbd> + <kbd>⏎ Enter</kbd> on a notebook or section allows you to open it directly in OneNote.
+- Encrypted sections are hidden.
+
+![notebookgif](doc/notebook_explorer.gif)
 
 ### Recent Pages
 
-Append a number after `` rcntpgs: `` to display that number of recent pages. E.g. `` rcntpgs:10 `` will show the last modified 10 pages.\
-![recentgif](doc/recentpages.gif)
+Add a number after `` rcntpgs: `` to display that number of recent pages. E.g. `` rcntpgs:10 `` will show the 10 most recently modified pages.
+
+![recentgif](doc/recent_pages.gif)
 
 ## Acknowledgements
 
