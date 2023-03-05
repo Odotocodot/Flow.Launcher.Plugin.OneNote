@@ -52,7 +52,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 TitleToolTip = $"Created: {page.DateTime}\nLast Modified: {page.LastModified}",
                 TitleHighlightData = highlightingData,
                 SubTitle = GetNicePath(section, notebook, true),
-                AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{LastSelectedNotebook.Name}\\{section.Name}\\{page.Name}",
                 IcoPath = Icons.Logo,
                 ContextData = page,
                 Action = c =>
@@ -68,7 +67,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateSectionResult(IOneNoteExtSection section, IOneNoteExtNotebook notebook, List<int> highlightData = null)
         {
             string path = GetNicePath(section, notebook, false);
-            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{LastSelectedNotebook.Name}\\{section.Name}\\";
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}\\{section.Name}\\";
             return new Result
             {
                 Title = section.Name,
