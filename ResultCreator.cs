@@ -9,18 +9,12 @@ namespace Flow.Launcher.Plugin.OneNote
     public class ResultCreator
     {
         private PluginInitContext context;
-        private OneNotePlugin oneNotePlugin;
         private OneNoteItemInfo notebookInfo;
         private OneNoteItemInfo sectionInfo;
 
-        private IOneNoteExtNotebook LastSelectedNotebook { get => oneNotePlugin.lastSelectedNotebook; set => oneNotePlugin.lastSelectedNotebook = value; }
-        private IOneNoteExtSection LastSelectedSection { get => oneNotePlugin.lastSelectedSection; set => oneNotePlugin.lastSelectedSection = value; }
-
-
-        public ResultCreator(PluginInitContext context, OneNotePlugin oneNotePlugin)
+        public ResultCreator(PluginInitContext context)
         {
             this.context = context;
-            this.oneNotePlugin = oneNotePlugin;
             notebookInfo = new OneNoteItemInfo("Images/NotebookIcons", Icons.Notebook, context);
             sectionInfo = new OneNoteItemInfo("Images/SectionIcons", Icons.Section, context);
         }
@@ -56,8 +50,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 ContextData = page,
                 Action = c =>
                 {
-                    LastSelectedNotebook = null;
-                    LastSelectedSection = null;
                     page.OpenInOneNote();
                     return true;
                 },
@@ -75,11 +67,10 @@ namespace Flow.Launcher.Plugin.OneNote
                 SubTitle = path,
                 SubTitleToolTip = $"{path} | Number of pages: {section.Pages.Count()}",
                 AutoCompleteText = autoCompleteText,
-                ContextData = section,
+                ContextData = (section, notebook),
                 IcoPath = sectionInfo.GetIcon(section.Color.Value),
                 Action = c =>
                 {
-                    LastSelectedSection = section;
                     context.API.ChangeQuery(autoCompleteText);
                     return false;
                 },
@@ -99,7 +90,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = notebookInfo.GetIcon(notebook.Color.Value),
                 Action = c =>
                 {
-                    LastSelectedNotebook = notebook;
                     context.API.ChangeQuery(autoCompleteText);
                     return false;
                 },
@@ -117,9 +107,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = Icons.NewPage,
                 Action = c =>
                 {
-                    ScipBeExtensions.CreateAndOpenPage(LastSelectedSection, pageTitle);
-                    LastSelectedNotebook = null;
-                    LastSelectedSection = null;
+                    ScipBeExtensions.CreateAndOpenPage(section, pageTitle);
                     return true;
                 }
             };
@@ -135,10 +123,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = Icons.NewSection,
                 Action = c =>
                 {
-                    ScipBeExtensions.CreateAndOpenSection(LastSelectedNotebook,sectionTitle);
+                    ScipBeExtensions.CreateAndOpenSection(notebook,sectionTitle);
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
-                    LastSelectedNotebook = null;
-                    LastSelectedSection = null;
                     return true;
                 }
             };
@@ -157,8 +143,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 {
                     ScipBeExtensions.CreateAndOpenNotebook(context,notebookTitle);
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
-                    LastSelectedNotebook = null;
-                    LastSelectedSection = null;
                     return true;
                 }
             };

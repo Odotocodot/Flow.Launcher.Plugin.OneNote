@@ -10,8 +10,6 @@ namespace Flow.Launcher.Plugin.OneNote
         private PluginInitContext context;
         private bool hasOneNote;
         private readonly int recentPagesCount = 5;
-        public IOneNoteExtNotebook lastSelectedNotebook;
-        public IOneNoteExtSection lastSelectedSection;
 
         private NotebookExplorer notebookExplorer;
         private ResultCreator rc;
@@ -29,8 +27,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 hasOneNote = false;
                 return;
             }
-            rc = new ResultCreator(context, this);
-            notebookExplorer = new NotebookExplorer(context, this, rc);
+            rc = new ResultCreator(context);
+            notebookExplorer = new NotebookExplorer(context, rc);
         }
 
         public List<Result> Query(Query query)
@@ -165,31 +163,26 @@ namespace Flow.Launcher.Plugin.OneNote
                     result.Action = c =>
                     {
                         notebook.OpenAndSync();
-                        lastSelectedNotebook = null;
                         return true;
                     };
                     results.Add(result);
                     break;
-                case IOneNoteExtSection section:
-                    Result sResult = rc.CreateSectionResult(section, lastSelectedNotebook);
+                case (IOneNoteExtSection section, IOneNoteExtNotebook notebook):
+                    Result sResult = rc.CreateSectionResult(section, notebook);
                     sResult.Title = "Open and sync section";
                     sResult.SubTitle = section.Name;
                     sResult.ContextData = null;
                     sResult.Action = c =>
                     {
                         section.OpenAndSync();
-                        lastSelectedNotebook = null;
-                        lastSelectedSection = null;
                         return true;
                     };
-                    Result nbResult = rc.CreateNotebookResult(lastSelectedNotebook);
+                    Result nbResult = rc.CreateNotebookResult(notebook);
                     nbResult.Title = "Open and sync notebook";
-                    nbResult.SubTitle = lastSelectedNotebook.Name;
+                    nbResult.SubTitle = notebook.Name;
                     nbResult.Action = c =>
                     {
-                        lastSelectedNotebook.OpenAndSync();
-                        lastSelectedNotebook = null;
-                        lastSelectedSection = null;
+                        notebook.OpenAndSync();
                         return true;
                     };
                     results.Add(sResult);
