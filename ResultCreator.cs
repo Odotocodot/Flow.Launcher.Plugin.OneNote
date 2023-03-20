@@ -69,11 +69,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 AutoCompleteText = autoCompleteText,
                 ContextData = (section, notebook),
                 IcoPath = sectionInfo.GetIcon(section.Color.Value),
-                Action = c =>
-                {
-                    context.API.ChangeQuery(autoCompleteText);
-                    return false;
-                },
             };
         }
 
@@ -88,11 +83,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 AutoCompleteText = autoCompleteText,
                 ContextData = notebook,
                 IcoPath = notebookInfo.GetIcon(notebook.Color.Value),
-                Action = c =>
-                {
-                    context.API.ChangeQuery(autoCompleteText);
-                    return false;
-                },
             };
         }
         

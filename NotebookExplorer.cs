@@ -8,18 +8,16 @@ namespace Flow.Launcher.Plugin.OneNote
     public class NotebookExplorer
     {
         private PluginInitContext context;
-        private OneNotePlugin oneNotePlugin;
 
-        private IOneNoteExtNotebook LastSelectedNotebook { get => oneNotePlugin.lastSelectedNotebook; set => oneNotePlugin.lastSelectedNotebook = value; }
-        private IOneNoteExtSection LastSelectedSection { get => oneNotePlugin.lastSelectedSection; set => oneNotePlugin.lastSelectedSection = value; }
+        private IOneNoteExtNotebook currentNotebook;
+        private IOneNoteExtSection currentSection;
 
         private ResultCreator rc;
 
         
-        public NotebookExplorer(PluginInitContext context, OneNotePlugin oneNotePlugin, ResultCreator resultCreator)
+        public NotebookExplorer(PluginInitContext context, ResultCreator resultCreator)
         {
             this.context = context;
-            this.oneNotePlugin = oneNotePlugin;
             rc = resultCreator;
         }
 
@@ -31,64 +29,69 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 case 2://Full query for notebook not complete e.g. nb\User Noteb
                        //Get matching notebooks and create results.
-                    return GetNotebooks(searchStrings);
+                    return GetNotebooks(searchStrings[1]);
 
                 case 3://Full query for section not complete e.g nb\User Notebook\Happine
-                    return GetSections(searchStrings);
+                    return GetSections(searchStrings[1],searchStrings[2]);
 
                 case 4://Searching pages in a section
-                    return GetPages(searchStrings);
+                    return GetPages(searchStrings[1],searchStrings[2],searchStrings[3]);
 
                 default:
                     return new List<Result>();
             }
         }
 
-        private List<Result> GetNotebooks(string[] searchStrings)
+        private List<Result> GetNotebooks(string query)
         {
             List<Result> results = new List<Result>();
-            string query = searchStrings[1];
 
             if (string.IsNullOrWhiteSpace(query)) // Do a normal notebook search
             {
-                LastSelectedNotebook = null;
-                results = OneNoteProvider.NotebookItems.Select(nb => rc.CreateNotebookResult(nb)).ToList();
+                currentNotebook = null;
+                results = OneNoteProvider.NotebookItems.Select(nb => GetResult(nb)).ToList();
                 return results;
             }
+
             List<int> highlightData = null;
 
-            results = OneNoteProvider.NotebookItems.Where(nb =>
-            {
-                if (LastSelectedNotebook != null && nb.ID == LastSelectedNotebook.ID)
-                    return true;
 
-                return TreeQuery(nb.Name, query, out highlightData);
-            })
-            .Select(nb => rc.CreateNotebookResult(nb, highlightData))
-            .ToList();
+            results = OneNoteProvider.NotebookItems.Where(nb => TreeQuery(nb.Name, query, out highlightData))
+                                                   .Select(nb => GetResult(nb, highlightData))
+                                                   .ToList();
 
             if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
             {
                 results.Add(rc.CreateNewNotebookResult(query));
             }
             return results;
+
+            Result GetResult(IOneNoteExtNotebook nb, List<int> highlightData = null)
+            {
+                var result = rc.CreateNotebookResult(nb, highlightData);
+                result.Action = c =>
+                {
+                    currentNotebook = nb;
+                    context.API.ChangeQuery(result.AutoCompleteText);
+                    return false;
+                };
+                return result;
+            }
         }
 
-        private List<Result> GetSections(string[] searchStrings)
+        private List<Result> GetSections(string notebookName, string query)
         {
             List<Result> results = new List<Result>();
 
-            string query = searchStrings[2];
-
-            if (!ValidateNotebook(searchStrings[1]))
+            if(!ValidateNotebook(notebookName))
                 return results;
 
             if (string.IsNullOrWhiteSpace(query))
             {
-                LastSelectedSection = null;
-                results = LastSelectedNotebook.Sections.Where(s => !s.Encrypted)
-                    .Select(s => rc.CreateSectionResult(s, LastSelectedNotebook))
-                    .ToList();
+                currentSection = null;
+                results = currentNotebook.Sections.Where(s => !s.Encrypted)
+                                           .Select(s => GetResult(s))
+                                           .ToList();
 
                 //if no sections show ability to create section
                 if (!results.Any())
@@ -105,40 +108,52 @@ namespace Flow.Launcher.Plugin.OneNote
 
             List<int> highlightData = null;
 
-            results = LastSelectedNotebook.Sections.Where(s =>
+            results = currentNotebook.Sections.Where(s =>
             {
                 if (s.Encrypted)
                     return false;
 
-                if (LastSelectedSection != null && s.ID == LastSelectedSection.ID)
-                    return true;
+                // if (LastSelectedSection != null && s.ID == LastSelectedSection.ID)
+                //     return true;
 
                 return TreeQuery(s.Name, query, out highlightData);
             })
-            .Select(s => rc.CreateSectionResult(s, LastSelectedNotebook, highlightData))
+            .Select(s => GetResult(s, highlightData))
             .ToList();
+
             if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
             {
-                results.Add(rc.CreateNewSectionResult(LastSelectedNotebook, query));
+                results.Add(rc.CreateNewSectionResult(currentNotebook, query));
             }
             return results;
+
+            Result GetResult(IOneNoteExtSection s, List<int> highlightData = null)
+            {
+                var result = rc.CreateSectionResult(s, currentNotebook, highlightData);
+                result.Action = c =>
+                {
+                    currentSection = s;
+                    context.API.ChangeQuery(result.AutoCompleteText);
+                    return false;
+                };
+                return result;
+            }
         }
-        
-        private List<Result> GetPages(string[] searchStrings)
+     
+        private List<Result> GetPages(string notebookName, string sectionName, string query)
         {
             List<Result> results = new List<Result>();
 
-            string query = searchStrings[3];
 
-            if (!ValidateNotebook(searchStrings[1]))
+            if (!ValidateNotebook(notebookName))
                 return results;
 
-            if (!ValidateSection(searchStrings[2]))
+            if (!ValidateSection(sectionName))
                 return results;
 
             if (string.IsNullOrWhiteSpace(query))
             {
-                results = LastSelectedSection.Pages.Select(pg => rc.CreatePageResult(pg, LastSelectedSection, LastSelectedNotebook)).ToList();
+                results = currentSection.Pages.Select(pg => rc.CreatePageResult(pg, currentSection, currentNotebook)).ToList();
                 //if no sections show ability to create section
                 if (!results.Any())
                 {
@@ -154,41 +169,41 @@ namespace Flow.Launcher.Plugin.OneNote
 
             List<int> highlightData = null;
 
-            results =  LastSelectedSection.Pages.Where(pg => TreeQuery(pg.Name, query, out highlightData))
-            .Select(pg => rc.CreatePageResult(pg, LastSelectedSection, LastSelectedNotebook, highlightData))
+            results = currentSection.Pages.Where(pg => TreeQuery(pg.Name, query, out highlightData))
+            .Select(pg => rc.CreatePageResult(pg, currentSection, currentNotebook, highlightData))
             .ToList();
+
             if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
             {
-                results.Add(rc.CreateNewPageResult(LastSelectedSection, LastSelectedNotebook, query));
+                results.Add(rc.CreateNewPageResult(currentSection, currentNotebook, query));
             }
             return results;
         }
-
+        
 
         private bool ValidateNotebook(string notebookName)
         {
-            if (LastSelectedNotebook == null)
+            if(currentNotebook == null)
             {
-                var notebook = OneNoteProvider.NotebookItems.FirstOrDefault(nb => nb.Name == notebookName);
-                if (notebook == null)
-                    return false;
-                LastSelectedNotebook = notebook;
-                return true;
+                currentNotebook = OneNoteProvider.NotebookItems.FirstOrDefault(nb => nb.Name == notebookName);
+                return currentNotebook != null;
             }
-            return true;
+            return currentNotebook.Name == notebookName;
+            
         }
+
+
+        
 
         private bool ValidateSection(string sectionName)
         {
-            if (LastSelectedSection == null) //Check if section is valid
+            if(currentSection == null)
             {
-                var section = LastSelectedNotebook.Sections.FirstOrDefault(s => s.Name == sectionName);
-                if (section == null || section.Encrypted)
-                    return false;
-                LastSelectedSection = section;
-                return true;
+                currentSection = currentNotebook.Sections.FirstOrDefault(s => s.Name == sectionName);
+                return currentSection != null;
             }
-            return true;
+            return currentSection.Name == sectionName;
+
         }
         private bool TreeQuery(string itemName, string searchString, out List<int> highlightData)
         {
