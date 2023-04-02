@@ -26,7 +26,6 @@
     <PackageReference Include="Flow.Launcher.Plugin" Version="2.1.1" />
     <PackageReference Include="Interop.Microsoft.Office.Interop.OneNote" Version="1.1.0.2" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-    <PackageReference Include="ScipBe.Common.Office.OneNote" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>
