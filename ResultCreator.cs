@@ -58,8 +58,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 ContextData = page,
                 Action = c =>
                 {
-                    oneNote.OpenInOneNote(page);
                     oneNote.SyncItem(page);
+                    oneNote.OpenInOneNote(page);
                     return true;
                 },
             };
@@ -87,8 +87,8 @@ namespace Flow.Launcher.Plugin.OneNote
                         context.API.ChangeQuery(autoCompleteText);
                         return false;
                     }
-                    oneNote.OpenInOneNote(sectionBase);
                     oneNote.SyncItem(sectionBase);
+                    oneNote.OpenInOneNote(sectionBase);
                     return true;
                 }
             };
@@ -123,8 +123,8 @@ namespace Flow.Launcher.Plugin.OneNote
                         context.API.ChangeQuery(autoCompleteText);
                         return false;
                     }
-                    oneNote.OpenInOneNote(notebook);
                     oneNote.SyncItem(notebook);
+                    oneNote.OpenInOneNote(notebook);
                     return true;
                 }
             };

@@ -8,7 +8,6 @@ namespace Flow.Launcher.Plugin.OneNote
     public class OneNotePlugin : IPlugin, IContextMenu
     {
         private PluginInitContext context;
-        private bool hasOneNote;
         private readonly int recentPagesCount = 5;
 
         private NotebookExplorer notebookExplorer;
@@ -19,17 +18,6 @@ namespace Flow.Launcher.Plugin.OneNote
         public void Init(PluginInitContext context)
         {
             this.context = context;
-            // try
-            // {
-            //     _ = OneNoteProvider.PageItems.Any();
-            //     hasOneNote = true;
-            // }
-            // catch (Exception)
-            // {
-            //     hasOneNote = false;
-            //     return;
-            // }
-            hasOneNote = true;
             oneNote = new OneNoteProvider(true);
             rc = new ResultCreator(context, oneNote);
             notebookExplorer = new NotebookExplorer(context, oneNote, rc);
@@ -37,18 +25,19 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public List<Result> Query(Query query)
         {
-            if (!hasOneNote)
+            oneNote.Init();
+
+            if(!oneNote.HasInstance)
             {
                 return new List<Result>()
                 {
                     new Result
                     {
-                        Title = "OneNote is not installed.",
+                        Title = "OneNote instance could not be found.",
                         IcoPath = Icons.Unavailable
                     }
                 };
             }
-            oneNote.Init();
             if (string.IsNullOrEmpty(query.Search))
             {
                 return new List<Result>()

@@ -27,17 +27,24 @@ namespace Odotocodot.OneNote.Linq
         public string DefaultNotebookLocation => OneNoteParser.GetDefaultNotebookLocation(oneNote);
         public IEnumerable<OneNotePage> Pages => OneNoteParser.GetPages(oneNote);
 
+
         public void Init()
         {
             if(!HasInstance)
             {
-                oneNote = Util.TryCatchAndRetry<Application, COMException>(
-                            () => new Application(),
-                            TimeSpan.FromMilliseconds(100),
-                            3,
-                            ex => Trace.TraceError(ex.Message));
+                try
+                {
+                    oneNote = Util.TryCatchAndRetry<Application, COMException>(
+                                () => new Application(),
+                                TimeSpan.FromMilliseconds(100),
+                                3,
+                                ex => Trace.TraceError(ex.Message));
+                }
+                finally
+                {
+                    HasInstance = oneNote != null;        
+                }
             }
-            HasInstance = true;
         }
         public void Release() 
         {
