@@ -1,214 +1,148 @@
 using System;
 using System.Collections.Generic;
-using ScipBe.Common.Office.OneNote;
 using System.Linq;
+using Odotocodot.OneNote.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
     public class NotebookExplorer
     {
-        private PluginInitContext context;
+        private readonly PluginInitContext context;
+        private readonly OneNoteProvider oneNote;
+        private readonly ResultCreator rc;
 
-        private IOneNoteExtNotebook currentNotebook;
-        private IOneNoteExtSection currentSection;
-
-        private ResultCreator rc;
-
-        
-        public NotebookExplorer(PluginInitContext context, ResultCreator resultCreator)
+        public NotebookExplorer(PluginInitContext context, OneNoteProvider oneNote, ResultCreator resultCreator)
         {
             this.context = context;
+            this.oneNote = oneNote;
             rc = resultCreator;
         }
 
         public List<Result> Explore(Query query)
         {
-            string[] searchStrings = query.Search.Split('\\', StringSplitOptions.None);
-            //Could replace switch case with for loop
-            switch (searchStrings.Length)
+            var results = new List<Result>();
+
+            string search = query.Search.Remove(query.Search.IndexOf(Keywords.NotebookExplorer), Keywords.NotebookExplorer.Length);
+
+            string[] searchStrings = search.Split('\\', StringSplitOptions.None);
+
+            IOneNoteItem currentParentItem = null;
+            IEnumerable<IOneNoteItem> currentCollection = oneNote.Notebooks;
+
+
+            for (int i = 0; i < searchStrings.Length; i++)
             {
-                case 2://Full query for notebook not complete e.g. nb\User Noteb
-                       //Get matching notebooks and create results.
-                    return GetNotebooks(searchStrings[1]);
+                int index = i - 1;
+                if (index < 0)
+                    continue;
 
-                case 3://Full query for section not complete e.g nb\User Notebook\Happine
-                    return GetSections(searchStrings[1],searchStrings[2]);
-
-                case 4://Searching pages in a section
-                    return GetPages(searchStrings[1],searchStrings[2],searchStrings[3]);
-
-                default:
-                    return new List<Result>();
-            }
-        }
-
-        private List<Result> GetNotebooks(string query)
-        {
-            List<Result> results = new List<Result>();
-
-            if (string.IsNullOrWhiteSpace(query)) // Do a normal notebook search
-            {
-                currentNotebook = null;
-                results = OneNoteProvider.NotebookItems.Select(nb => GetResult(nb)).ToList();
-                return results;
+                if (!ValidateItem(currentCollection, searchStrings[index], out currentParentItem))
+                    return results;
+                
+                currentCollection = currentParentItem.Children;
             }
 
-            List<int> highlightData = null;
+            var lastSearch = searchStrings[^1];
 
-
-            results = OneNoteProvider.NotebookItems.Where(nb => TreeQuery(nb.Name, query, out highlightData))
-                                                   .Select(nb => GetResult(nb, highlightData))
-                                                   .ToList();
-
-            if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
+            var parentType = currentParentItem?.ItemType; //null if the current collection contains notebooks
+            if (string.IsNullOrWhiteSpace(lastSearch))
             {
-                results.Add(rc.CreateNewNotebookResult(query));
-            }
-            return results;
-
-            Result GetResult(IOneNoteExtNotebook nb, List<int> highlightData = null)
-            {
-                var result = rc.CreateNotebookResult(nb, highlightData);
-                result.Action = c =>
-                {
-                    currentNotebook = nb;
-                    context.API.ChangeQuery(result.AutoCompleteText);
-                    return false;
-                };
-                return result;
-            }
-        }
-
-        private List<Result> GetSections(string notebookName, string query)
-        {
-            List<Result> results = new List<Result>();
-
-            if(!ValidateNotebook(notebookName))
-                return results;
-
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                currentSection = null;
-                results = currentNotebook.Sections.Where(s => !s.Encrypted)
-                                           .Select(s => GetResult(s))
+                results = currentCollection.Where(item => HideEncryptedSections(item))
+                                           .Select(item => rc.GetOneNoteItemResult(item, true))
                                            .ToList();
 
-                //if no sections show ability to create section
-                if (!results.Any())
+                if(!results.Any())
                 {
-                    results.Add(new Result
+                    switch (parentType)
                     {
-                        Title = "Create section: \"\"",
-                        SubTitle = "No (unencrypted) sections found. Type a valid title to create one",
-                        IcoPath = Icons.NewSection
-                    });
+                        case OneNoteItemType.Notebook:
+                        case OneNoteItemType.SectionGroup:
+                            //can create section/section group
+                            results.Add(NoItemsInCollectionResult("section", Icons.NewSection, "(unencrypted) section"));
+                            results.Add(NoItemsInCollectionResult("section group", Icons.NewSectionGroup));
+                            break;
+                        case OneNoteItemType.Section:
+                            //can create page
+                            results.Add(NoItemsInCollectionResult("page", Icons.NewPage));
+                            break;
+                        default:
+                            break;
+                    }
+
                 }
+
                 return results;
             }
 
             List<int> highlightData = null;
+            int score = 0;
+            results = currentCollection.Where(item => HideEncryptedSections(item))
+                                       .Where(item => MatchItem(item, lastSearch, out highlightData, out score))
+                                       .Select(item => rc.GetOneNoteItemResult(item, true, highlightData, score))
+                                       .ToList();
 
-            results = currentNotebook.Sections.Where(s =>
+            if (!results.Any(result => string.Equals(lastSearch.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
             {
-                if (s.Encrypted)
-                    return false;
-
-                // if (LastSelectedSection != null && s.ID == LastSelectedSection.ID)
-                //     return true;
-
-                return TreeQuery(s.Name, query, out highlightData);
-            })
-            .Select(s => GetResult(s, highlightData))
-            .ToList();
-
-            if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
-            {
-                results.Add(rc.CreateNewSectionResult(currentNotebook, query));
+                AddNewOneNoteItemResults(results, lastSearch, parentType, currentParentItem);
             }
             return results;
 
-            Result GetResult(IOneNoteExtSection s, List<int> highlightData = null)
+            static Result NoItemsInCollectionResult(string title, string iconPath, string subTitle = null)
             {
-                var result = rc.CreateSectionResult(s, currentNotebook, highlightData);
-                result.Action = c =>
+                return new Result
                 {
-                    currentSection = s;
-                    context.API.ChangeQuery(result.AutoCompleteText);
-                    return false;
+                    Title = $"Create {title}: \"\"",
+                    SubTitle = $"No {subTitle ?? title}s found. Type a valid title to create one",
+                    IcoPath = iconPath,
                 };
-                return result;
             }
         }
-     
-        private List<Result> GetPages(string notebookName, string sectionName, string query)
+
+        private static bool HideEncryptedSections(IOneNoteItem item)
         {
-            List<Result> results = new List<Result>();
-
-
-            if (!ValidateNotebook(notebookName))
-                return results;
-
-            if (!ValidateSection(sectionName))
-                return results;
-
-            if (string.IsNullOrWhiteSpace(query))
+            if (item.ItemType == OneNoteItemType.Section)
             {
-                results = currentSection.Pages.Select(pg => rc.CreatePageResult(pg, currentSection, currentNotebook)).ToList();
-                //if no sections show ability to create section
-                if (!results.Any())
-                {
-                    results.Add(new Result
-                    {
-                        Title = "Create page: \"\"",
-                        SubTitle = "No pages found. Type a valid title to create one",
-                        IcoPath = Icons.NewPage
-                    });
-                }
-                return results;
+                return !((OneNoteSection)item).Encrypted;
             }
-
-            List<int> highlightData = null;
-
-            results = currentSection.Pages.Where(pg => TreeQuery(pg.Name, query, out highlightData))
-            .Select(pg => rc.CreatePageResult(pg, currentSection, currentNotebook, highlightData))
-            .ToList();
-
-            if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
-            {
-                results.Add(rc.CreateNewPageResult(currentSection, currentNotebook, query));
-            }
-            return results;
+            return true;
         }
-        
-
-        private bool ValidateNotebook(string notebookName)
+        private static bool ValidateItem(IEnumerable<IOneNoteItem> items, string query, out IOneNoteItem item)
         {
-            if(currentNotebook == null)
-            {
-                currentNotebook = OneNoteProvider.NotebookItems.FirstOrDefault(nb => nb.Name == notebookName);
-                return currentNotebook != null;
-            }
-            return currentNotebook.Name == notebookName;
-            
+            item = items.FirstOrDefault(t => t.Name == query);
+            return item != null;
         }
 
-
-        
-
-        private bool ValidateSection(string sectionName)
+        private void AddNewOneNoteItemResults(List<Result> results, string currentQuery, OneNoteItemType? parentItemType, IOneNoteItem parent)
         {
-            if(currentSection == null)
+            switch (parentItemType)
             {
-                currentSection = currentNotebook.Sections.FirstOrDefault(s => s.Name == sectionName);
-                return currentSection != null;
+                case null:
+                    results.Add(rc.CreateNewNotebookResult(currentQuery));
+                    break;
+                case OneNoteItemType.Notebook:
+                case OneNoteItemType.SectionGroup:
+                    results.Add(rc.CreateNewSectionResult(currentQuery, parent));
+                    results.Add(rc.CreateNewSectionGroupResult(currentQuery, parent));
+                    break;
+                case OneNoteItemType.Section:
+                    results.Add(rc.CreateNewPageResult(currentQuery, (OneNoteSection)parent));
+                    break;
+                default:
+                    break;
             }
-            return currentSection.Name == sectionName;
-
         }
-        private bool TreeQuery(string itemName, string searchString, out List<int> highlightData)
+
+
+        private bool MatchItem(IOneNoteItem item, string query, out List<int> highlightData, out int score)
+        {
+            return MatchScore(item.Name, query, out highlightData, out score);
+        }
+
+        private bool MatchScore(string itemName, string searchString, out List<int> highlightData, out int score)
         {
             var matchResult = context.API.FuzzySearch(searchString, itemName);
             highlightData = matchResult.MatchData;
+            score = matchResult.Score;
             return matchResult.IsSearchPrecisionScoreMet();
         }
     }

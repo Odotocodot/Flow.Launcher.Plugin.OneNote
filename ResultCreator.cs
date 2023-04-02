@@ -2,79 +2,113 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ScipBe.Common.Office.OneNote;
+using Odotocodot.OneNote.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
     public class ResultCreator
     {
-        private PluginInitContext context;
-        private OneNoteItemInfo notebookInfo;
-        private OneNoteItemInfo sectionInfo;
+        private readonly PluginInitContext context;
 
-        public ResultCreator(PluginInitContext context)
+        private readonly OneNoteProvider oneNote;
+        private readonly OneNoteItemInfo notebookInfo;
+        private readonly OneNoteItemInfo sectionInfo;
+
+        public ResultCreator(PluginInitContext context, OneNoteProvider oneNote)
         {
             this.context = context;
+            this.oneNote = oneNote;
             notebookInfo = new OneNoteItemInfo("Images/NotebookIcons", Icons.Notebook, context);
             sectionInfo = new OneNoteItemInfo("Images/SectionIcons", Icons.Section, context);
         }
         
-        private string GetNicePath(IOneNoteSection section, IOneNoteNotebook notebook, bool isPage)
+        private static string GetNicePath(IOneNoteItem item)
         {
-            int offset = isPage 
-                ? 4 //"4" is to remove the ".one" from the path
-                : section.Name.Length + 5; //The "+5" is to remove the ".one" and "/" from the path
-            var sectionPath = section.Path;
-            var index = sectionPath.IndexOf(notebook.Name);
-            var path = sectionPath[index..^offset]
-                    .Replace("/", " > ")
-                    .Replace("\\", " > ");
+            var path = item.RelativePath;
+
+            if(path.EndsWith("/")  || path.EndsWith("\\"))
+                path = path.Remove(path.Length - 1);
+
+            if (path.EndsWith(".one"))
+                path = path[..^4];
+            path = path.Replace("/", " > ").Replace("\\", " > ");
             return path;
+
         }
-        
-        
-        public Result CreatePageResult(IOneNoteExtPage page, List<int> highlightingData = null)
+        public Result GetOneNoteItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int> highlightData = null, int score = 0)
         {
-            return CreatePageResult(page, page.Section, page.Notebook, highlightingData);
+            return item.ItemType switch
+            {
+                OneNoteItemType.Notebook => CreateNotebookResult((OneNoteNotebook)item, actionIsAutoComplete, highlightData, score),
+                OneNoteItemType.SectionGroup => CreateSectionGroupResult((OneNoteSectionGroup)item, actionIsAutoComplete, highlightData, score),
+                OneNoteItemType.Section => CreateSectionResult((OneNoteSection)item, actionIsAutoComplete, highlightData, score),
+                OneNoteItemType.Page => CreatePageResult((OneNotePage)item, highlightData, score),
+                _ => new Result(),
+            };
         }
 
-        public Result CreatePageResult(IOneNotePage page, IOneNoteSection section, IOneNoteNotebook notebook, List<int> highlightingData = null)
+        public Result CreatePageResult(OneNotePage page, List<int> highlightingData = null, int score = 0)
         {
             return new Result
             {
                 Title = page.Name,
                 TitleToolTip = $"Created: {page.DateTime}\nLast Modified: {page.LastModified}",
                 TitleHighlightData = highlightingData,
-                SubTitle = GetNicePath(section, notebook, true),
+                SubTitle = GetNicePath(page),
+                Score = score,
                 IcoPath = Icons.Logo,
                 ContextData = page,
                 Action = c =>
                 {
-                    page.OpenInOneNote();
+                    oneNote.OpenInOneNote(page);
+                    oneNote.SyncItem(page);
                     return true;
                 },
             };
         }
 
-        public Result CreateSectionResult(IOneNoteExtSection section, IOneNoteExtNotebook notebook, List<int> highlightData = null)
+        private Result CreateSecionBaseResult(IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            string path = GetNicePath(section, notebook, false);
-            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}\\{section.Name}\\";
+            string path = GetNicePath(sectionBase);
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{path.Replace(" > ","\\")}\\";
+
             return new Result
             {
-                Title = section.Name,
+                Title = sectionBase.Name,
                 TitleHighlightData = highlightData,
                 SubTitle = path,
-                SubTitleToolTip = $"{path} | Number of pages: {section.Pages.Count()}",
+                SubTitleToolTip = $"{path} | Number of pages: {sectionBase.Children.Count()}",
                 AutoCompleteText = autoCompleteText,
-                ContextData = (section, notebook),
-                IcoPath = sectionInfo.GetIcon(section.Color.Value),
+                ContextData = sectionBase,
+                Score = score,
+                IcoPath = iconPath,
+                Action = c =>
+                {
+                    if(actionIsAutoComplete)
+                    {
+                        context.API.ChangeQuery(autoCompleteText);
+                        return false;
+                    }
+                    oneNote.OpenInOneNote(sectionBase);
+                    oneNote.SyncItem(sectionBase);
+                    return true;
+                }
             };
         }
+        public Result CreateSectionResult(OneNoteSection section, bool actionIsAutoComplete, List<int> highlightData, int score)
+        {
+            return CreateSecionBaseResult(section, sectionInfo.GetIcon(section.Color.Value), actionIsAutoComplete, highlightData, score);
+        }
 
-        public Result CreateNotebookResult(IOneNoteExtNotebook notebook, List<int> highlightData = null)
+        public Result CreateSectionGroupResult(OneNoteSectionGroup sectionGroup, bool actionIsAutoComplete, List<int> highlightData, int score)
+        {
+            return CreateSecionBaseResult(sectionGroup, Icons.SectionGroup, actionIsAutoComplete, highlightData, score);
+        }
+
+        public Result CreateNotebookResult(OneNoteNotebook notebook, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}\\";
+
             return new Result
             {
                 Title = notebook.Name,
@@ -82,38 +116,65 @@ namespace Flow.Launcher.Plugin.OneNote
                 TitleHighlightData = highlightData,
                 AutoCompleteText = autoCompleteText,
                 ContextData = notebook,
+                Score = score,
                 IcoPath = notebookInfo.GetIcon(notebook.Color.Value),
-            };
-        }
-        
-        
-        public Result CreateNewPageResult(IOneNoteSection section, IOneNoteNotebook notebook, string pageTitle)
-        {
-            pageTitle = pageTitle.Trim();
-            return new Result
-            {
-                Title = $"Create page: \"{pageTitle}\"",
-                SubTitle = $"Path: {GetNicePath(section,notebook,true)}",
-                IcoPath = Icons.NewPage,
                 Action = c =>
                 {
-                    ScipBeExtensions.CreateAndOpenPage(section, pageTitle);
+                    if (actionIsAutoComplete)
+                    {
+                        context.API.ChangeQuery(autoCompleteText);
+                        return false;
+                    }
+                    oneNote.OpenInOneNote(notebook);
+                    oneNote.SyncItem(notebook);
                     return true;
                 }
             };
         }
 
-        public Result CreateNewSectionResult(IOneNoteNotebook notebook, string sectionTitle)
+        public Result CreateNewPageResult(string pageTitle, OneNoteSection section)
+        {
+            pageTitle = pageTitle.Trim();
+            return new Result
+            {
+                Title = $"Create page: \"{pageTitle}\"",
+                SubTitle = $"Path: {GetNicePath(section)} > {pageTitle}",
+                IcoPath = Icons.NewPage,
+                Action = c =>
+                {
+                    oneNote.CreatePage(section, pageTitle);
+                    return true;
+                }
+            };
+        }
+
+        public Result CreateNewSectionResult(string sectionTitle, IOneNoteItem parent)
         {
             sectionTitle = sectionTitle.Trim();
             return new Result
             {
                 Title = $"Create section: \"{sectionTitle}\"",
-                SubTitle = $"Path: {notebook.Name}",
+                SubTitle = $"Path: {GetNicePath(parent)} > {sectionTitle}",
                 IcoPath = Icons.NewSection,
                 Action = c =>
                 {
-                    ScipBeExtensions.CreateAndOpenSection(notebook,sectionTitle);
+                    oneNote.CreateSection(parent, sectionTitle);
+                    context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
+                    return true;
+                }
+            };
+        }
+        public Result CreateNewSectionGroupResult(string sectionGroupTitle, IOneNoteItem parent)
+        {
+            sectionGroupTitle = sectionGroupTitle.Trim();
+            return new Result
+            {
+                Title = $"Create section group: \"{sectionGroupTitle}\"",
+                SubTitle = $"Path: {GetNicePath(parent)} > {sectionGroupTitle}",
+                IcoPath = Icons.NewSectionGroup,
+                Action = c =>
+                {
+                    oneNote.CreateSectionGroup(parent, sectionGroupTitle);
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
                     return true;
                 }
@@ -126,17 +187,15 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = $"Create notebook: \"{notebookTitle}\"",
-                //TitleHighlightData = context.API.FuzzySearch(notebookTitle,title).MatchData,
-                SubTitle = $"Location: {ScipBeExtensions.GetDefaultNotebookLocation()}",
+                SubTitle = $"Location: {oneNote.DefaultNotebookLocation}",
                 IcoPath = Icons.NewNotebook,
                 Action = c =>
                 {
-                    ScipBeExtensions.CreateAndOpenNotebook(context,notebookTitle);
+                    oneNote.CreateNotebook(notebookTitle);
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
                     return true;
                 }
             };
         }
-
     }
 }

@@ -9,9 +9,9 @@ namespace Flow.Launcher.Plugin.OneNote
 {
     public class OneNoteItemInfo
     {
-        private Dictionary<Color, string> icons;
-        private string iconDirectory;
-        private string baseIconPath;
+        private readonly Dictionary<Color, string> icons;
+        private readonly string iconDirectory;
+        private readonly string baseIconPath;
 
         public OneNoteItemInfo(string folderName, string iconName, PluginInitContext context)
         {
@@ -43,7 +43,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     for (int j = 0; j < bitmapData.Height; j++)
                     {
                         int line = j * bitmapData.Stride;
-                        for (int i = 0; i < bytesWidth; i = i + bytesPerPixel)
+                        for (int i = 0; i < bytesWidth; i += bytesPerPixel)
                         {
                             pixels[line + i] = color.B;
                             pixels[line + i + 1] = color.G;

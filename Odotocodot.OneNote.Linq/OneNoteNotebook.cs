@@ -1,12 +1,16 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 
-namespace Odotocodot.OneNote
+namespace Odotocodot.OneNote.Linq
 {
     public record OneNoteNotebook : IOneNoteItem
     {
         public string ID { get; init; }
         public string Name { get; init; }
         public bool IsUnread { get; init; }
+        public string RelativePath { get; init; }
+        public OneNoteItemType ItemType => OneNoteItemType.Notebook;
+
         /// <summary>
         /// Nickname of the notebook.
         /// </summary>
@@ -20,5 +24,10 @@ namespace Odotocodot.OneNote
         /// </summary>
         public Color? Color { get; init; }
 
+        IEnumerable<IOneNoteItem> IOneNoteItem.Children => Sections;
+        /// <summary>
+        /// Contains the direct children of a notebook, i.e., its sections and section groups.
+        /// </summary>
+        public IEnumerable<IOneNoteItem> Sections { get; init; }
     }
 }

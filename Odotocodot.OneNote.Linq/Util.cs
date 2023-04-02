@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Threading;
 
-namespace Odotocodot.OneNote
+namespace Odotocodot.OneNote.Linq
 {
     public static class Util
     {
@@ -40,15 +40,5 @@ namespace Odotocodot.OneNote
                 }
             }
         }
-    
-        ///// <summary>
-        ///// Returns all the sections in a notebook flattened
-        ///// </summary>
-        ///// <param name="notebook"></param>
-        ///// <returns></returns>
-        //public static IEnumerable<OneNoteSectionExt> GetSectionsFlattened(this OneNoteNotebookExt notebook)
-        //{
-        //    notebook.Sections
-        //}
     }
 }

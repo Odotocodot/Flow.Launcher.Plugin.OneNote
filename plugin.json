@@ -4,7 +4,7 @@
     "Name": "OneNote",
     "Description": "Search OneNote notes",
     "Author": "Odotocodot",
-    "Version": "1.1.1",
+    "Version": "1.1.2",
     "Language": "csharp",
     "Website": "https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote",
     "IcoPath": "Images/logo.png",

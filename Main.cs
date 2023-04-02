@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using ScipBe.Common.Office.OneNote;
 using System.Linq;
+using Odotocodot.OneNote.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
@@ -14,21 +14,25 @@ namespace Flow.Launcher.Plugin.OneNote
         private NotebookExplorer notebookExplorer;
         private ResultCreator rc;
 
+        private OneNoteProvider oneNote;
+
         public void Init(PluginInitContext context)
         {
             this.context = context;
-            try
-            {
-                _ = OneNoteProvider.PageItems.Any();
-                hasOneNote = true;
-            }
-            catch (Exception)
-            {
-                hasOneNote = false;
-                return;
-            }
-            rc = new ResultCreator(context);
-            notebookExplorer = new NotebookExplorer(context, rc);
+            // try
+            // {
+            //     _ = OneNoteProvider.PageItems.Any();
+            //     hasOneNote = true;
+            // }
+            // catch (Exception)
+            // {
+            //     hasOneNote = false;
+            //     return;
+            // }
+            hasOneNote = true;
+            oneNote = new OneNoteProvider(true);
+            rc = new ResultCreator(context, oneNote);
+            notebookExplorer = new NotebookExplorer(context, oneNote, rc);
         }
 
         public List<Result> Query(Query query)
@@ -44,6 +48,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     }
                 };
             }
+            oneNote.Init();
             if (string.IsNullOrEmpty(query.Search))
             {
                 return new List<Result>()
@@ -81,7 +86,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         Score = -4000,
                         Action = c =>
                         {
-                            ScipBeExtensions.CreateAndOpenPage();
+                            oneNote.CreateQuickNote();
                             return true;
                         }
                     },
@@ -92,23 +97,29 @@ namespace Flow.Launcher.Plugin.OneNote
                         Score = int.MinValue,
                         Action = c =>
                         {
-                            OneNoteProvider.NotebookItems.OpenAndSync(OneNoteProvider.PageItems.First());
+                            foreach (var notebook in oneNote.Notebooks)
+                            {
+                                oneNote.SyncItem(notebook);
+                            }
+                            oneNote.OpenInOneNote(oneNote.Notebooks.First());
                             return false;
                         }
                     },
                 };
             }
+
             if (query.FirstSearch.StartsWith(Keywords.RecentPages))
             {
                 int count = recentPagesCount;
                 if (query.FirstSearch.Length > Keywords.RecentPages.Length && int.TryParse(query.FirstSearch[Keywords.RecentPages.Length..], out int userChosenCount))
                     count = userChosenCount;
 
-                return OneNoteProvider.PageItems.OrderByDescending(pg => pg.LastModified)
+                return oneNote.Pages.OrderByDescending(pg => pg.LastModified)
                     .Take(count)
                     .Select(pg =>
                     {
                         Result result = rc.CreatePageResult(pg);
+                        result.SubTitleToolTip = result.SubTitle;
                         result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
                         result.IcoPath = Icons.RecentPage;
                         return result;
@@ -117,7 +128,6 @@ namespace Flow.Launcher.Plugin.OneNote
             }
 
             //Search via notebook structure
-            //NOTE: There is no nested sections i.e. there is nothing for the Section Group in the structure 
             if (query.FirstSearch.StartsWith(Keywords.NotebookExplorer))
                 return notebookExplorer.Explore(query);
 
@@ -133,7 +143,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     }
                 };
             //Default search 
-            var searches = OneNoteProvider.FindPages(query.Search)
+            var searches = oneNote.FindPages(query.Search)
                 .Select(pg => rc.CreatePageResult(pg, context.API.FuzzySearch(query.Search, pg.Name).MatchData));
 
             if (searches.Any())
@@ -152,42 +162,14 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
-            List<Result> results = new List<Result>();
-            switch (selectedResult.ContextData)
+            var results = new List<Result>();
+            if(selectedResult.ContextData is IOneNoteItem item)
             {
-                case IOneNoteExtNotebook notebook:
-                    Result result = rc.CreateNotebookResult(notebook);
-                    result.Title = "Open and sync notebook";
-                    result.SubTitle = notebook.Name;
-                    result.ContextData = null;
-                    result.Action = c =>
-                    {
-                        notebook.OpenAndSync();
-                        return true;
-                    };
-                    results.Add(result);
-                    break;
-                case (IOneNoteExtSection section, IOneNoteExtNotebook notebook):
-                    Result sResult = rc.CreateSectionResult(section, notebook);
-                    sResult.Title = "Open and sync section";
-                    sResult.SubTitle = section.Name;
-                    sResult.ContextData = null;
-                    sResult.Action = c =>
-                    {
-                        section.OpenAndSync();
-                        return true;
-                    };
-                    Result nbResult = rc.CreateNotebookResult(notebook);
-                    nbResult.Title = "Open and sync notebook";
-                    nbResult.SubTitle = notebook.Name;
-                    nbResult.Action = c =>
-                    {
-                        notebook.OpenAndSync();
-                        return true;
-                    };
-                    results.Add(sResult);
-                    results.Add(nbResult);
-                    break;
+                var result = rc.GetOneNoteItemResult(item, false);
+                result.Title = $"Open and sync {item.Name}";
+                result.SubTitle = string.Empty;
+                result.ContextData = null;
+                results.Add(result);
             }
             return results;
         }
@@ -203,7 +185,7 @@ namespace Flow.Launcher.Plugin.OneNote
             else
                 return lastEdited += "Now.";
 
-            bool PluralCheck(double totalTime, string timeType, ref string lastEdited)
+            static bool PluralCheck(double totalTime, string timeType, ref string lastEdited)
             {
                 var roundedTime = (int)Math.Round(totalTime);
                 if (roundedTime > 0)
