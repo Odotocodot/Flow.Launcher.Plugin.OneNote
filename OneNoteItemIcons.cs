@@ -7,13 +7,13 @@ using System.Runtime.InteropServices;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNoteItemInfo
+    public class OneNoteItemIcons
     {
         private readonly Dictionary<Color, string> icons;
         private readonly string iconDirectory;
         private readonly string baseIconPath;
 
-        public OneNoteItemInfo(string folderName, string iconName, PluginInitContext context)
+        public OneNoteItemIcons(string folderName, string iconName, PluginInitContext context)
         {
             icons = new Dictionary<Color, string>();
             iconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, folderName);

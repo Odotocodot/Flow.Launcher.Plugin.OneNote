@@ -1,4 +1,4 @@
-namespace Flow.Launcher.Plugin.OneNote
+﻿namespace Flow.Launcher.Plugin.OneNote
 {
     public static class Icons
     {
@@ -16,11 +16,5 @@ namespace Flow.Launcher.Plugin.OneNote
         public const string NewSection = "Images/new_section.png";
         public const string NewSectionGroup = NewSection;
         public const string NewNotebook = "Images/new_notebook.png";
-    }
-    public static class Keywords
-    {
-        public const string NotebookExplorer = "nb:\\";
-        public const string RecentPages = "rcntpgs:";
-        public const string SearchByTitle = "*";
     }
 }

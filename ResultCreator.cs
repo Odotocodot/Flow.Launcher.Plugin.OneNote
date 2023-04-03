@@ -9,15 +9,15 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly PluginInitContext context;
 
         private readonly OneNoteProvider oneNote;
-        private readonly OneNoteItemInfo notebookInfo;
-        private readonly OneNoteItemInfo sectionInfo;
+        private readonly OneNoteItemIcons notebookIcons;
+        private readonly OneNoteItemIcons sectionIcons;
 
         public ResultCreator(PluginInitContext context, OneNoteProvider oneNote)
         {
             this.context = context;
             this.oneNote = oneNote;
-            notebookInfo = new OneNoteItemInfo("Images/NotebookIcons", Icons.Notebook, context);
-            sectionInfo = new OneNoteItemInfo("Images/SectionIcons", Icons.Section, context);
+            notebookIcons = new OneNoteItemIcons("Images/NotebookIcons", Icons.Notebook, context);
+            sectionIcons = new OneNoteItemIcons("Images/SectionIcons", Icons.Section, context);
         }
         
         private static string GetNicePath(IOneNoteItem item)
@@ -95,7 +95,7 @@ namespace Flow.Launcher.Plugin.OneNote
         }
         public Result CreateSectionResult(OneNoteSection section, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            return CreateSecionBaseResult(section, sectionInfo.GetIcon(section.Color.Value), actionIsAutoComplete, highlightData, score);
+            return CreateSecionBaseResult(section, sectionIcons.GetIcon(section.Color.Value), actionIsAutoComplete, highlightData, score);
         }
 
         public Result CreateSectionGroupResult(OneNoteSectionGroup sectionGroup, bool actionIsAutoComplete, List<int> highlightData, int score)
@@ -115,7 +115,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 AutoCompleteText = autoCompleteText,
                 ContextData = notebook,
                 Score = score,
-                IcoPath = notebookInfo.GetIcon(notebook.Color.Value),
+                IcoPath = notebookIcons.GetIcon(notebook.Color.Value),
                 Action = c =>
                 {
                     if (actionIsAutoComplete)
