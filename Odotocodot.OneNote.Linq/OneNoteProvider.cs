@@ -13,8 +13,7 @@ namespace Odotocodot.OneNote.Linq
         public OneNoteProvider(bool releaseOnOpen)
         {
             ReleaseOnOpen = releaseOnOpen;
-            HasInstance = false;    
-            Init();
+            HasInstance = false;
         }
 
         public bool HasInstance { get; private set; }

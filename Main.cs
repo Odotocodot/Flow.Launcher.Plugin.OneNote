@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using Odotocodot.OneNote.Linq;
-
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNotePlugin : IPlugin, IContextMenu
+    public class OneNotePlugin : IPlugin, IContextMenu, IDisposable
     {
         private PluginInitContext context;
         private readonly int recentPagesCount = 5;
@@ -14,20 +14,27 @@ namespace Flow.Launcher.Plugin.OneNote
         private ResultCreator rc;
 
         private OneNoteProvider oneNote;
-
+        private Timer idleTimer; //use to clean up oneNote instance if left around
+       
         public void Init(PluginInitContext context)
         {
             this.context = context;
             oneNote = new OneNoteProvider(true);
             rc = new ResultCreator(context, oneNote);
             notebookExplorer = new NotebookExplorer(context, oneNote, rc);
-        }
 
+            idleTimer = new Timer(10000);
+            idleTimer.Elapsed += (s,e) => oneNote.Release();
+            idleTimer.AutoReset = false;
+        }
         public List<Result> Query(Query query)
         {
+            idleTimer.Stop();
+            idleTimer.Start();
+
             oneNote.Init();
 
-            if(!oneNote.HasInstance)
+            if (!oneNote.HasInstance)
             {
                 return new List<Result>()
                 {
@@ -91,7 +98,7 @@ namespace Flow.Launcher.Plugin.OneNote
                                 oneNote.SyncItem(notebook);
                             }
                             oneNote.OpenInOneNote(oneNote.Notebooks.First());
-                            return false;
+                            return true;
                         }
                     },
                 };
@@ -188,5 +195,12 @@ namespace Flow.Launcher.Plugin.OneNote
 
             }
         }
+        public void Dispose()
+        {
+            idleTimer.Dispose();
+            oneNote.Release();
+        }
+
+
     }
 }
