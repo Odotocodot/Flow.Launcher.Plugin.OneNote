@@ -8,17 +8,15 @@ namespace Flow.Launcher.Plugin.OneNote
     public class NotebookExplorer
     {
         private readonly PluginInitContext context;
-        private readonly OneNoteProvider oneNote;
         private readonly ResultCreator rc;
 
-        public NotebookExplorer(PluginInitContext context, OneNoteProvider oneNote, ResultCreator resultCreator)
+        public NotebookExplorer(PluginInitContext context, ResultCreator resultCreator)
         {
             this.context = context;
-            this.oneNote = oneNote;
             rc = resultCreator;
         }
 
-        public List<Result> Explore(Query query)
+        public List<Result> Explore(OneNoteProvider oneNote, Query query)
         {
             var results = new List<Result>();
 
@@ -48,7 +46,7 @@ namespace Flow.Launcher.Plugin.OneNote
             if (string.IsNullOrWhiteSpace(lastSearch))
             {
                 results = currentCollection.Where(item => HideEncryptedSections(item))
-                                           .Select(item => rc.GetOneNoteItemResult(item, true))
+                                           .Select(item => rc.GetOneNoteItemResult(oneNote, item, true))
                                            .ToList();
 
                 if(!results.Any())
@@ -78,12 +76,12 @@ namespace Flow.Launcher.Plugin.OneNote
             int score = 0;
             results = currentCollection.Where(item => HideEncryptedSections(item))
                                        .Where(item => MatchItem(item, lastSearch, out highlightData, out score))
-                                       .Select(item => rc.GetOneNoteItemResult(item, true, highlightData, score))
+                                       .Select(item => rc.GetOneNoteItemResult(oneNote, item, true, highlightData, score))
                                        .ToList();
 
             if (!results.Any(result => string.Equals(lastSearch.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
             {
-                AddNewOneNoteItemResults(results, lastSearch, parentType, currentParentItem);
+                AddNewOneNoteItemResults(oneNote, results, lastSearch, parentType, currentParentItem);
             }
             return results;
 
@@ -112,20 +110,20 @@ namespace Flow.Launcher.Plugin.OneNote
             return item != null;
         }
 
-        private void AddNewOneNoteItemResults(List<Result> results, string currentQuery, OneNoteItemType? parentItemType, IOneNoteItem parent)
+        private void AddNewOneNoteItemResults(OneNoteProvider oneNote, List<Result> results, string currentQuery, OneNoteItemType? parentItemType, IOneNoteItem parent)
         {
             switch (parentItemType)
             {
                 case null:
-                    results.Add(rc.CreateNewNotebookResult(currentQuery));
+                    results.Add(rc.CreateNewNotebookResult(oneNote, currentQuery));
                     break;
                 case OneNoteItemType.Notebook:
                 case OneNoteItemType.SectionGroup:
-                    results.Add(rc.CreateNewSectionResult(currentQuery, parent));
-                    results.Add(rc.CreateNewSectionGroupResult(currentQuery, parent));
+                    results.Add(rc.CreateNewSectionResult(oneNote, currentQuery, parent));
+                    results.Add(rc.CreateNewSectionGroupResult(oneNote, currentQuery, parent));
                     break;
                 case OneNoteItemType.Section:
-                    results.Add(rc.CreateNewPageResult(currentQuery, (OneNoteSection)parent));
+                    results.Add(rc.CreateNewPageResult(oneNote, currentQuery, (OneNoteSection)parent));
                     break;
                 default:
                     break;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Odotocodot.OneNote.Linq
@@ -15,7 +16,7 @@ namespace Odotocodot.OneNote.Linq
         /// <param name="retryCount">How many times to retry</param>
         /// <param name="onRetry">Action to call on retry</param>
         /// <returns>Action return</returns>
-        internal static TRet TryCatchAndRetry<TRet, TException>(Func<TRet> action, TimeSpan retryInterval, int retryCount, Action<TException> onRetry = null)
+        public static TRet TryCatchAndRetry<TRet, TException>(Func<TRet> action, TimeSpan retryInterval, int retryCount, Action<TException> onRetry = null)
             where TException : Exception
         {
             int attempt = 0;
@@ -39,5 +40,45 @@ namespace Odotocodot.OneNote.Linq
                 }
             }
         }
+
+
+        public static T CallOneNoteSafely<T>(Func<OneNoteProvider, T> action, Func<COMException, T> onException = null)
+        {
+            OneNoteProvider oneNote = null;
+            try
+            {
+                oneNote = new OneNoteProvider(false);
+                oneNote.Init();
+                return action(oneNote);
+            }
+            catch (COMException ex)
+            {
+                if (onException != null)
+                {
+                    return onException(ex);
+                }
+                else
+                    throw;
+            }
+            finally
+            {
+                oneNote.Release();
+            }
+        }
+
+        public static void CallOneNoteSafely(Action<OneNoteProvider> action, Action<COMException> onException = null)
+        {
+            _ = CallOneNoteSafely((one) =>
+            {
+                action(one);
+                return true;
+            }, (ex) =>
+            {
+                onException(ex);
+                return true;
+            });
+        }
+
+
     }
 }

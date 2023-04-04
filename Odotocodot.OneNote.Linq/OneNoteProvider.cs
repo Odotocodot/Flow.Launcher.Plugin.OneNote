@@ -26,7 +26,6 @@ namespace Odotocodot.OneNote.Linq
         public string DefaultNotebookLocation => OneNoteParser.GetDefaultNotebookLocation(oneNote);
         public IEnumerable<OneNotePage> Pages => OneNoteParser.GetPages(oneNote);
 
-
         public void Init()
         {
             if(!HasInstance)

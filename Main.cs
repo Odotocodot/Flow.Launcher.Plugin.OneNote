@@ -5,46 +5,39 @@ using System.Timers;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNotePlugin : IPlugin, IContextMenu, IDisposable
+    public class OneNotePlugin : IPlugin, IContextMenu//, IDisposable
     {
         private PluginInitContext context;
         private readonly int recentPagesCount = 5;
 
         private NotebookExplorer notebookExplorer;
         private ResultCreator rc;
-
-        private OneNoteProvider oneNote;
-        private Timer idleTimer; //use to clean up oneNote instance if left around
-       
+      
         public void Init(PluginInitContext context)
         {
             this.context = context;
-            oneNote = new OneNoteProvider(true);
-            rc = new ResultCreator(context, oneNote);
-            notebookExplorer = new NotebookExplorer(context, oneNote, rc);
 
-            idleTimer = new Timer(10000);
-            idleTimer.Elapsed += (s,e) => oneNote.Release();
-            idleTimer.AutoReset = false;
+            rc = new ResultCreator(context);
+            notebookExplorer = new NotebookExplorer(context, rc);
         }
+        
         public List<Result> Query(Query query)
         {
-            idleTimer.Stop();
-            idleTimer.Start();
+            //oneNote.Init();
+            //oneNote.Release();
 
-            oneNote.Init();
+            //if (!oneNote.HasInstance)
+            //{
+            //    return new List<Result>()
+            //    {
+            //        new Result
+            //        {
+            //            Title = "OneNote instance could not be found.",
+            //            IcoPath = Icons.Unavailable
+            //        }
+            //    };
+            //}
 
-            if (!oneNote.HasInstance)
-            {
-                return new List<Result>()
-                {
-                    new Result
-                    {
-                        Title = "OneNote instance could not be found.",
-                        IcoPath = Icons.Unavailable
-                    }
-                };
-            }
             if (string.IsNullOrEmpty(query.Search))
             {
                 return new List<Result>()
@@ -82,7 +75,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         Score = -4000,
                         Action = c =>
                         {
-                            oneNote.CreateQuickNote();
+                            Util.CallOneNoteSafely(oneNote => oneNote.CreateQuickNote());
                             return true;
                         }
                     },
@@ -93,11 +86,14 @@ namespace Flow.Launcher.Plugin.OneNote
                         Score = int.MinValue,
                         Action = c =>
                         {
-                            foreach (var notebook in oneNote.Notebooks)
+                            Util.CallOneNoteSafely(oneNote =>
                             {
-                                oneNote.SyncItem(notebook);
-                            }
-                            oneNote.OpenInOneNote(oneNote.Notebooks.First());
+                                foreach (var notebook in oneNote.Notebooks)
+                                {
+                                    oneNote.SyncItem(notebook);
+                                }
+                                oneNote.OpenInOneNote(oneNote.Notebooks.First());
+                            });
                             return true;
                         }
                     },
@@ -110,22 +106,28 @@ namespace Flow.Launcher.Plugin.OneNote
                 if (query.FirstSearch.Length > Keywords.RecentPages.Length && int.TryParse(query.FirstSearch[Keywords.RecentPages.Length..], out int userChosenCount))
                     count = userChosenCount;
 
-                return oneNote.Pages.OrderByDescending(pg => pg.LastModified)
+                return Util.CallOneNoteSafely(oneNote =>
+                {
+                    return oneNote.Pages.OrderByDescending(pg => pg.LastModified)
                     .Take(count)
                     .Select(pg =>
                     {
-                        Result result = rc.CreatePageResult(pg);
+                        Result result = rc.CreatePageResult(oneNote, pg);
                         result.SubTitleToolTip = result.SubTitle;
                         result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
                         result.IcoPath = Icons.RecentPage;
                         return result;
                     })
                     .ToList();
+                });
             }
 
             //Search via notebook structure
             if (query.FirstSearch.StartsWith(Keywords.NotebookExplorer))
-                return notebookExplorer.Explore(query);
+                return Util.CallOneNoteSafely(oneNote =>
+                {
+                    return notebookExplorer.Explore(oneNote, query);
+                });
 
             //Check for invalid start of query i.e. symbols
             if (!char.IsLetterOrDigit(query.Search[0]))
@@ -138,13 +140,14 @@ namespace Flow.Launcher.Plugin.OneNote
                         IcoPath = Icons.Warning,
                     }
                 };
+
             //Default search 
-            var searches = oneNote.FindPages(query.Search)
-                .Select(pg => rc.CreatePageResult(pg, context.API.FuzzySearch(query.Search, pg.Name).MatchData));
+            var searches = Util.CallOneNoteSafely(oneNote => oneNote.FindPages(query.Search)
+                                                                    .Select(pg => rc.CreatePageResult(oneNote, pg, context.API.FuzzySearch(query.Search, pg.Name).MatchData)));
 
             if (searches.Any())
                 return searches.ToList();
-                
+
             return new List<Result>
             {
                 new Result
@@ -161,8 +164,11 @@ namespace Flow.Launcher.Plugin.OneNote
             var results = new List<Result>();
             if(selectedResult.ContextData is IOneNoteItem item)
             {
-                var result = rc.GetOneNoteItemResult(item, false);
-                result.Title = $"Open and sync {item.Name}";
+                var result = Util.CallOneNoteSafely(oneNote =>
+                {
+                    return rc.GetOneNoteItemResult(oneNote, item, false);
+                });
+                result.Title = $"Open and sync \"{item.Name}\"";
                 result.SubTitle = string.Empty;
                 result.ContextData = null;
                 results.Add(result);
@@ -195,11 +201,11 @@ namespace Flow.Launcher.Plugin.OneNote
 
             }
         }
-        public void Dispose()
-        {
-            idleTimer.Dispose();
-            oneNote.Release();
-        }
+        //public void Dispose()
+        //{
+        //    //idleTimer.Dispose();
+        //    oneNote.Release();
+        //}
 
 
     }

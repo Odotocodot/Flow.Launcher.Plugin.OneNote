@@ -8,14 +8,12 @@ namespace Flow.Launcher.Plugin.OneNote
     {
         private readonly PluginInitContext context;
 
-        private readonly OneNoteProvider oneNote;
         private readonly OneNoteItemIcons notebookIcons;
         private readonly OneNoteItemIcons sectionIcons;
 
-        public ResultCreator(PluginInitContext context, OneNoteProvider oneNote)
+        public ResultCreator(PluginInitContext context)
         {
             this.context = context;
-            this.oneNote = oneNote;
             notebookIcons = new OneNoteItemIcons("Images/NotebookIcons", Icons.Notebook, context);
             sectionIcons = new OneNoteItemIcons("Images/SectionIcons", Icons.Section, context);
         }
@@ -33,19 +31,19 @@ namespace Flow.Launcher.Plugin.OneNote
             return path;
 
         }
-        public Result GetOneNoteItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int> highlightData = null, int score = 0)
+        public Result GetOneNoteItemResult(OneNoteProvider oneNote, IOneNoteItem item, bool actionIsAutoComplete, List<int> highlightData = null, int score = 0)
         {
             return item.ItemType switch
             {
-                OneNoteItemType.Notebook => CreateNotebookResult((OneNoteNotebook)item, actionIsAutoComplete, highlightData, score),
-                OneNoteItemType.SectionGroup => CreateSectionGroupResult((OneNoteSectionGroup)item, actionIsAutoComplete, highlightData, score),
-                OneNoteItemType.Section => CreateSectionResult((OneNoteSection)item, actionIsAutoComplete, highlightData, score),
-                OneNoteItemType.Page => CreatePageResult((OneNotePage)item, highlightData, score),
+                OneNoteItemType.Notebook => CreateNotebookResult(oneNote, (OneNoteNotebook)item, actionIsAutoComplete, highlightData, score),
+                OneNoteItemType.SectionGroup => CreateSectionGroupResult(oneNote, (OneNoteSectionGroup)item, actionIsAutoComplete, highlightData, score),
+                OneNoteItemType.Section => CreateSectionResult(oneNote, (OneNoteSection)item, actionIsAutoComplete, highlightData, score),
+                OneNoteItemType.Page => CreatePageResult(oneNote, (OneNotePage)item, highlightData, score),
                 _ => new Result(),
             };
         }
 
-        public Result CreatePageResult(OneNotePage page, List<int> highlightingData = null, int score = 0)
+        public Result CreatePageResult(OneNoteProvider oneNote, OneNotePage page, List<int> highlightingData = null, int score = 0)
         {
             return new Result
             {
@@ -58,14 +56,16 @@ namespace Flow.Launcher.Plugin.OneNote
                 ContextData = page,
                 Action = c =>
                 {
+                    oneNote.Init();
                     oneNote.SyncItem(page);
                     oneNote.OpenInOneNote(page);
+                    oneNote.Release();
                     return true;
                 },
             };
         }
 
-        private Result CreateSecionBaseResult(IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
+        private Result CreateSecionBaseResult(OneNoteProvider oneNote, IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
             string path = GetNicePath(sectionBase);
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{path.Replace(" > ","\\")}\\";
@@ -87,23 +87,26 @@ namespace Flow.Launcher.Plugin.OneNote
                         context.API.ChangeQuery(autoCompleteText);
                         return false;
                     }
+                    oneNote.Init();
                     oneNote.SyncItem(sectionBase);
                     oneNote.OpenInOneNote(sectionBase);
+                    oneNote.Release();
+
                     return true;
                 }
             };
         }
-        public Result CreateSectionResult(OneNoteSection section, bool actionIsAutoComplete, List<int> highlightData, int score)
+        public Result CreateSectionResult(OneNoteProvider oneNote, OneNoteSection section, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            return CreateSecionBaseResult(section, sectionIcons.GetIcon(section.Color.Value), actionIsAutoComplete, highlightData, score);
+            return CreateSecionBaseResult(oneNote, section, sectionIcons.GetIcon(section.Color.Value), actionIsAutoComplete, highlightData, score);
         }
 
-        public Result CreateSectionGroupResult(OneNoteSectionGroup sectionGroup, bool actionIsAutoComplete, List<int> highlightData, int score)
+        public Result CreateSectionGroupResult(OneNoteProvider oneNote, OneNoteSectionGroup sectionGroup, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            return CreateSecionBaseResult(sectionGroup, Icons.SectionGroup, actionIsAutoComplete, highlightData, score);
+            return CreateSecionBaseResult(oneNote, sectionGroup, Icons.SectionGroup, actionIsAutoComplete, highlightData, score);
         }
 
-        public Result CreateNotebookResult(OneNoteNotebook notebook, bool actionIsAutoComplete, List<int> highlightData, int score)
+        public Result CreateNotebookResult(OneNoteProvider oneNote, OneNoteNotebook notebook, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}\\";
 
@@ -123,14 +126,16 @@ namespace Flow.Launcher.Plugin.OneNote
                         context.API.ChangeQuery(autoCompleteText);
                         return false;
                     }
-                    oneNote.SyncItem(notebook);
+                    oneNote.Init();
+                    oneNote.SyncItem(notebook); 
                     oneNote.OpenInOneNote(notebook);
+                    oneNote.Release();
                     return true;
                 }
             };
         }
 
-        public Result CreateNewPageResult(string pageTitle, OneNoteSection section)
+        public Result CreateNewPageResult(OneNoteProvider oneNote, string pageTitle, OneNoteSection section)
         {
             pageTitle = pageTitle.Trim();
             return new Result
@@ -140,13 +145,15 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = Icons.NewPage,
                 Action = c =>
                 {
+                    oneNote.Init();
                     oneNote.CreatePage(section, pageTitle);
+                    oneNote.Release();
                     return true;
                 }
             };
         }
 
-        public Result CreateNewSectionResult(string sectionTitle, IOneNoteItem parent)
+        public Result CreateNewSectionResult(OneNoteProvider oneNote, string sectionTitle, IOneNoteItem parent)
         {
             sectionTitle = sectionTitle.Trim();
             return new Result
@@ -156,13 +163,16 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = Icons.NewSection,
                 Action = c =>
                 {
+                    oneNote.Init();
                     oneNote.CreateSection(parent, sectionTitle);
+                    oneNote.Release();
+
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
                     return true;
                 }
             };
         }
-        public Result CreateNewSectionGroupResult(string sectionGroupTitle, IOneNoteItem parent)
+        public Result CreateNewSectionGroupResult(OneNoteProvider oneNote, string sectionGroupTitle, IOneNoteItem parent)
         {
             sectionGroupTitle = sectionGroupTitle.Trim();
             return new Result
@@ -172,14 +182,17 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = Icons.NewSectionGroup,
                 Action = c =>
                 {
+                    oneNote.Init();
                     oneNote.CreateSectionGroup(parent, sectionGroupTitle);
+                    oneNote.Release();
+
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
                     return true;
                 }
             };
         }
 
-        public Result CreateNewNotebookResult(string notebookTitle)
+        public Result CreateNewNotebookResult(OneNoteProvider oneNote, string notebookTitle)
         {
             notebookTitle = notebookTitle.Trim();
             return new Result
@@ -189,7 +202,10 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = Icons.NewNotebook,
                 Action = c =>
                 {
+                    oneNote.Init();
                     oneNote.CreateNotebook(notebookTitle);
+                    oneNote.Release();
+
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
                     return true;
                 }
