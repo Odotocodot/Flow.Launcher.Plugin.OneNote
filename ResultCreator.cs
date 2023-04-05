@@ -17,20 +17,56 @@ namespace Flow.Launcher.Plugin.OneNote
             notebookIcons = new OneNoteItemIcons("Images/NotebookIcons", Icons.Notebook, context);
             sectionIcons = new OneNoteItemIcons("Images/SectionIcons", Icons.Section, context);
         }
-        
-        private static string GetNicePath(IOneNoteItem item)
+
+        private static string GetNicePath(IOneNoteItem item, bool removeSelf)
         {
             var path = item.RelativePath;
 
-            if(path.EndsWith("/")  || path.EndsWith("\\"))
-                path = path.Remove(path.Length - 1);
-
             if (path.EndsWith(".one"))
                 path = path[..^4];
-            path = path.Replace("/", " > ").Replace("\\", " > ");
-            return path;
 
+            if (path.EndsWith("/") || path.EndsWith("\\"))
+                path = path.Remove(path.Length - 1);
+
+            if(removeSelf)
+            {
+                int index = path.LastIndexOf(item.Name);
+
+                if (index != -1)
+                {
+                    path = path.Remove(index, item.Name.Length);
+                    if (path.EndsWith("/") || path.EndsWith("\\"))
+                        path = path.Remove(path.Length - 1);
+                }
+            }
+
+            path = path.Replace("/", " > ").Replace("\\", " > ");
+
+            return path;
         }
+
+        private static string GetTitle(IOneNoteItem item, List<int> hightlightData)
+        {
+            string title = item.Name;
+            if (item.IsUnread)
+            {
+                string unread = "�  ";
+                title = title.Insert(0, unread);
+
+                if (hightlightData != null)
+                {
+                    for (int i = 0; i < hightlightData.Count; i++)
+                    {
+                        hightlightData[i] += unread.Length;
+                    }
+                }
+            }
+            //for
+
+            return title;
+        }
+
+        #region Create OneNote Item Results
         public Result GetOneNoteItemResult(OneNoteProvider oneNote, IOneNoteItem item, bool actionIsAutoComplete, List<int> highlightData = null, int score = 0)
         {
             return item.ItemType switch
@@ -45,12 +81,13 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public Result CreatePageResult(OneNoteProvider oneNote, OneNotePage page, List<int> highlightingData = null, int score = 0)
         {
+            string title = GetTitle(page, highlightingData);
             return new Result
             {
-                Title = page.Name,
+                Title = title,
                 TitleToolTip = $"Created: {page.DateTime}\nLast Modified: {page.LastModified}",
                 TitleHighlightData = highlightingData,
-                SubTitle = GetNicePath(page),
+                SubTitle = GetNicePath(page, true),
                 Score = score,
                 IcoPath = Icons.Logo,
                 ContextData = page,
@@ -67,12 +104,13 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private Result CreateSecionBaseResult(OneNoteProvider oneNote, IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            string path = GetNicePath(sectionBase);
+            string title = GetTitle(sectionBase, highlightData);
+            string path = GetNicePath(sectionBase, false);
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{path.Replace(" > ","\\")}\\";
 
             return new Result
             {
-                Title = sectionBase.Name,
+                Title = title,
                 TitleHighlightData = highlightData,
                 SubTitle = path,
                 SubTitleToolTip = $"{path} | Number of pages: {sectionBase.Children.Count()}",
@@ -108,11 +146,12 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public Result CreateNotebookResult(OneNoteProvider oneNote, OneNoteNotebook notebook, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
+            string title = GetTitle(notebook, highlightData);
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}\\";
 
             return new Result
             {
-                Title = notebook.Name,
+                Title = title,
                 TitleToolTip = $"Number of sections: {notebook.Sections.Count()}",
                 TitleHighlightData = highlightData,
                 AutoCompleteText = autoCompleteText,
@@ -134,14 +173,17 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
             };
         }
+        #endregion
 
+
+        #region Create New OneNote Item Results
         public Result CreateNewPageResult(OneNoteProvider oneNote, string pageTitle, OneNoteSection section)
         {
             pageTitle = pageTitle.Trim();
             return new Result
             {
                 Title = $"Create page: \"{pageTitle}\"",
-                SubTitle = $"Path: {GetNicePath(section)} > {pageTitle}",
+                SubTitle = $"Path: {GetNicePath(section,false)} > {pageTitle}",
                 IcoPath = Icons.NewPage,
                 Action = c =>
                 {
@@ -159,7 +201,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = $"Create section: \"{sectionTitle}\"",
-                SubTitle = $"Path: {GetNicePath(parent)} > {sectionTitle}",
+                SubTitle = $"Path: {GetNicePath(parent, false)} > {sectionTitle}",
                 IcoPath = Icons.NewSection,
                 Action = c =>
                 {
@@ -178,7 +220,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = $"Create section group: \"{sectionGroupTitle}\"",
-                SubTitle = $"Path: {GetNicePath(parent)} > {sectionGroupTitle}",
+                SubTitle = $"Path: {GetNicePath(parent, false)} > {sectionGroupTitle}",
                 IcoPath = Icons.NewSectionGroup,
                 Action = c =>
                 {
@@ -211,5 +253,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
             };
         }
+
+        #endregion
     }
 }
