@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace Odotocodot.OneNote.Linq
@@ -34,39 +33,5 @@ namespace Odotocodot.OneNote.Linq
         /// <see cref="Enumerable.Empty{IOneNoteItem}()"/> if the item has no children.
         /// </returns>
         IEnumerable<IOneNoteItem> Children { get; }
-
-        /// <summary>
-        /// Depth first traversal
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<IOneNoteItem> Traverse(Func<IOneNoteItem, bool> predicate)
-        {
-            var stack = new Stack<IOneNoteItem>();
-            stack.Push(this);
-            while (stack.Count > 0)
-            {
-                var current = stack.Pop();
-
-                if (predicate(current))
-                    yield return current;
-
-                foreach (var child in current.Children)
-                    stack.Push(child);
-            }
-        }
-        public IEnumerable<IOneNoteItem> Traverse()
-        {
-            var stack = new Stack<IOneNoteItem>();
-            stack.Push(this);
-            while (stack.Count > 0)
-            {
-                var current = stack.Pop();
-
-                yield return current;
-
-                foreach (var child in current.Children)
-                    stack.Push(child);
-            }
-        }
     }
 }

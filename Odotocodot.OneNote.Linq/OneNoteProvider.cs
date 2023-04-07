@@ -62,23 +62,11 @@ namespace Odotocodot.OneNote.Linq
 
         public IEnumerable<IOneNoteItem> Traverse()
         {
-            foreach (IOneNoteItem notebook in Notebooks)
-            {
-                foreach (var child in notebook.Traverse())
-                {
-                    yield return child;
-                }
-            }
+            return Notebooks.Traverse();
         }
         public IEnumerable<IOneNoteItem> Traverse(Func<IOneNoteItem, bool> predicate)
         {
-            foreach (IOneNoteItem notebook in Notebooks)
-            {
-                foreach (var child in notebook.Traverse(predicate))
-                {
-                    yield return child;
-                }
-            }
+            return Notebooks.Traverse(predicate);
         }
 
         public void SyncItem(IOneNoteItem item)
@@ -87,7 +75,7 @@ namespace Odotocodot.OneNote.Linq
         }
         public IEnumerable<OneNotePage> FindPages(string searchString)
         {
-            return OneNoteParser.FindPages(oneNote, null, searchString);
+            return OneNoteParser.FindPages(oneNote, searchString);
         }
         public IEnumerable<OneNotePage> FindPages(IOneNoteItem scope, string searchString)
         {

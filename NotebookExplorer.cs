@@ -36,7 +36,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                 if (!ValidateItem(currentCollection, searchStrings[index], out currentParentItem))
                     return results;
-                
+
                 currentCollection = currentParentItem.Children;
             }
 
@@ -45,11 +45,11 @@ namespace Flow.Launcher.Plugin.OneNote
             var parentType = currentParentItem?.ItemType; //null if the current collection contains notebooks
             if (string.IsNullOrWhiteSpace(lastSearch))
             {
-                results = currentCollection.Where(item => HideEncryptedSections(item))
+                results = currentCollection.Where(item => !IsEncryptedSection(item))
                                            .Select(item => rc.GetOneNoteItemResult(oneNote, item, true))
                                            .ToList();
 
-                if(!results.Any())
+                if (!results.Any())
                 {
                     switch (parentType)
                     {
@@ -74,15 +74,24 @@ namespace Flow.Launcher.Plugin.OneNote
 
             List<int> highlightData = null;
             int score = 0;
-            results = currentCollection.Where(item => HideEncryptedSections(item))
+
+            if (lastSearch.StartsWith(Keywords.SearchByTitle) && (parentType == OneNoteItemType.Notebook || parentType == OneNoteItemType.SectionGroup || parentType == OneNoteItemType.Section))
+            {
+                return SearchByTitle(oneNote, lastSearch, currentParentItem, currentCollection);
+            }
+
+            if (lastSearch.StartsWith(Keywords.ScopedSearch) && (parentType == OneNoteItemType.Notebook || parentType == OneNoteItemType.SectionGroup))
+            {
+                return ScopedSearch(oneNote, lastSearch, currentParentItem);
+            }
+
+            results = currentCollection.Where(item => !IsEncryptedSection(item))
                                        .Where(item => MatchItem(item, lastSearch, out highlightData, out score))
                                        .Select(item => rc.GetOneNoteItemResult(oneNote, item, true, highlightData, score))
                                        .ToList();
+            
 
-            if (!results.Any(result => string.Equals(lastSearch.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
-            {
-                AddNewOneNoteItemResults(oneNote, results, lastSearch, parentType, currentParentItem);
-            }
+            AddNewOneNoteItemResults(oneNote, results, currentParentItem, lastSearch);
             return results;
 
             static Result NoItemsInCollectionResult(string title, string iconPath, string subTitle = null)
@@ -95,14 +104,98 @@ namespace Flow.Launcher.Plugin.OneNote
                 };
             }
         }
+        private List<Result> ScopedSearch(OneNoteProvider oneNote, string query, IOneNoteItem parentItem)
+        {
+            var results = new List<Result>();
+            if (query.Length == Keywords.ScopedSearch.Length)
+            {
+                return new List<Result>
+                    {
+                        new Result
+                        {
+                            Title = $"Now searching all pages in \"{parentItem.Name}\"",
+                            IcoPath = Icons.Search,
+                        }
+                    };
+            }
 
-        private static bool HideEncryptedSections(IOneNoteItem item)
+            var currentSearch = query[Keywords.SearchByTitle.Length..];
+
+            results = oneNote.FindPages(parentItem, currentSearch)
+                             .Select(pg => rc.CreatePageResult(oneNote, pg, context.API.FuzzySearch(currentSearch, pg.Name).MatchData))
+                             .ToList();
+
+            if (!results.Any())
+                results = ResultCreator.NoMatchesFoundResult();
+
+            AddNewOneNoteItemResults(oneNote, results, parentItem, query);
+            return results;
+        }
+        private List<Result> SearchByTitle(OneNoteProvider oneNote, string query, IOneNoteItem parentItem, IEnumerable<IOneNoteItem> currentCollection)
+        {
+            List<int> highlightData = null;
+            int score = 0;
+            var results = new List<Result>();
+            if (query.Length == Keywords.SearchByTitle.Length)
+            {
+                return new List<Result>
+                {
+                    new Result
+                    {
+                        Title = $"Now searching by title in \"{parentItem.Name}\"",
+                        IcoPath = Icons.Search,
+                    }
+                };
+            }
+            var currentSearch = query[Keywords.SearchByTitle.Length..];
+
+            results = currentCollection.Traverse(item =>
+            {
+                if (IsEncryptedSection(item))
+                    return false;
+
+                return MatchItem(item, currentSearch, out highlightData, out score);
+            })
+            .Select(item => rc.GetOneNoteItemResult(oneNote, item, true, highlightData, score))
+            .ToList();
+
+            if (!results.Any())
+                results = ResultCreator.NoMatchesFoundResult();
+
+            AddNewOneNoteItemResults(oneNote, results, parentItem, query);
+            return results;
+        }
+
+        private void AddNewOneNoteItemResults(OneNoteProvider oneNote, List<Result> results, IOneNoteItem parent, string query)
+        {
+            if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
+            {
+                switch (parent?.ItemType)
+                {
+                    case null:
+                        results.Add(rc.CreateNewNotebookResult(oneNote, query));
+                        break;
+                    case OneNoteItemType.Notebook:
+                    case OneNoteItemType.SectionGroup:
+                        results.Add(rc.CreateNewSectionResult(oneNote, query, parent));
+                        results.Add(rc.CreateNewSectionGroupResult(oneNote, query, parent));
+                        break;
+                    case OneNoteItemType.Section:
+                        results.Add(rc.CreateNewPageResult(oneNote, query, (OneNoteSection)parent));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private static bool IsEncryptedSection(IOneNoteItem item)
         {
             if (item.ItemType == OneNoteItemType.Section)
             {
-                return !((OneNoteSection)item).Encrypted;
+                return ((OneNoteSection)item).Encrypted;
             }
-            return true;
+            return false;
         }
         private static bool ValidateItem(IEnumerable<IOneNoteItem> items, string query, out IOneNoteItem item)
         {
@@ -110,25 +203,6 @@ namespace Flow.Launcher.Plugin.OneNote
             return item != null;
         }
 
-        private void AddNewOneNoteItemResults(OneNoteProvider oneNote, List<Result> results, string currentQuery, OneNoteItemType? parentItemType, IOneNoteItem parent)
-        {
-            switch (parentItemType)
-            {
-                case null:
-                    results.Add(rc.CreateNewNotebookResult(oneNote, currentQuery));
-                    break;
-                case OneNoteItemType.Notebook:
-                case OneNoteItemType.SectionGroup:
-                    results.Add(rc.CreateNewSectionResult(oneNote, currentQuery, parent));
-                    results.Add(rc.CreateNewSectionGroupResult(oneNote, currentQuery, parent));
-                    break;
-                case OneNoteItemType.Section:
-                    results.Add(rc.CreateNewPageResult(oneNote, currentQuery, (OneNoteSection)parent));
-                    break;
-                default:
-                    break;
-            }
-        }
 
 
         private bool MatchItem(IOneNoteItem item, string query, out List<int> highlightData, out int score)

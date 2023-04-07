@@ -50,7 +50,7 @@ namespace Flow.Launcher.Plugin.OneNote
             string title = item.Name;
             if (item.IsUnread)
             {
-                string unread = "ï¿½  ";
+                string unread = "•  ";
                 title = title.Insert(0, unread);
 
                 if (hightlightData != null)
@@ -255,5 +255,18 @@ namespace Flow.Launcher.Plugin.OneNote
         }
 
         #endregion
+
+        public static List<Result> NoMatchesFoundResult()
+        {
+            return new List<Result>
+            {
+                new Result
+                {
+                    Title = "No matches found",
+                    SubTitle = "Try searching something else, or syncing your notebooks.",
+                    IcoPath = Icons.Logo,
+                }
+            };
+        }
     }
 }

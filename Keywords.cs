@@ -5,5 +5,6 @@ namespace Flow.Launcher.Plugin.OneNote
         public const string NotebookExplorer = "nb:\\";
         public const string RecentPages = "rcntpgs:";
         public const string SearchByTitle = "*";
+        public const string ScopedSearch= ">";
     }
 }

@@ -5,7 +5,7 @@ using System.Timers;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNotePlugin : IPlugin, IContextMenu//, IDisposable
+    public class OneNotePlugin : IPlugin, IContextMenu
     {
         private PluginInitContext context;
         private readonly int recentPagesCount = 5;
@@ -23,21 +23,6 @@ namespace Flow.Launcher.Plugin.OneNote
         
         public List<Result> Query(Query query)
         {
-            //oneNote.Init();
-            //oneNote.Release();
-
-            //if (!oneNote.HasInstance)
-            //{
-            //    return new List<Result>()
-            //    {
-            //        new Result
-            //        {
-            //            Title = "OneNote instance could not be found.",
-            //            IcoPath = Icons.Unavailable
-            //        }
-            //    };
-            //}
-
             if (string.IsNullOrEmpty(query.Search))
             {
                 return new List<Result>()
@@ -124,10 +109,12 @@ namespace Flow.Launcher.Plugin.OneNote
 
             //Search via notebook structure
             if (query.FirstSearch.StartsWith(Keywords.NotebookExplorer))
+            {
                 return Util.CallOneNoteSafely(oneNote =>
                 {
                     return notebookExplorer.Explore(oneNote, query);
                 });
+            }
 
             //Check for invalid start of query i.e. symbols
             if (!char.IsLetterOrDigit(query.Search[0]))
@@ -142,21 +129,16 @@ namespace Flow.Launcher.Plugin.OneNote
                 };
 
             //Default search 
-            var searches = Util.CallOneNoteSafely(oneNote => oneNote.FindPages(query.Search)
-                                                                    .Select(pg => rc.CreatePageResult(oneNote, pg, context.API.FuzzySearch(query.Search, pg.Name).MatchData)));
+            var searches = Util.CallOneNoteSafely(oneNote =>
+            {
+                return oneNote.FindPages(query.Search)
+                              .Select(pg => rc.CreatePageResult(oneNote, pg, context.API.FuzzySearch(query.Search, pg.Name).MatchData));
+            });
 
             if (searches.Any())
                 return searches.ToList();
 
-            return new List<Result>
-            {
-                new Result
-                {
-                    Title = "No matches found",
-                    SubTitle = "Try searching something else, or syncing your notebooks.",
-                    IcoPath = Icons.Logo,
-                }
-            };
+            return ResultCreator.NoMatchesFoundResult();
         }
 
         public List<Result> LoadContextMenus(Result selectedResult)
@@ -201,12 +183,5 @@ namespace Flow.Launcher.Plugin.OneNote
 
             }
         }
-        //public void Dispose()
-        //{
-        //    //idleTimer.Dispose();
-        //    oneNote.Release();
-        //}
-
-
     }
 }

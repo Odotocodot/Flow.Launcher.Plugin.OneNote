@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.Office.Interop.OneNote;
@@ -10,7 +11,7 @@ namespace Odotocodot.OneNote.Linq
     public static class OneNoteParser
     {
         /// <summary>
-        /// Hierarchy of Notebooks with Sections and Pages.
+        /// Hierarchy of notebooks with section groups, sections and Pages.
         /// </summary>
         public static IEnumerable<OneNoteNotebook> GetNotebooks(Application oneNote)
         {
@@ -26,7 +27,7 @@ namespace Odotocodot.OneNote.Linq
         }
 
         /// <summary>
-        /// Collection of Pages.
+        /// Collection of pages.
         /// </summary>
         public static IEnumerable<OneNotePage> GetPages(Application oneNote)
         {
@@ -40,10 +41,17 @@ namespace Odotocodot.OneNote.Linq
         /// Pass exactly the same string that you would type into the search box in the OneNote UI. You can use bitwise operators, such as AND and OR, which must be all uppercase.
         /// </summary>
         /// <param name="searchString"></param>
+        public static IEnumerable<OneNotePage> FindPages(Application oneNote, string searchString)
+        {
+            oneNote.FindPages(null, searchString, out string xml);
+            var pages = ParsePages(xml);
+            return pages;
+        }
         public static IEnumerable<OneNotePage> FindPages(Application oneNote, IOneNoteItem scope, string searchString)
         {
             oneNote.FindPages(scope?.ID, searchString, out string xml);
-            return ParsePages(xml);
+            var pages = ParsePages(xml, scope);
+            return pages;
         }
 
         #region Parsing XML
@@ -108,41 +116,74 @@ namespace Odotocodot.OneNote.Linq
         
         private static OneNotePage ParsePage(XElement pageElement, string parentRelativePath)
         {
+            
             var page = new OneNotePage
             {
                 ID = GetID(pageElement),
                 Name = GetName(pageElement),
                 Level = (int)pageElement.Attribute("pageLevel"),
                 IsUnread = GetIsUnread(pageElement),
-                RelativePath = $"{parentRelativePath[..^4]}/{GetName(pageElement)}",
+                RelativePath = Path.Combine(parentRelativePath[..^4], GetName(pageElement)),
                 DateTime = (DateTime)pageElement.Attribute("dateTime"),
                 LastModified = (DateTime)pageElement.Attribute("lastModifiedTime"),
             };
             return page;
         }
+        private static OneNotePage ParsePage(XElement pageElement, IOneNoteItem scope)
+        {
+            var sectionElement = pageElement.Parent;
+            var notebookName = scope.RelativePath.Split(new char[] { '/', '\\' }, 2, StringSplitOptions.RemoveEmptyEntries)[0];
+            var sectionRelativePath = GetRelativePath(sectionElement, notebookName);
+            return ParsePage(pageElement, sectionRelativePath);
+        }
+
+        private static OneNotePage ParsePage(XElement pageElement)
+        {
+            var sectionElement = pageElement.Parent;
+            var notebookElement = sectionElement.Parent;
+            while (notebookElement.Name.LocalName == "SectionGroup")
+            {
+                notebookElement = notebookElement.Parent;
+            }
+            var notebookName = GetName(notebookElement);
+            var sectionRelativePath = GetRelativePath(sectionElement, notebookName);
+            return ParsePage(pageElement, sectionRelativePath);
+        }
+
 
         private static IEnumerable<OneNotePage> ParsePages(string xml)
         {
             var doc = XElement.Parse(xml);
             var one = doc.GetNamespaceOfPrefix("one");
 
-            // Transform XML into object collection
-            foreach (var notebookElement in doc.Elements(one + "Notebook"))
+            return doc.Elements(one + "Notebook")
+                        .Descendants(one + "Section")
+                        //.Elements(one + "Page")
+                        .Elements()
+                        .Where(x => x.HasAttributes && x.Name.LocalName == "Page")
+                        .Select(pg => ParsePage(pg));
+        }
+
+        private static IEnumerable<OneNotePage> ParsePages(string xml, IOneNoteItem scope)
+        {
+            if (scope == null)
             {
-                var notebookName = GetName(notebookElement);
-                foreach (var sectionElement in notebookElement.Descendants(one + "Section"))
-                {
-                    var sectionRelativePath = GetRelativePath(sectionElement, notebookName);
+                throw new ArgumentNullException(nameof(scope));
+            }
 
-                    var pages = sectionElement.Elements()
-                                              .Where(x => x.HasAttributes && x.Name.LocalName == "Page")
-                                              .Select(pg => ParsePage(pg, sectionRelativePath));
+            var doc = XElement.Parse(xml);
+            var one = doc.GetNamespaceOfPrefix("one");
 
-                    foreach (var page in pages)
-                    {
-                        yield return page;
-                    }
-                }
+            if (scope.ItemType == OneNoteItemType.Section)
+            {
+                return doc.Elements(one + "Page")
+                          .Select(pg => ParsePage(pg, scope.RelativePath));
+            }
+            else
+            {
+                return doc.Descendants(one + "Section")
+                          .Elements(one + "Page")
+                          .Select(pg => ParsePage(pg, scope));
             }
         }
         #endregion
