@@ -25,7 +25,7 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             if (string.IsNullOrEmpty(query.Search))
             {
-                return new List<Result>()
+                return new List<Result>
                 {
                     new Result
                     {
@@ -116,17 +116,19 @@ namespace Flow.Launcher.Plugin.OneNote
                 });
             }
 
+            if(query.FirstSearch.StartsWith(Keywords.SearchByTitle))
+            {
+                return ResultCreator.NoMatchesFoundResult();
+            }
+
+
             //Check for invalid start of query i.e. symbols
             if (!char.IsLetterOrDigit(query.Search[0]))
-                return new List<Result>()
-                {
-                    new Result
-                    {
-                        Title = "Invalid query",
-                        SubTitle = "The first character of the search must be a letter or a digit",
-                        IcoPath = Icons.Warning,
-                    }
-                };
+            {
+                return ResultCreator.SingleResult("Invalid query",
+                                                  "The first character of the search must be a letter or a digit",
+                                                  Icons.Warning);
+            }
 
             //Default search 
             var searches = Util.CallOneNoteSafely(oneNote =>

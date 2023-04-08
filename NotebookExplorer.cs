@@ -45,7 +45,7 @@ namespace Flow.Launcher.Plugin.OneNote
             var parentType = currentParentItem?.ItemType; //null if the current collection contains notebooks
             if (string.IsNullOrWhiteSpace(lastSearch))
             {
-                results = currentCollection.Where(item => !IsEncryptedSection(item))
+                results = currentCollection.Where(item => !ResultCreator.IsEncryptedSection(item))
                                            .Select(item => rc.GetOneNoteItemResult(oneNote, item, true))
                                            .ToList();
 
@@ -72,21 +72,26 @@ namespace Flow.Launcher.Plugin.OneNote
                 return results;
             }
 
-            List<int> highlightData = null;
-            int score = 0;
 
             if (lastSearch.StartsWith(Keywords.SearchByTitle) && (parentType == OneNoteItemType.Notebook || parentType == OneNoteItemType.SectionGroup || parentType == OneNoteItemType.Section))
             {
-                return SearchByTitle(oneNote, lastSearch, currentParentItem, currentCollection);
+                results = rc.SearchByTitle(oneNote, lastSearch, currentCollection, currentParentItem);
+                AddNewOneNoteItemResults(oneNote, results, currentParentItem, lastSearch);
+                return results;
             }
 
             if (lastSearch.StartsWith(Keywords.ScopedSearch) && (parentType == OneNoteItemType.Notebook || parentType == OneNoteItemType.SectionGroup))
             {
-                return ScopedSearch(oneNote, lastSearch, currentParentItem);
+                results = ScopedSearch(oneNote, lastSearch, currentParentItem);
+                AddNewOneNoteItemResults(oneNote, results, currentParentItem, lastSearch);
+                return results;
             }
 
-            results = currentCollection.Where(item => !IsEncryptedSection(item))
-                                       .Where(item => MatchItem(item, lastSearch, out highlightData, out score))
+            List<int> highlightData = null;
+            int score = 0;
+
+            results = currentCollection.Where(item => !ResultCreator.IsEncryptedSection(item))
+                                       .Where(item => rc.FuzzySearch(item.Name, lastSearch, out highlightData, out score))
                                        .Select(item => rc.GetOneNoteItemResult(oneNote, item, true, highlightData, score))
                                        .ToList();
             
@@ -106,20 +111,15 @@ namespace Flow.Launcher.Plugin.OneNote
         }
         private List<Result> ScopedSearch(OneNoteProvider oneNote, string query, IOneNoteItem parentItem)
         {
-            var results = new List<Result>();
             if (query.Length == Keywords.ScopedSearch.Length)
             {
-                return new List<Result>
-                    {
-                        new Result
-                        {
-                            Title = $"Now searching all pages in \"{parentItem.Name}\"",
-                            IcoPath = Icons.Search,
-                        }
-                    };
+                return ResultCreator.SingleResult($"Now searching all pages in \"{parentItem.Name}\"",
+                                                  null,
+                                                  Icons.Search);
             }
 
             var currentSearch = query[Keywords.SearchByTitle.Length..];
+            var results = new List<Result>();
 
             results = oneNote.FindPages(parentItem, currentSearch)
                              .Select(pg => rc.CreatePageResult(oneNote, pg, context.API.FuzzySearch(currentSearch, pg.Name).MatchData))
@@ -128,41 +128,6 @@ namespace Flow.Launcher.Plugin.OneNote
             if (!results.Any())
                 results = ResultCreator.NoMatchesFoundResult();
 
-            AddNewOneNoteItemResults(oneNote, results, parentItem, query);
-            return results;
-        }
-        private List<Result> SearchByTitle(OneNoteProvider oneNote, string query, IOneNoteItem parentItem, IEnumerable<IOneNoteItem> currentCollection)
-        {
-            List<int> highlightData = null;
-            int score = 0;
-            var results = new List<Result>();
-            if (query.Length == Keywords.SearchByTitle.Length)
-            {
-                return new List<Result>
-                {
-                    new Result
-                    {
-                        Title = $"Now searching by title in \"{parentItem.Name}\"",
-                        IcoPath = Icons.Search,
-                    }
-                };
-            }
-            var currentSearch = query[Keywords.SearchByTitle.Length..];
-
-            results = currentCollection.Traverse(item =>
-            {
-                if (IsEncryptedSection(item))
-                    return false;
-
-                return MatchItem(item, currentSearch, out highlightData, out score);
-            })
-            .Select(item => rc.GetOneNoteItemResult(oneNote, item, true, highlightData, score))
-            .ToList();
-
-            if (!results.Any())
-                results = ResultCreator.NoMatchesFoundResult();
-
-            AddNewOneNoteItemResults(oneNote, results, parentItem, query);
             return results;
         }
 
@@ -189,33 +154,10 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
 
-        private static bool IsEncryptedSection(IOneNoteItem item)
-        {
-            if (item.ItemType == OneNoteItemType.Section)
-            {
-                return ((OneNoteSection)item).Encrypted;
-            }
-            return false;
-        }
         private static bool ValidateItem(IEnumerable<IOneNoteItem> items, string query, out IOneNoteItem item)
         {
             item = items.FirstOrDefault(t => t.Name == query);
             return item != null;
-        }
-
-
-
-        private bool MatchItem(IOneNoteItem item, string query, out List<int> highlightData, out int score)
-        {
-            return MatchScore(item.Name, query, out highlightData, out score);
-        }
-
-        private bool MatchScore(string itemName, string searchString, out List<int> highlightData, out int score)
-        {
-            var matchResult = context.API.FuzzySearch(searchString, itemName);
-            highlightData = matchResult.MatchData;
-            score = matchResult.Score;
-            return matchResult.IsSearchPrecisionScoreMet();
         }
     }
 }

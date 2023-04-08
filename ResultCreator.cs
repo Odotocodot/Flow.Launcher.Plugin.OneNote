@@ -175,7 +175,6 @@ namespace Flow.Launcher.Plugin.OneNote
         }
         #endregion
 
-
         #region Create New OneNote Item Results
         public Result CreateNewPageResult(OneNoteProvider oneNote, string pageTitle, OneNoteSection section)
         {
@@ -256,15 +255,72 @@ namespace Flow.Launcher.Plugin.OneNote
 
         #endregion
 
+        public List<Result> SearchByTitle(OneNoteProvider oneNote, string query, IEnumerable<IOneNoteItem> currentCollection, IOneNoteItem parentItem = null)
+        {
+            if (query.Length == Keywords.SearchByTitle.Length)
+            {
+                var title = "Now searching by title";
+
+                if (parentItem != null)
+                    title += $" in \"{parentItem.Name}\"";
+
+                return SingleResult(title, null, Icons.Search);
+            }
+
+            List<int> highlightData = null;
+            int score = 0;
+            var results = new List<Result>();
+
+            var currentSearch = query[Keywords.SearchByTitle.Length..];
+
+            results = currentCollection.Traverse(item =>
+            {
+                if (IsEncryptedSection(item))
+                    return false;
+
+                return FuzzySearch(item.Name, currentSearch, out highlightData, out score);
+            })
+            .Select(item => GetOneNoteItemResult(oneNote, item, true, highlightData, score))
+            .ToList();
+
+            if (!results.Any())
+                results = NoMatchesFoundResult();
+
+            return results;
+        }
+        public bool FuzzySearch(string itemName, string searchString, out List<int> highlightData, out int score)
+        {
+            var matchResult = context.API.FuzzySearch(searchString, itemName);
+            highlightData = matchResult.MatchData;
+            score = matchResult.Score;
+            return matchResult.IsSearchPrecisionScoreMet();
+        }
+
+        public static bool IsEncryptedSection(IOneNoteItem item)
+        {
+            if (item.ItemType == OneNoteItemType.Section)
+            {
+                return ((OneNoteSection)item).Encrypted;
+            }
+            return false;
+        }
+
         public static List<Result> NoMatchesFoundResult()
+        {
+            return SingleResult("No matches found",
+                                "Try searching something else, or syncing your notebooks.",
+                                Icons.Logo);
+        }
+
+        public static List<Result> SingleResult(string title, string subTitle, string iconPath)
         {
             return new List<Result>
             {
                 new Result
                 {
-                    Title = "No matches found",
-                    SubTitle = "Try searching something else, or syncing your notebooks.",
-                    IcoPath = Icons.Logo,
+                    Title = title,
+                    SubTitle = subTitle,
+                    IcoPath = iconPath,
                 }
             };
         }
