@@ -15,7 +15,7 @@ namespace Flow.Launcher.Plugin.OneNote
             this.context = context;
             rc = resultCreator;
         }
-
+    
         public List<Result> Explore(OneNoteProvider oneNote, Query query)
         {
             var results = new List<Result>();
@@ -26,7 +26,6 @@ namespace Flow.Launcher.Plugin.OneNote
 
             IOneNoteItem currentParentItem = null;
             IEnumerable<IOneNoteItem> currentCollection = oneNote.Notebooks;
-
 
             for (int i = 0; i < searchStrings.Length; i++)
             {

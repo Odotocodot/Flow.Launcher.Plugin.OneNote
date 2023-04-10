@@ -115,12 +115,19 @@ namespace Flow.Launcher.Plugin.OneNote
                     return notebookExplorer.Explore(oneNote, query);
                 });
             }
-
+            //Search all items by title
             if(query.FirstSearch.StartsWith(Keywords.SearchByTitle))
             {
+                var results = Util.CallOneNoteSafely(oneNote => 
+                {
+                    return rc.SearchByTitle(oneNote, string.Join(" ", query.SearchTerms), oneNote.Notebooks);
+                });
+                
+                if (results.Any())
+                    return results;
+                    
                 return ResultCreator.NoMatchesFoundResult();
             }
-
 
             //Check for invalid start of query i.e. symbols
             if (!char.IsLetterOrDigit(query.Search[0]))
