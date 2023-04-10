@@ -11,8 +11,9 @@
         public const string RecentPage = "Images/recent_page.png";
 
         public const string Section = "Images/section.png";
-        public const string SectionGroup = Section;
+        public const string SectionGroup = "Images/section_group.png";
         public const string Notebook = "Images/notebook.png";
+        
         public const string NewPage = "Images/new_page.png";
         public const string NewSection = "Images/new_section.png";
         public const string NewSectionGroup = NewSection;
