@@ -10,17 +10,12 @@ namespace Odotocodot.OneNote.Linq
     {
         private Application oneNote;
 
-        public OneNoteProvider(bool releaseOnOpen)
+        public OneNoteProvider()
         {
-            ReleaseOnOpen = releaseOnOpen;
             HasInstance = false;
         }
 
         public bool HasInstance { get; private set; }
-        /// <summary>
-        /// Releases the <see cref="Application"/> instance when OneNote is opened by the class.
-        /// </summary>
-        public bool ReleaseOnOpen { get; private set; }
 
         public IEnumerable<OneNoteNotebook> Notebooks => OneNoteParser.GetNotebooks(oneNote);
         public string DefaultNotebookLocation => OneNoteParser.GetDefaultNotebookLocation(oneNote);
@@ -48,7 +43,7 @@ namespace Odotocodot.OneNote.Linq
         {
             if (oneNote != null)
             {
-                Marshal.ReleaseComObject(oneNote);
+                Marshal.FinalReleaseComObject(oneNote);
             }
             HasInstance = false;
         }
@@ -56,8 +51,6 @@ namespace Odotocodot.OneNote.Linq
         public void OpenInOneNote(IOneNoteItem item)
         {
             oneNote.NavigateTo(item.ID);
-            if(ReleaseOnOpen)
-                Release();
         }
 
         public IEnumerable<IOneNoteItem> Traverse()
@@ -85,36 +78,26 @@ namespace Odotocodot.OneNote.Linq
         public void CreatePage(OneNoteSection section, string pageTitle)
         {
             OneNoteParser.CreatePage(oneNote, section, pageTitle, true);
-            if (ReleaseOnOpen)
-                Release();
         }
 
         public void CreateQuickNote()
         {
             OneNoteParser.CreateQuickNote(oneNote, true);
-            if (ReleaseOnOpen)
-                Release();
         }
 
         public void CreateSection(IOneNoteItem parent, string sectionName)
         {
             OneNoteParser.CreateSection(oneNote, parent, sectionName, true);
-            if (ReleaseOnOpen)
-                Release();
         }
 
         public void CreateSectionGroup(IOneNoteItem parent, string sectionGroupName)
         {
             OneNoteParser.CreateSectionGroup(oneNote, parent, sectionGroupName, true);
-            if (ReleaseOnOpen)
-                Release();
         }
 
         public void CreateNotebook(string notebookName)
         {
             OneNoteParser.CreateNotebook(oneNote, notebookName, true);
-            if (ReleaseOnOpen)
-                Release();
         }
     }
 }

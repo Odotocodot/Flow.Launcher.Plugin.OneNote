@@ -50,7 +50,7 @@ namespace Odotocodot.OneNote.Linq
             OneNoteProvider oneNote = null;
             try
             {
-                oneNote = new OneNoteProvider(false);
+                oneNote = new OneNoteProvider();
                 oneNote.Init();
                 return action(oneNote);
             }
