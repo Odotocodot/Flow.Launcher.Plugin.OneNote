@@ -61,8 +61,6 @@ namespace Flow.Launcher.Plugin.OneNote
                     }
                 }
             }
-            //for
-
             return title;
         }
 
@@ -280,7 +278,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                 return FuzzySearch(item.Name, currentSearch, out highlightData, out score);
             })
-            .Select(item => GetOneNoteItemResult(oneNote, item, true, highlightData, score))
+            .Select(item => GetOneNoteItemResult(oneNote, item, false, highlightData, score))
             .ToList();
 
             if (!results.Any())
