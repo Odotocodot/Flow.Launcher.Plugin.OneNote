@@ -16,7 +16,7 @@
         
         public const string NewPage = "Images/new_page.png";
         public const string NewSection = "Images/new_section.png";
-        public const string NewSectionGroup = NewSection;
+        public const string NewSectionGroup = "Images/new_section_group.png";
         public const string NewNotebook = "Images/new_notebook.png";
     }
 }
