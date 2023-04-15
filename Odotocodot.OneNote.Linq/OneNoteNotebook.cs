@@ -9,7 +9,7 @@ namespace Odotocodot.OneNote.Linq
         public string Name { get; init; }
         public bool IsUnread { get; init; }
         public string RelativePath { get; init; }
-        public OneNoteItemType ItemType => OneNoteItemType.Notebook;
+        OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Notebook;
 
         /// <summary>
         /// Nickname of the notebook.

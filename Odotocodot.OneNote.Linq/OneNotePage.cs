@@ -10,7 +10,7 @@ namespace Odotocodot.OneNote.Linq
         public string Name { get; init; }
         public bool IsUnread { get; init; }
         public string RelativePath { get; init; }
-        public OneNoteItemType ItemType => OneNoteItemType.Page;
+        OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Page;
         public int Level { get; init; }
         public DateTime DateTime { get; init; }
         public DateTime LastModified { get; init; }

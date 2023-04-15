@@ -10,7 +10,7 @@ namespace Odotocodot.OneNote.Linq
         public bool IsUnread { get; init; }
         public string Path { get; init; }
         public string RelativePath { get; init; }
-        public OneNoteItemType ItemType => OneNoteItemType.Section;
+        OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Section;
         /// <summary>
         /// Is the section encrypted.
         /// </summary>
