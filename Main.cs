@@ -5,18 +5,19 @@ using System.Timers;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNotePlugin : IPlugin, IContextMenu
+    public class OneNotePlugin : IPlugin, IContextMenu, ISettingProvider
     {
         private PluginInitContext context;
         private readonly int recentPagesCount = 5;
 
         private NotebookExplorer notebookExplorer;
         private ResultCreator rc;
+        private Settings settings;
       
         public void Init(PluginInitContext context)
         {
             this.context = context;
-
+            settings = context.API.LoadSettingJsonStorage<Settings>();
             rc = new ResultCreator(context);
             notebookExplorer = new NotebookExplorer(context, rc);
         }
@@ -192,5 +193,11 @@ namespace Flow.Launcher.Plugin.OneNote
 
             }
         }
+
+        public System.Windows.Controls.Control CreateSettingPanel()
+        {
+            return new SettingsView(settings);
+        }
+
     }
 }
