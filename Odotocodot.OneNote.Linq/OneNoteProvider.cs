@@ -23,7 +23,7 @@ namespace Odotocodot.OneNote.Linq
 
         public void Init()
         {
-            if(!HasInstance)
+            if (!HasInstance)
             {
                 try
                 {
@@ -35,11 +35,11 @@ namespace Odotocodot.OneNote.Linq
                 }
                 finally
                 {
-                    HasInstance = oneNote != null;        
+                    HasInstance = oneNote != null;
                 }
             }
         }
-        public void Release() 
+        public void Release()
         {
             if (oneNote != null)
             {

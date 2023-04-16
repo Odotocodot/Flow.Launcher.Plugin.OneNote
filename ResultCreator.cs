@@ -79,10 +79,9 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public Result CreatePageResult(OneNoteProvider oneNote, OneNotePage page, List<int> highlightingData = null, int score = 0)
         {
-            string title = GetTitle(page, highlightingData);
             return new Result
             {
-                Title = title,
+                Title = GetTitle(page, highlightingData),
                 TitleToolTip = $"Created: {page.DateTime}\nLast Modified: {page.LastModified}",
                 TitleHighlightData = highlightingData,
                 SubTitle = GetNicePath(page, true),
@@ -102,13 +101,12 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private Result CreateSecionBaseResult(OneNoteProvider oneNote, IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            string title = GetTitle(sectionBase, highlightData);
             string path = GetNicePath(sectionBase, false);
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{path.Replace(" > ","\\")}\\";
 
             return new Result
             {
-                Title = title,
+                Title = GetTitle(sectionBase, highlightData),
                 TitleHighlightData = highlightData,
                 SubTitle = path,
                 SubTitleToolTip = $"{path} | Number of pages: {sectionBase.Children.Count()}",
@@ -144,12 +142,11 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public Result CreateNotebookResult(OneNoteProvider oneNote, OneNoteNotebook notebook, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            string title = GetTitle(notebook, highlightData);
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}\\";
 
             return new Result
             {
-                Title = title,
+                Title = GetTitle(notebook, highlightData),
                 TitleToolTip = $"Number of sections: {notebook.Sections.Count()}",
                 TitleHighlightData = highlightData,
                 AutoCompleteText = autoCompleteText,
