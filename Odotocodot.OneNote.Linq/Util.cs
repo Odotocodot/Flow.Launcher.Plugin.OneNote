@@ -44,45 +44,6 @@ namespace Odotocodot.OneNote.Linq
             }
         }
 
-
-        public static T CallOneNoteSafely<T>(Func<OneNoteProvider, T> action, Func<COMException, T> onException = null)
-        {
-            OneNoteProvider oneNote = null;
-            try
-            {
-                oneNote = new OneNoteProvider();
-                oneNote.Init();
-                return action(oneNote);
-            }
-            catch (COMException ex)
-            {
-                if (onException != null)
-                {
-                    return onException(ex);
-                }
-                else
-                    throw;
-            }
-            finally
-            {
-                oneNote.Release();
-            }
-        }
-
-        public static void CallOneNoteSafely(Action<OneNoteProvider> action, Action<COMException> onException = null)
-        {
-            _ = CallOneNoteSafely((one) =>
-            {
-                action(one);
-                return true;
-            }, (ex) =>
-            {
-                onException(ex);
-                return true;
-            });
-        }
-
-
         /// <summary>
         /// Depth first traversal
         /// </summary>

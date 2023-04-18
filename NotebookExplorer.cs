@@ -33,7 +33,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 if (index < 0)
                     continue;
 
-                if (!ValidateItem(currentCollection, searchStrings[index], out currentParentItem))
+                currentParentItem = currentCollection.FirstOrDefault(item => item.Name == searchStrings[index]);
+                if (currentParentItem == null)
                     return results;
 
                 currentCollection = currentParentItem.Children;
@@ -45,7 +46,7 @@ namespace Flow.Launcher.Plugin.OneNote
             if (string.IsNullOrWhiteSpace(lastSearch))
             {
                 results = currentCollection.Where(item => !ResultCreator.IsEncryptedSection(item))
-                                           .Select(item => rc.GetOneNoteItemResult(oneNote, item, true))
+                                           .Select(item => rc.GetOneNoteItemResult(item, true))
                                            .ToList();
 
                 if (!results.Any())
@@ -74,7 +75,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
             if (lastSearch.StartsWith(Keywords.SearchByTitle) && (parentType == OneNoteItemType.Notebook || parentType == OneNoteItemType.SectionGroup || parentType == OneNoteItemType.Section))
             {
-                results = rc.SearchByTitle(oneNote, lastSearch, currentCollection, currentParentItem);
+                results = rc.SearchByTitle(lastSearch, currentCollection, currentParentItem);
                 AddNewOneNoteItemResults(oneNote, results, currentParentItem, lastSearch);
                 return results;
             }
@@ -91,7 +92,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
             results = currentCollection.Where(item => !ResultCreator.IsEncryptedSection(item))
                                        .Where(item => rc.FuzzySearch(item.Name, lastSearch, out highlightData, out score))
-                                       .Select(item => rc.GetOneNoteItemResult(oneNote, item, true, highlightData, score))
+                                       .Select(item => rc.GetOneNoteItemResult(item, true, highlightData, score))
                                        .ToList();
             
 
@@ -121,7 +122,7 @@ namespace Flow.Launcher.Plugin.OneNote
             var results = new List<Result>();
 
             results = oneNote.FindPages(parentItem, currentSearch)
-                             .Select(pg => rc.CreatePageResult(oneNote, pg, context.API.FuzzySearch(currentSearch, pg.Name).MatchData))
+                             .Select(pg => rc.CreatePageResult(pg, context.API.FuzzySearch(currentSearch, pg.Name).MatchData))
                              .ToList();
 
             if (!results.Any())
@@ -141,22 +142,16 @@ namespace Flow.Launcher.Plugin.OneNote
                         break;
                     case OneNoteItemType.Notebook:
                     case OneNoteItemType.SectionGroup:
-                        results.Add(rc.CreateNewSectionResult(oneNote, query, parent));
-                        results.Add(rc.CreateNewSectionGroupResult(oneNote, query, parent));
+                        results.Add(rc.CreateNewSectionResult(query, parent));
+                        results.Add(rc.CreateNewSectionGroupResult(query, parent));
                         break;
                     case OneNoteItemType.Section:
-                        results.Add(rc.CreateNewPageResult(oneNote, query, (OneNoteSection)parent));
+                        results.Add(rc.CreateNewPageResult(query, (OneNoteSection)parent));
                         break;
                     default:
                         break;
                 }
             }
-        }
-
-        private static bool ValidateItem(IEnumerable<IOneNoteItem> items, string query, out IOneNoteItem item)
-        {
-            item = items.FirstOrDefault(t => t.Name == query);
-            return item != null;
         }
     }
 }

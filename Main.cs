@@ -1,18 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Timers;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNotePlugin : IPlugin, IContextMenu, ISettingProvider
+    public class OneNotePlugin : IPlugin, IContextMenu, ISettingProvider, IDisposable
     {
         private PluginInitContext context;
         private readonly int recentPagesCount = 5;
 
         private NotebookExplorer notebookExplorer;
         private ResultCreator rc;
-        private Settings settings;
+        private static Settings settings;
       
         public void Init(PluginInitContext context)
         {
@@ -24,6 +25,11 @@ namespace Flow.Launcher.Plugin.OneNote
         
         public List<Result> Query(Query query)
         {
+            if(settings.FastMode)
+            {
+                COMReleaseTimer?.Stop();
+                COMReleaseTimer?.Start();
+            }
             if (string.IsNullOrEmpty(query.Search))
             {
                 return new List<Result>
@@ -61,7 +67,12 @@ namespace Flow.Launcher.Plugin.OneNote
                         Score = -4000,
                         Action = c =>
                         {
-                            Util.CallOneNoteSafely(oneNote => oneNote.CreateQuickNote());
+                            GetOneNote(oneNote =>
+                            {
+                                oneNote.CreateQuickNote();
+                                oneNote.Release();
+                                return 0;
+                            });
                             return true;
                         }
                     },
@@ -72,13 +83,15 @@ namespace Flow.Launcher.Plugin.OneNote
                         Score = int.MinValue,
                         Action = c =>
                         {
-                            Util.CallOneNoteSafely(oneNote =>
+                            GetOneNote(oneNote =>
                             {
                                 foreach (var notebook in oneNote.Notebooks)
                                 {
                                     oneNote.SyncItem(notebook);
                                 }
                                 oneNote.OpenInOneNote(oneNote.Notebooks.First());
+                                oneNote.Release();
+                                return 0;
                             });
                             return true;
                         }
@@ -92,13 +105,13 @@ namespace Flow.Launcher.Plugin.OneNote
                 if (query.FirstSearch.Length > Keywords.RecentPages.Length && int.TryParse(query.FirstSearch[Keywords.RecentPages.Length..], out int userChosenCount))
                     count = userChosenCount;
 
-                return Util.CallOneNoteSafely(oneNote =>
+                return GetOneNote(oneNote =>
                 {
                     return oneNote.Pages.OrderByDescending(pg => pg.LastModified)
                     .Take(count)
                     .Select(pg =>
                     {
-                        Result result = rc.CreatePageResult(oneNote, pg);
+                        Result result = rc.CreatePageResult(pg);
                         result.SubTitleToolTip = result.SubTitle;
                         result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
                         result.IcoPath = Icons.RecentPage;
@@ -111,7 +124,7 @@ namespace Flow.Launcher.Plugin.OneNote
             //Search via notebook structure
             if (query.FirstSearch.StartsWith(Keywords.NotebookExplorer))
             {
-                return Util.CallOneNoteSafely(oneNote =>
+                return GetOneNote(oneNote =>
                 {
                     return notebookExplorer.Explore(oneNote, query);
                 });
@@ -119,9 +132,9 @@ namespace Flow.Launcher.Plugin.OneNote
             //Search all items by title
             if(query.FirstSearch.StartsWith(Keywords.SearchByTitle))
             {
-                var results = Util.CallOneNoteSafely(oneNote => 
+                var results = GetOneNote(oneNote => 
                 {
-                    return rc.SearchByTitle(oneNote, string.Join(" ", query.SearchTerms), oneNote.Notebooks);
+                    return rc.SearchByTitle(string.Join(" ", query.SearchTerms), oneNote.Notebooks);
                 });
                 
                 if (results.Any())
@@ -139,10 +152,10 @@ namespace Flow.Launcher.Plugin.OneNote
             }
 
             //Default search 
-            var searches = Util.CallOneNoteSafely(oneNote =>
+            var searches = GetOneNote(oneNote =>
             {
                 return oneNote.FindPages(query.Search)
-                              .Select(pg => rc.CreatePageResult(oneNote, pg, context.API.FuzzySearch(query.Search, pg.Name).MatchData));
+                              .Select(pg => rc.CreatePageResult(pg, context.API.FuzzySearch(query.Search, pg.Name).MatchData));
             });
 
             if (searches.Any())
@@ -156,9 +169,9 @@ namespace Flow.Launcher.Plugin.OneNote
             var results = new List<Result>();
             if(selectedResult.ContextData is IOneNoteItem item)
             {
-                var result = Util.CallOneNoteSafely(oneNote =>
+                var result = GetOneNote(oneNote =>
                 {
-                    return rc.GetOneNoteItemResult(oneNote, item, false);
+                    return rc.GetOneNoteItemResult(item, false);
                 });
                 result.Title = $"Open and sync \"{item.Name}\"";
                 result.SubTitle = string.Empty;
@@ -199,5 +212,30 @@ namespace Flow.Launcher.Plugin.OneNote
             return new SettingsView(settings);
         }
 
+        private static OneNoteProvider oneNoteApp;
+        private static Timer COMReleaseTimer; 
+        public static T GetOneNote<T>(Func<OneNoteProvider, T> action, Func<COMException, T> onException = null)
+        {
+            if (settings.FastMode)
+            {
+                if(COMReleaseTimer == null)
+                {
+                    COMReleaseTimer = new Timer(20000);
+                    COMReleaseTimer.Elapsed += (s, e) => oneNoteApp.Release();
+                }
+                oneNoteApp ??= new OneNoteProvider();
+                oneNoteApp.Init();
+                return action(oneNoteApp);
+            }
+            else
+            {
+                return OneNoteProvider.CallOneNoteSafely(action, onException);
+            }
+        }
+
+        public void Dispose()
+        {
+            COMReleaseTimer?.Dispose();
+        }
     }
 }

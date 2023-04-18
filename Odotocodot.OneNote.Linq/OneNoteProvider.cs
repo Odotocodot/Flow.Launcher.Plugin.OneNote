@@ -10,11 +10,6 @@ namespace Odotocodot.OneNote.Linq
     {
         private Application oneNote;
 
-        public OneNoteProvider()
-        {
-            HasInstance = false;
-        }
-
         public bool HasInstance { get; private set; }
 
         public IEnumerable<OneNoteNotebook> Notebooks => OneNoteParser.GetNotebooks(oneNote);
@@ -23,7 +18,7 @@ namespace Odotocodot.OneNote.Linq
 
         public void Init()
         {
-            if (!HasInstance)
+            if (oneNote == null || !HasInstance)
             {
                 try
                 {
@@ -43,9 +38,39 @@ namespace Odotocodot.OneNote.Linq
         {
             if (oneNote != null)
             {
-                Marshal.FinalReleaseComObject(oneNote);
+                Marshal.ReleaseComObject(oneNote);
+                oneNote = null;
             }
             HasInstance = false;
+        }
+
+        /// <summary>
+        /// Automatically releases the OneNote COM Object after use
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T CallOneNoteSafely<T>(Func<OneNoteProvider, T> action, Func<COMException, T> onException = null)
+        {
+            OneNoteProvider oneNote = null;
+            try
+            {
+                oneNote = new OneNoteProvider();
+                oneNote.Init();
+                return action(oneNote);
+            }
+            catch (COMException ex)
+            {
+                if (onException != null)
+                {
+                    return onException(ex);
+                }
+                else
+                    throw;
+            }
+            finally
+            {
+                oneNote.Release();
+            }
         }
 
         public void OpenInOneNote(IOneNoteItem item)
@@ -66,6 +91,7 @@ namespace Odotocodot.OneNote.Linq
         {
             oneNote.SyncHierarchy(item.ID);
         }
+
         public IEnumerable<OneNotePage> FindPages(string searchString)
         {
             return OneNoteParser.FindPages(oneNote, searchString);

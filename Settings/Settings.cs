@@ -15,7 +15,8 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public bool FastMode
 		{
-			get => fastMode; set
+			get => fastMode; 
+            set
             {
                 fastMode = value;
                 OnPropertyChanged();
