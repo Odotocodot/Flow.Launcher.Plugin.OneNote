@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.Office.Interop.OneNote;
 
 namespace Odotocodot.OneNote.Linq
@@ -10,7 +11,7 @@ namespace Odotocodot.OneNote.Linq
     {
         private Application oneNote;
 
-        public bool HasInstance { get; private set; }
+        public bool HasInstance => oneNote != null && Marshal.IsComObject(oneNote);
 
         public IEnumerable<OneNoteNotebook> Notebooks => OneNoteParser.GetNotebooks(oneNote);
         public string DefaultNotebookLocation => OneNoteParser.GetDefaultNotebookLocation(oneNote);
@@ -18,30 +19,94 @@ namespace Odotocodot.OneNote.Linq
 
         public void Init()
         {
-            if (oneNote == null || !HasInstance)
+            int attempt = 0;
+
+            while (!HasInstance)
             {
                 try
                 {
-                    oneNote = Util.TryCatchAndRetry<Application, COMException>(
-                                () => new Application(),
-                                TimeSpan.FromMilliseconds(100),
-                                3,
-                                ex => Trace.TraceError(ex.Message));
+                    oneNote = new Application();
                 }
-                finally
+                catch (COMException ex)
                 {
-                    HasInstance = oneNote != null;
+                    if (attempt++ < 3)
+                    {
+                        Trace.TraceError(ex.Message);
+                        Thread.Sleep(100);
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
             }
+
+                //while (true)
+                //{
+                //    try
+                //    {
+                //        oneNote = new Application();
+                //        HasInstance = Marshal.IsComObject(oneNote);
+                //        break;
+                //    }
+                //    catch (COMException ex)
+                //    {
+                //        if (attempt++ < 3)
+                //        {
+                //            Trace.TraceError(ex.Message);
+                //            Thread.Sleep(100);
+                //        }
+                //        else
+                //        {
+                //            throw;
+                //        }
+                //    }
+                //}
+                
+
+                //try
+                //{
+                //    //oneNote = Util.TryCatchAndRetry<Application, COMException>(
+                //    //            () => new Application(),
+                //    //            TimeSpan.FromMilliseconds(100),
+                //    //            3,
+                //    //            ex => Trace.TraceError(ex.Message));
+
+                //    int attempt = 0;
+                //    while (true)
+                //    {
+                //        try
+                //        {
+                //            oneNote = new Application();
+                //        }
+                //        catch (COMException ex)
+                //        {
+                //            if (attempt++ < 3)
+                //            {
+                //                Trace.TraceError(ex.Message);
+                //                Thread.Sleep(100);
+                //            }
+                //            else
+                //            {
+                //                throw;
+                //            }
+                //        }
+                //    }
+                //}
+                //finally
+                //{
+                //    HasInstance = oneNote != null;
+                //}
+            
         }
         public void Release()
         {
-            if (oneNote != null)
+            if (!HasInstance)
             {
                 Marshal.ReleaseComObject(oneNote);
                 oneNote = null;
             }
-            HasInstance = false;
+            //HasInstance = false;
         }
 
         /// <summary>
@@ -65,7 +130,9 @@ namespace Odotocodot.OneNote.Linq
                     return onException(ex);
                 }
                 else
+                {
                     throw;
+                }
             }
             finally
             {
