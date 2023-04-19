@@ -14,8 +14,8 @@ namespace Flow.Launcher.Plugin.OneNote
         public ResultCreator(PluginInitContext context)
         {
             this.context = context;
-            notebookIcons = new OneNoteItemIcons("Images/NotebookIcons", Icons.Notebook, context);
-            sectionIcons = new OneNoteItemIcons("Images/SectionIcons", Icons.Section, context);
+            notebookIcons = new OneNoteItemIcons(context, "Images/NotebookIcons", Icons.Notebook);
+            sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Icons.Section);
         }
 
         private static string GetNicePath(IOneNoteItem item, bool removeSelf)

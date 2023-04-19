@@ -116,7 +116,7 @@ namespace Flow.Launcher.Plugin.OneNote
                                                   Icons.Search);
             }
 
-            var currentSearch = query[Keywords.SearchByTitle.Length..];
+            string currentSearch = query[Keywords.SearchByTitle.Length..];
             var results = new List<Result>();
 
             results = oneNote.FindPages(parentItem, currentSearch)
