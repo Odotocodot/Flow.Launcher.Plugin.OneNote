@@ -4,13 +4,34 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Flow.Launcher.Plugin.OneNote"
-             mc:Ignorable="d" 
-             DataContext="{x:Type local:ViewModels.SettingsViewModel}"
+             xmlns:viewModels="clr-namespace:Flow.Launcher.Plugin.OneNote.ViewModels" 
+             d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModel}"
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel Margin="60,0,10,0" Orientation="Vertical">
-        <CheckBox IsChecked="{Binding Settings.FastMode}">
-            Fast Mode
-        </CheckBox>
+        <StackPanel Orientation="Horizontal">
+            <CheckBox IsChecked="{Binding Settings.FastMode}">
+                Fast Mode
+            </CheckBox>
+            <Expander>
+                <Expander.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock>
+                            COM Instance Release Timer
+                        </TextBlock>
+                        <TextBox Text="{Binding Settings.COMReleaseTimeout}"
+                                 PreviewTextInput="TextBox_PreviewTextInput">
+                        </TextBox>
+                    </StackPanel>
+                </Expander.Header>
+                <!--change to a info icon-->
+                <TextBlock>
+                    In fast mode a OneNote COM object is kept alive, this can be up to 40MB <LineBreak/>
+                    and is visible in the task manager. Setting the COM Object release timer<LineBreak/>
+                    sets how long before the COM object is released once you stop typing.
+                </TextBlock>
+            </Expander>
+        </StackPanel>
         <CheckBox IsChecked="{Binding Settings.ShowUnread}">
             Show Unread Icon
         </CheckBox>
@@ -22,7 +43,6 @@
                 Default Number of Recent Pages
             </TextBlock>
             <ComboBox SelectedItem="{Binding Settings.DefaultRecentsCount}"
-                      IsTextSearchEnabled="True"
                       ItemsSource="{Binding DefaultRecentCountOptions}">
             </ComboBox>
         </StackPanel>

@@ -26,9 +26,11 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             if(settings.FastMode)
             {
-                COMReleaseTimer?.Stop();
-                COMReleaseTimer?.Start();
+                //Keep the timer running whilst typing
+                oneNoteComReleaseTimer?.Stop();
+                oneNoteComReleaseTimer?.Start();
             }
+
             if (string.IsNullOrEmpty(query.Search))
             {
                 return new List<Result>
@@ -212,18 +214,20 @@ namespace Flow.Launcher.Plugin.OneNote
         }
 
         private static OneNoteProvider oneNoteApp;
-        private static Timer COMReleaseTimer; 
+        private static Timer oneNoteComReleaseTimer; 
         public static T GetOneNote<T>(Func<OneNoteProvider, T> action, Func<COMException, T> onException = null)
         {
             if (settings.FastMode)
             {
-                if(COMReleaseTimer == null)
-                {
-                    COMReleaseTimer = new Timer(20000);
-                    COMReleaseTimer.Elapsed += (s, e) => oneNoteApp.Release();
-                }
                 oneNoteApp ??= new OneNoteProvider();
                 oneNoteApp.Init();
+
+                if(oneNoteComReleaseTimer == null)
+                {
+                    oneNoteComReleaseTimer = new Timer(10000);
+                    oneNoteComReleaseTimer.Elapsed += (s, e) => oneNoteApp.Release();
+                    oneNoteComReleaseTimer.Start();
+                }
                 return action(oneNoteApp);
             }
             else
@@ -234,7 +238,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public void Dispose()
         {
-            COMReleaseTimer?.Dispose();
+            oneNoteComReleaseTimer?.Dispose();
         }
     }
 }

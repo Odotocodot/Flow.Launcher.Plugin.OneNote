@@ -8,16 +8,6 @@
         private int defaultRecentsCount = 5;
         private int comReleaseTimeout = 10;
 
-        public int COMReleaseTimeout
-        {
-            get => comReleaseTimeout;
-            set 
-            { 
-                comReleaseTimeout = value;
-                OnPropertyChanged();
-            }
-        }
-
 
         public bool FastMode
 		{
@@ -56,6 +46,16 @@
 				OnPropertyChanged();
             }
         }
+        public int COMReleaseTimeout
+        {
+            get => comReleaseTimeout;
+            set 
+            { 
+                comReleaseTimeout = value;
+                OnPropertyChanged();
+            }
+        }
+
 
 
 	}
