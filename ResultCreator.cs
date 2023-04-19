@@ -7,12 +7,13 @@ namespace Flow.Launcher.Plugin.OneNote
     public class ResultCreator
     {
         private readonly PluginInitContext context;
-
+        private readonly Settings settings;
         private readonly OneNoteItemIcons notebookIcons;
         private readonly OneNoteItemIcons sectionIcons;
 
-        public ResultCreator(PluginInitContext context)
+        public ResultCreator(PluginInitContext context, Settings settings)
         {
+            this.settings = settings;
             this.context = context;
             notebookIcons = new OneNoteItemIcons(context, "Images/NotebookIcons", Icons.Notebook);
             sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Icons.Section);
@@ -45,10 +46,10 @@ namespace Flow.Launcher.Plugin.OneNote
             return path;
         }
 
-        private static string GetTitle(IOneNoteItem item, List<int> hightlightData)
+        private string GetTitle(IOneNoteItem item, List<int> hightlightData)
         {
             string title = item.Name;
-            if (item.IsUnread)
+            if (item.IsUnread && settings.ShowUnread)
             {
                 string unread = "•  ";
                 title = title.Insert(0, unread);

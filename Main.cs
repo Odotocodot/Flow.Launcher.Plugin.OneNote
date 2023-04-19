@@ -9,7 +9,6 @@ namespace Flow.Launcher.Plugin.OneNote
     public class OneNotePlugin : IPlugin, IContextMenu, ISettingProvider, IDisposable
     {
         private PluginInitContext context;
-        private readonly int recentPagesCount = 5;
 
         private NotebookExplorer notebookExplorer;
         private ResultCreator rc;
@@ -19,7 +18,7 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
-            rc = new ResultCreator(context);
+            rc = new ResultCreator(context, settings);
             notebookExplorer = new NotebookExplorer(rc);
         }
         
@@ -101,7 +100,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
             if (query.FirstSearch.StartsWith(Keywords.RecentPages))
             {
-                int count = recentPagesCount;
+                int count = settings.DefaultRecentsCount;
                 if (query.FirstSearch.Length > Keywords.RecentPages.Length && int.TryParse(query.FirstSearch[Keywords.RecentPages.Length..], out int userChosenCount))
                     count = userChosenCount;
 
