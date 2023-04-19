@@ -74,14 +74,12 @@ namespace Flow.Launcher.Plugin.OneNote
             if (lastSearch.StartsWith(Keywords.SearchByTitle) && (parentType == OneNoteItemType.Notebook || parentType == OneNoteItemType.SectionGroup || parentType == OneNoteItemType.Section))
             {
                 results = rc.SearchByTitle(lastSearch, currentCollection, currentParentItem);
-                AddNewOneNoteItemResults(oneNote, results, currentParentItem, lastSearch);
                 return results;
             }
 
             if (lastSearch.StartsWith(Keywords.ScopedSearch) && (parentType == OneNoteItemType.Notebook || parentType == OneNoteItemType.SectionGroup))
             {
                 results = ScopedSearch(oneNote, lastSearch, currentParentItem);
-                AddNewOneNoteItemResults(oneNote, results, currentParentItem, lastSearch);
                 return results;
             }
 
