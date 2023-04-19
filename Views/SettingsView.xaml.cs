@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Flow.Launcher.Plugin.OneNote.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -18,12 +19,10 @@ namespace Flow.Launcher.Plugin.OneNote
 {
     public partial class SettingsView : UserControl
     {
-        private Settings Settings { get; set; }
-        private ObservableCollection<int> Items { get; set; } = new ObservableCollection<int>(Enumerable.Range(1, 9));
         public SettingsView(Settings settings)
         {
             InitializeComponent();
-            Settings = settings;
+            DataContext = new SettingsViewModel(settings);
         }
     }
 }

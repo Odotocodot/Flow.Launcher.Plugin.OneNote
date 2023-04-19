@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Flow.Launcher.Plugin.OneNote"
-             DataContext="{Binding RelativeSource={RelativeSource Self}}"
              mc:Ignorable="d" 
+             DataContext="{x:Type local:ViewModels.SettingsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel Margin="60,0,10,0" Orientation="Vertical">
         <CheckBox IsChecked="{Binding Settings.FastMode}">
@@ -21,9 +21,9 @@
             <TextBlock Margin="0,0,10,0">
                 Default Number of Recent Pages
             </TextBlock>
-            <ComboBox IsEditable="True"
-                      SelectedItem="{Binding Settings.DefaultRecentsCount, UpdateSourceTrigger=PropertyChanged}"
-                      ItemsSource="{Binding Items}">
+            <ComboBox SelectedItem="{Binding Settings.DefaultRecentsCount}"
+                      IsTextSearchEnabled="True"
+                      ItemsSource="{Binding DefaultRecentCountOptions}">
             </ComboBox>
         </StackPanel>
     </StackPanel>
