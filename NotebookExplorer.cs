@@ -7,12 +7,10 @@ namespace Flow.Launcher.Plugin.OneNote
 {
     public class NotebookExplorer
     {
-        private readonly PluginInitContext context;
         private readonly ResultCreator rc;
 
-        public NotebookExplorer(PluginInitContext context, ResultCreator resultCreator)
+        public NotebookExplorer(ResultCreator resultCreator)
         {
-            this.context = context;
             rc = resultCreator;
         }
     
@@ -122,7 +120,7 @@ namespace Flow.Launcher.Plugin.OneNote
             var results = new List<Result>();
 
             results = oneNote.FindPages(parentItem, currentSearch)
-                             .Select(pg => rc.CreatePageResult(pg, context.API.FuzzySearch(currentSearch, pg.Name).MatchData))
+                             .Select(pg => rc.CreatePageResult(pg, currentSearch))
                              .ToList();
 
             if (!results.Any())

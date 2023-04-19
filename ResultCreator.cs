@@ -76,6 +76,10 @@ namespace Flow.Launcher.Plugin.OneNote
                 _ => new Result(),
             };
         }
+        public Result CreatePageResult(OneNotePage page, string query)
+        {
+            return CreatePageResult(page, context.API.FuzzySearch(query, page.Name).MatchData);
+        }
 
         public Result CreatePageResult(OneNotePage page, List<int> highlightingData = null, int score = 0)
         {

@@ -20,7 +20,7 @@ namespace Flow.Launcher.Plugin.OneNote
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
             rc = new ResultCreator(context);
-            notebookExplorer = new NotebookExplorer(context, rc);
+            notebookExplorer = new NotebookExplorer(rc);
         }
         
         public List<Result> Query(Query query)
@@ -155,7 +155,7 @@ namespace Flow.Launcher.Plugin.OneNote
             var searches = GetOneNote(oneNote =>
             {
                 return oneNote.FindPages(query.Search)
-                              .Select(pg => rc.CreatePageResult(pg, context.API.FuzzySearch(query.Search, pg.Name).MatchData));
+                              .Select(pg => rc.CreatePageResult(pg, query.Search));
             });
 
             if (searches.Any())
