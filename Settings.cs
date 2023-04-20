@@ -4,7 +4,6 @@
     {
 		private bool fastMode;
         private bool showUnread = true;
-        private bool showRecycleBin = true;
         private int defaultRecentsCount = 5;
         private int comReleaseTimeout = 10;
 
@@ -28,15 +27,6 @@
             }
         }
 
-        public bool ShowRecycleBin
-        {
-            get => showRecycleBin;
-            set 
-            { 
-                showRecycleBin = value;
-                OnPropertyChanged();
-            }
-        }
         public int DefaultRecentsCount
         {
             get => defaultRecentsCount;

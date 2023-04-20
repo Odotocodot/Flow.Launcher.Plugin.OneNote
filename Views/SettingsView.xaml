@@ -9,42 +9,64 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel Margin="60,0,10,0" Orientation="Vertical">
-        <StackPanel Orientation="Horizontal">
-            <CheckBox IsChecked="{Binding Settings.FastMode}">
-                Fast Mode
+        <Grid >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25"></RowDefinition>
+                <RowDefinition Height="25"></RowDefinition>
+                <RowDefinition Height="25"></RowDefinition>
+            </Grid.RowDefinitions>
+            
+            <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top">
+                <Expander VerticalContentAlignment="Center" >
+                    <Expander.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding Settings.FastMode}"
+                                      Margin="0,0,20,0"
+                                      VerticalContentAlignment="Center">
+                                Fast Mode
+                            </CheckBox>
+                            <TextBlock VerticalAlignment="Center"
+                                       Margin="0,0,10,0">
+                                COM Object Release Timeout
+                            </TextBlock>
+                            <ComboBox>
+                                
+                            </ComboBox>
+                            <TextBox Text="{Binding Settings.COMReleaseTimeout}"
+                                     MaxWidth="110"
+                                     MinWidth="60"
+                                     Margin="0,0,2,0"
+                                     PreviewTextInput="TextBox_PreviewTextInput">
+                            </TextBox>
+                            <TextBlock Text="milliseconds"></TextBlock>
+                        </StackPanel>
+                    </Expander.Header>
+                    <TextBlock>
+                        In fast mode a OneNote COM object is kept alive, this takes up around 40MB of RAM<LineBreak/>
+                        and is visible in the task manager.<LineBreak/>
+                        Changing the COM Object release timeout sets how long before the COM object is <LineBreak/> 
+                        released once you stop typing/searching.<LineBreak/>
+                        Select infinite for the COM object to be released only when Flow Launcher is completely <LineBreak/> 
+                        exited.
+                    </TextBlock>
+                </Expander>
+            </StackPanel>
+            <CheckBox IsChecked="{Binding Settings.ShowUnread}"
+                      VerticalContentAlignment="Center"
+                      Grid.Row="1">
+                Show Unread Icon on Items
             </CheckBox>
-            <Expander>
-                <Expander.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock>
-                            COM Instance Release Timer
-                        </TextBlock>
-                        <TextBox Text="{Binding Settings.COMReleaseTimeout}"
-                                 PreviewTextInput="TextBox_PreviewTextInput">
-                        </TextBox>
-                    </StackPanel>
-                </Expander.Header>
-                <!--change to a info icon-->
-                <TextBlock>
-                    In fast mode a OneNote COM object is kept alive, this can be up to 40MB <LineBreak/>
-                    and is visible in the task manager. Setting the COM Object release timer<LineBreak/>
-                    sets how long before the COM object is released once you stop typing.
+            <StackPanel Orientation="Horizontal" Grid.Row="2" VerticalAlignment="Center">
+                <TextBlock Margin="0,0,10,0"
+                           VerticalAlignment="Center">
+                    Default Number of Recent Pages
                 </TextBlock>
-            </Expander>
-        </StackPanel>
-        <CheckBox IsChecked="{Binding Settings.ShowUnread}">
-            Show Unread Icon
-        </CheckBox>
-        <CheckBox IsChecked="{Binding Settings.ShowRecycleBin}">
-            Show Recycle Bin
-        </CheckBox>
-        <StackPanel Orientation="Horizontal">
-            <TextBlock Margin="0,0,10,0">
-                Default Number of Recent Pages
-            </TextBlock>
-            <ComboBox SelectedItem="{Binding Settings.DefaultRecentsCount}"
-                      ItemsSource="{Binding DefaultRecentCountOptions}">
-            </ComboBox>
-        </StackPanel>
+                <ComboBox SelectedItem="{Binding Settings.DefaultRecentsCount}"
+                          ItemsSource="{Binding DefaultRecentCountOptions}"
+                          VerticalContentAlignment="Center"
+                          VerticalAlignment="Center">
+                </ComboBox>
+            </StackPanel>
+        </Grid>
     </StackPanel>
 </UserControl>
