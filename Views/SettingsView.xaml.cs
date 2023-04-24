@@ -20,7 +20,7 @@ namespace Flow.Launcher.Plugin.OneNote
 {
     public partial class SettingsView : UserControl
     {
-        private readonly Regex regex = new Regex("[^0-9.-]+");
+        private readonly Regex regex = new Regex("[^0-9.]+");
         public SettingsView(Settings settings)
         {
             InitializeComponent();

@@ -4,12 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Flow.Launcher.Plugin.OneNote"
+             xmlns:ui="http://schemas.modernwpf.com/2019"
              xmlns:viewModels="clr-namespace:Flow.Launcher.Plugin.OneNote.ViewModels" 
              d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel Margin="60,0,10,0" Orientation="Vertical">
-        <Grid >
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="25"></RowDefinition>
                 <RowDefinition Height="25"></RowDefinition>
@@ -17,7 +18,7 @@
             </Grid.RowDefinitions>
             
             <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top">
-                <Expander VerticalContentAlignment="Center" >
+                <Expander VerticalContentAlignment="Center">
                     <Expander.Header>
                         <StackPanel Orientation="Horizontal">
                             <CheckBox IsChecked="{Binding Settings.FastMode}"
@@ -29,7 +30,7 @@
                                        Margin="0,0,10,0">
                                 COM Object Release Timeout
                             </TextBlock>
-                            <ComboBox>
+                            <ComboBox PreviewTextInput="TextBox_PreviewTextInput">
                                 
                             </ComboBox>
                             <TextBox Text="{Binding Settings.COMReleaseTimeout}"
@@ -46,8 +47,8 @@
                         and is visible in the task manager.<LineBreak/>
                         Changing the COM Object release timeout sets how long before the COM object is <LineBreak/> 
                         released once you stop typing/searching.<LineBreak/>
-                        Select infinite for the COM object to be released only when Flow Launcher is completely <LineBreak/> 
-                        exited.
+                        Select infinite for the COM object to be released only when Flow Launcher is exited <LineBreak/> 
+                        completely.
                     </TextBlock>
                 </Expander>
             </StackPanel>

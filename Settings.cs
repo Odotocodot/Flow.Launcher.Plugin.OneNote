@@ -7,7 +7,6 @@
         private int defaultRecentsCount = 5;
         private int comReleaseTimeout = 10;
 
-
         public bool FastMode
 		{
 			get => fastMode; 
@@ -26,7 +25,6 @@
                 OnPropertyChanged();
             }
         }
-
         public int DefaultRecentsCount
         {
             get => defaultRecentsCount;
@@ -45,8 +43,5 @@
                 OnPropertyChanged();
             }
         }
-
-
-
 	}
 }

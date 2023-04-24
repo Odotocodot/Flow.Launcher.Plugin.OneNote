@@ -181,7 +181,7 @@ namespace Flow.Launcher.Plugin.OneNote
         #endregion
 
         #region Create New OneNote Item Results
-        public Result CreateNewPageResult(string pageTitle, OneNoteSection section)
+        public static Result CreateNewPageResult(string pageTitle, OneNoteSection section)
         {
             pageTitle = pageTitle.Trim();
             return new Result

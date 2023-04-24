@@ -142,7 +142,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         results.Add(rc.CreateNewSectionGroupResult(query, parent));
                         break;
                     case OneNoteItemType.Section:
-                        results.Add(rc.CreateNewPageResult(query, (OneNoteSection)parent));
+                        results.Add(ResultCreator.CreateNewPageResult(query, (OneNoteSection)parent));
                         break;
                     default:
                         break;
