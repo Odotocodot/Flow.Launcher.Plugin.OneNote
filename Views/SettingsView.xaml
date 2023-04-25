@@ -5,60 +5,85 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Flow.Launcher.Plugin.OneNote"
              xmlns:ui="http://schemas.modernwpf.com/2019"
-             xmlns:viewModels="clr-namespace:Flow.Launcher.Plugin.OneNote.ViewModels" 
-             d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModel}"
+             xmlns:vm="clr-namespace:Flow.Launcher.Plugin.OneNote.ViewModels" 
+             d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel Margin="60,0,10,0" Orientation="Vertical">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="25"></RowDefinition>
-                <RowDefinition Height="25"></RowDefinition>
-                <RowDefinition Height="25"></RowDefinition>
+                <RowDefinition MinHeight="35"></RowDefinition>
+                <RowDefinition Height="35"></RowDefinition>
+                <RowDefinition Height="35"></RowDefinition>
             </Grid.RowDefinitions>
-            
-            <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top">
-                <Expander VerticalContentAlignment="Center">
-                    <Expander.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="{Binding Settings.FastMode}"
-                                      Margin="0,0,20,0"
-                                      VerticalContentAlignment="Center">
-                                Fast Mode
-                            </CheckBox>
-                            <TextBlock VerticalAlignment="Center"
-                                       Margin="0,0,10,0">
+
+            <Expander VerticalContentAlignment="Center"
+                      Grid.Row="0">
+                <Expander.Header>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+                        <ui:ToggleSwitch IsOn ="{Binding Settings.FastMode}"
+                                         OffContent="Fast Mode"
+                                         OnContent="Fast Mode"
+                                         Margin="0,0,30,0"
+                                         VerticalContentAlignment="Center">
+                        </ui:ToggleSwitch>
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,10,0">
                                 COM Object Release Timeout
-                            </TextBlock>
-                            <ComboBox PreviewTextInput="TextBox_PreviewTextInput">
-                                
-                            </ComboBox>
-                            <TextBox Text="{Binding Settings.COMReleaseTimeout}"
-                                     MaxWidth="110"
-                                     MinWidth="60"
-                                     Margin="0,0,2,0"
-                                     PreviewTextInput="TextBox_PreviewTextInput">
-                            </TextBox>
-                            <TextBlock Text="milliseconds"></TextBlock>
-                        </StackPanel>
-                    </Expander.Header>
+                        </TextBlock>
+                        <ui:NumberBox Value="{Binding Settings.COMReleaseTimeout}"
+                                      PlaceholderText="1000"
+                                      SpinButtonPlacementMode="Compact"
+                                      SmallChange="1"
+                                      MaxWidth="110"
+                                      MinWidth="60"
+                                      Margin="0,0,5,0"
+                                      VerticalContentAlignment="Center"
+                                      VerticalAlignment="Center">
+                        </ui:NumberBox>
+                        <ComboBox VerticalAlignment="Center"
+                                  HorizontalAlignment="Left"
+                                  HorizontalContentAlignment="Left"
+                                  MinWidth="90"
+                                  Margin="0,0,10,0"
+                                  ToolTip="Units"
+                                  ItemsSource="{Binding TimeTypes}"
+                                  SelectedItem="{Binding Settings.TimeType}">
+                        </ComboBox>
+                        <Button VerticalAlignment="Center"
+                                VerticalContentAlignment="Center">
+                            <Viewbox MaxHeight="30"
+                                     MaxWidth="30">
+                                <ui:SymbolIcon Symbol="Refresh"></ui:SymbolIcon>
+                            </Viewbox>
+                        </Button>
+                    </StackPanel>
+                </Expander.Header>
+                <!--Make Border match content size-->
+                <Border BorderBrush="LightGray" CornerRadius="8" BorderThickness="1" Padding="5" Margin="0,5,0,0">
+                    <!--Wrap text-->
                     <TextBlock>
-                        In fast mode a OneNote COM object is kept alive, this takes up around 40MB of RAM<LineBreak/>
-                        and is visible in the task manager.<LineBreak/>
-                        Changing the COM Object release timeout sets how long before the COM object is <LineBreak/> 
-                        released once you stop typing/searching.<LineBreak/>
-                        Select infinite for the COM object to be released only when Flow Launcher is exited <LineBreak/> 
-                        completely.
+                            In fast mode a OneNote COM object is kept alive, this takes up around 40MB of RAM
+                            and is visible in the task manager.<LineBreak/><LineBreak/>
+                            Changing the COM Object release timeout sets how long before the COM object is 
+                            released once you stop typing/searching.<LineBreak/><LineBreak/>
+                            Select infinite for the COM object to be released only when Flow Launcher is exited 
+                            completely.
                     </TextBlock>
-                </Expander>
+                </Border>
+            </Expander>
+            <StackPanel Grid.Row="1" Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center"
+                           Margin="0,0,15,0">
+                    Show Unread Icon on Items
+                </TextBlock>
+                <ui:ToggleSwitch IsOn="{Binding Settings.ShowUnread}"
+                                 VerticalContentAlignment="Center"
+                                 Grid.Row="1">
+                </ui:ToggleSwitch>
             </StackPanel>
-            <CheckBox IsChecked="{Binding Settings.ShowUnread}"
-                      VerticalContentAlignment="Center"
-                      Grid.Row="1">
-                Show Unread Icon on Items
-            </CheckBox>
             <StackPanel Orientation="Horizontal" Grid.Row="2" VerticalAlignment="Center">
-                <TextBlock Margin="0,0,10,0"
+                <TextBlock Margin="0,0,15,0"
                            VerticalAlignment="Center">
                     Default Number of Recent Pages
                 </TextBlock>
