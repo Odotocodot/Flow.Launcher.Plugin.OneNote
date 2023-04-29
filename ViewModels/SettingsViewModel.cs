@@ -15,14 +15,6 @@ namespace Flow.Launcher.Plugin.OneNote.ViewModels
 
         public IEnumerable<TimeType> TimeTypes => Enum.GetValues<TimeType>().Cast<TimeType>();
 
-        //Bind Small Change
-    }
-
-    public enum TimeType
-    {
-        milliseconds,
-        seconds,
-        minutes,
-        Infinite
+        public int SmallChange => 1;
     }
 }

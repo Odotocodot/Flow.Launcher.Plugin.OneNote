@@ -1,6 +1,4 @@
-﻿using Flow.Launcher.Plugin.OneNote.ViewModels;
-
-namespace Flow.Launcher.Plugin.OneNote
+﻿namespace Flow.Launcher.Plugin.OneNote
 {
     public class Settings : BaseModel
     {
@@ -56,5 +54,13 @@ namespace Flow.Launcher.Plugin.OneNote
                 OnPropertyChanged();
             }
         }
-	}
+    }
+
+    public enum TimeType
+    {
+        milliseconds,
+        seconds,
+        minutes,
+        Infinite
+    }
 }
