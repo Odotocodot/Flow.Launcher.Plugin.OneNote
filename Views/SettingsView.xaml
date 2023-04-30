@@ -22,20 +22,21 @@
             <ObjectDataProvider
                 x:Key="TimeTypeConverter"
                 MethodName="GetValues"
-                ObjectType="{x:Type sys:Enum}">
+                ObjectType="sys:Enum">
                 <ObjectDataProvider.MethodParameters>
                     <x:Type TypeName="local:TimeType" />
                 </ObjectDataProvider.MethodParameters>
             </ObjectDataProvider>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
         </ResourceDictionary>
-
     </UserControl.Resources>
+
     <Grid Margin="60,10,10,10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="110" />
-            <ColumnDefinition Width="395" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="435" />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="35" />
@@ -53,44 +54,84 @@
                 VerticalAlignment="Center"
                 Text="Fast Mode" />
             <ToggleButton
+                Name="FastModeInfoToggle"
                 VerticalAlignment="Center"
                 VerticalContentAlignment="Center"
+                d:IsChecked="True"
                 Content="?" />
         </StackPanel>
         <ui:ToggleSwitch
+            Name="FastModeToggle"
             Grid.Column="1"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             HorizontalContentAlignment="Left"
             VerticalContentAlignment="Center"
+            d:IsOn="True"
             IsOn="{Binding Settings.FastMode}"
             OffContent="Off"
             OnContent="On" />
         <StackPanel
             Grid.Row="0"
             Grid.Column="2"
-            Orientation="Horizontal">
+            Orientation="Horizontal"
+            Visibility="{Binding ElementName=FastModeToggle, Path=IsOn, Converter={StaticResource BoolToVisibility}}">
             <TextBlock
                 Margin="0,0,20,0"
                 VerticalAlignment="Center"
                 Text="COM Object Release Timeout" />
-            <ui:NumberBox
-                MinWidth="60"
-                MaxWidth="110"
-                Margin="0,0,0,0"
+            <TextBox
+                Width="{Binding ElementName=COMReleaseTimeoutNumberBox, Path=ActualWidth}"
                 VerticalAlignment="Center"
                 VerticalContentAlignment="Center"
+                IsEnabled="False"
+                Text="{Binding Settings.COMReleaseTimeout}">
+                <TextBox.Style>
+                    <Style BasedOn="{StaticResource {x:Type TextBox}}" TargetType="TextBox">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ElementName=TimeTypeComboBox, Path=SelectedValue}" Value="Infinite">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
+            <ui:NumberBox
+                Name="COMReleaseTimeoutNumberBox"
+                MinWidth="80"
+                MaxWidth="120"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                d:Value="10000"
                 Minimum="0"
-                PlaceholderText="1000"
-                SmallChange="{Binding SmallChange}"
                 SpinButtonPlacementMode="Compact"
-                Value="{Binding Settings.COMReleaseTimeout}" />
+                Value="{Binding Settings.COMReleaseTimeout}">
+                <ui:NumberBox.Style>
+                    <Style BasedOn="{StaticResource {x:Type ui:NumberBox}}" TargetType="ui:NumberBox">
+                        <Setter Property="IsEnabled" Value="True" />
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Setter Property="SmallChange" Value="1" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ElementName=TimeTypeComboBox, Path=SelectedValue}" Value="Infinite">
+                                <Setter Property="IsEnabled" Value="False" />
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ElementName=TimeTypeComboBox, Path=SelectedValue}" Value="milliseconds">
+                                <Setter Property="SmallChange" Value="100" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ui:NumberBox.Style>
+            </ui:NumberBox>
             <ComboBox
+                Name="TimeTypeComboBox"
                 Margin="0,0,10,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 HorizontalContentAlignment="Left"
                 VerticalContentAlignment="Center"
+                d:SelectedIndex="0"
                 Background="Transparent"
                 BorderBrush="Transparent"
                 ItemsSource="{Binding Source={StaticResource TimeTypeConverter}}"
@@ -100,10 +141,13 @@
         <Button
             Grid.Row="0"
             Grid.Column="4"
+            Margin="0,0,10,0"
             VerticalAlignment="Center"
             VerticalContentAlignment="Center"
+            Command="{Binding ResetTimeoutCommand}"
             Content="Reset"
-            ToolTip="Reset to default" />
+            ToolTip="Reset to default"
+            Visibility="{Binding ElementName=FastModeToggle, Path=IsOn, Converter={StaticResource BoolToVisibility}}" />
         <!--  row 1  -->
         <Border
             Grid.Row="1"
@@ -113,11 +157,15 @@
             HorizontalAlignment="Left"
             BorderBrush="DimGray"
             BorderThickness="1"
-            CornerRadius="8">
-            <TextBlock TextWrapping="Wrap">
+            CornerRadius="8"
+            Visibility="{Binding ElementName=FastModeInfoToggle, Path=IsChecked, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                TextWrapping="Wrap">
                 In fast mode a OneNote COM object is kept alive, this takes up around 40MB of RAM and is visible in the task manager.<LineBreak /><LineBreak />
-                Changing the COM Object release timeout sets how long before the COM object is released once you stop typing/searching.<LineBreak /><LineBreak />
-                Select infinite for the COM object to be released only when Flow Launcher is exited completely.</TextBlock>
+                Changing the "COM Object Release Timeout" sets how long before the COM object is released once you stop typing/searching in Flow Launcher.<LineBreak /><LineBreak />
+                Select "Infinite" (in the unit dropdown) for the COM object to be released only when Flow Launcher is exited completely.</TextBlock>
         </Border>
         <!--  row 2  -->
         <TextBlock
@@ -125,7 +173,7 @@
             Grid.Column="0"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
-            Text="Show Unread Icon on Items" />
+            Text="Show unread icon in results" />
         <ui:ToggleSwitch
             Grid.Row="2"
             Grid.Column="1"
@@ -139,9 +187,9 @@
         <TextBlock
             Grid.Row="3"
             Grid.Column="0"
-            Margin="0,0,25,0"
+            Margin="0,0,30,0"
             VerticalAlignment="Center"
-            Text="Default Number of Recent Pages" />
+            Text="Default number of recent pages" />
         <ComboBox
             Grid.Row="3"
             Grid.Column="1"
