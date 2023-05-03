@@ -36,7 +36,7 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="110" />
             <ColumnDefinition Width="435" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="35" />
@@ -85,7 +85,7 @@
                 VerticalAlignment="Center"
                 VerticalContentAlignment="Center"
                 IsEnabled="False"
-                Text="{Binding Settings.COMReleaseTimeout}">
+                Text="∞">
                 <TextBox.Style>
                     <Style BasedOn="{StaticResource {x:Type TextBox}}" TargetType="TextBox">
                         <Setter Property="Visibility" Value="Collapsed" />
@@ -102,6 +102,7 @@
                 MinWidth="80"
                 MaxWidth="120"
                 VerticalAlignment="Center"
+                HorizontalContentAlignment="Right"
                 VerticalContentAlignment="Center"
                 d:Value="10000"
                 Minimum="0"

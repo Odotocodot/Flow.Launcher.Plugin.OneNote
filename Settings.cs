@@ -8,7 +8,6 @@
         private int comReleaseTimeout = 10;
         private TimeType timeType = TimeType.milliseconds;
 
-
         public bool FastMode
 		{
 			get => fastMode; 
@@ -54,8 +53,20 @@
                 OnPropertyChanged();
             }
         }
+
+        public double GetCOMReleaseTimeout()
+        {
+            return TimeType switch
+            {
+                TimeType.milliseconds => COMReleaseTimeout,
+                TimeType.seconds => COMReleaseTimeout * 1000,
+                TimeType.minutes => COMReleaseTimeout * 1000 * 60,
+                _ => double.PositiveInfinity,
+            };
+        }
     }
 
+    //Lower case names due to no description converter
     public enum TimeType
     {
         milliseconds,

@@ -11,11 +11,10 @@ namespace Odotocodot.OneNote.Linq
     {
         private Application oneNote;
 
-        public bool HasInstance => oneNote != null && Marshal.IsComObject(oneNote);
-
         public IEnumerable<OneNoteNotebook> Notebooks => OneNoteParser.GetNotebooks(oneNote);
-        public string DefaultNotebookLocation => OneNoteParser.GetDefaultNotebookLocation(oneNote);
         public IEnumerable<OneNotePage> Pages => OneNoteParser.GetPages(oneNote);
+        public string DefaultNotebookLocation => OneNoteParser.GetDefaultNotebookLocation(oneNote);
+        public bool HasInstance => oneNote != null && Marshal.IsComObject(oneNote);
 
         public void Init()
         {
@@ -43,7 +42,7 @@ namespace Odotocodot.OneNote.Linq
         }
         public void Release()
         {
-            if (!HasInstance)
+            if (oneNote != null)
             {
                 Marshal.ReleaseComObject(oneNote);
                 oneNote = null;

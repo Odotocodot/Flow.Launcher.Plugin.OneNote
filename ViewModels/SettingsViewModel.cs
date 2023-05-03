@@ -27,14 +27,22 @@ namespace Flow.Launcher.Plugin.OneNote.ViewModels
                 this.viewModel = viewModel;
             }
 
-            public event EventHandler CanExecuteChanged;
+            public event EventHandler CanExecuteChanged
+            {
+                add => CommandManager.RequerySuggested += value;
+                remove => CommandManager.RequerySuggested -= value;
+            }
 
-            public bool CanExecute(object parameter) => true;
+            public bool CanExecute(object parameter)
+            {
+                return viewModel.Settings.COMReleaseTimeout != 10
+                    || viewModel.Settings.TimeType != TimeType.seconds;
+            }
 
             public void Execute(object parameter)
             {
-                viewModel.Settings.COMReleaseTimeout = 10000;
-                viewModel.Settings.TimeType = TimeType.milliseconds;
+                viewModel.Settings.TimeType = TimeType.seconds;
+                viewModel.Settings.COMReleaseTimeout = 10;
             }
         }
     }

@@ -22,7 +22,7 @@ namespace Flow.Launcher.Plugin.OneNote
             sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Icons.Section);
         }
 
-        private static string GetNicePath(IOneNoteItem item, bool removeSelf)
+        private static string GetNicePath(IOneNoteItem item, bool removeSelf, string separator = " > ")
         {
             var path = item.RelativePath;
 
@@ -44,7 +44,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
             }
 
-            path = path.Replace("/", " > ").Replace("\\", " > ");
+            path = path.Replace("/", separator).Replace("\\", separator);
 
             return path;
         }
@@ -91,6 +91,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = GetTitle(page, highlightingData),
                 TitleToolTip = $"Created: {page.DateTime}\nLast Modified: {page.LastModified}",
+                AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(page, false, "\\")}",
                 TitleHighlightData = highlightingData,
                 SubTitle = GetNicePath(page, true),
                 Score = score,
@@ -107,7 +108,7 @@ namespace Flow.Launcher.Plugin.OneNote
         private Result CreateSecionBaseResult(IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
             string path = GetNicePath(sectionBase, false);
-            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{path.Replace(" > ","\\")}\\";
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(sectionBase, false, "\\")}\\";
 
             return new Result
             {
