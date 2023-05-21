@@ -11,6 +11,11 @@ namespace Odotocodot.OneNote.Linq
         public string Path { get; init; }
         public string RelativePath { get; init; }
         OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Section;
+        //TODO Implement
+        /// <summary>
+        /// If the section 
+        /// </summary>
+        public bool Locked { get; init; }
         /// <summary>
         /// Is the section encrypted.
         /// </summary>
