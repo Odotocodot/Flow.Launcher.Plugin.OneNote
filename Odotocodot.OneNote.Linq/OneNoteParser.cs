@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Microsoft.Office.Interop.OneNote;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.Office.Interop.OneNote;
 
 namespace Odotocodot.OneNote.Linq
 {
@@ -44,14 +44,12 @@ namespace Odotocodot.OneNote.Linq
         public static IEnumerable<OneNotePage> FindPages(Application oneNote, string searchString)
         {
             oneNote.FindPages(null, searchString, out string xml);
-            var pages = ParsePages(xml);
-            return pages;
+            return ParsePages(xml);
         }
         public static IEnumerable<OneNotePage> FindPages(Application oneNote, IOneNoteItem scope, string searchString)
         {
             oneNote.FindPages(scope?.ID, searchString, out string xml);
-            var pages = ParsePages(xml, scope);
-            return pages;
+            return ParsePages(xml, scope);
         }
 
         #region Parsing XML
@@ -157,11 +155,11 @@ namespace Odotocodot.OneNote.Linq
             var one = doc.GetNamespaceOfPrefix("one");
 
             return doc.Elements(one + "Notebook")
-                        .Descendants(one + "Section")
-                        //.Elements(one + "Page")
-                        .Elements()
-                        .Where(x => x.HasAttributes && x.Name.LocalName == "Page")
-                        .Select(pg => ParsePage(pg));
+                      .Descendants(one + "Section")
+                    //.Elements(one + "Page")
+                      .Elements()
+                      .Where(x => x.HasAttributes && x.Name.LocalName == "Page")
+                      .Select(pg => ParsePage(pg));
         }
 
         private static IEnumerable<OneNotePage> ParsePages(string xml, IOneNoteItem scope)
@@ -248,7 +246,7 @@ namespace Odotocodot.OneNote.Linq
         public static void CreateSectionGroup(Application oneNote, IOneNoteItem parent, string sectionGroupName, bool openImmediately)
         {
             if (parent.ItemType == OneNoteItemType.Page || parent.ItemType == OneNoteItemType.Section)
-                throw new ArgumentException("The parent item type must a notebook or section group");
+                throw new ArgumentException("The parent item type must a notebook or section group", nameof(parent));
 
             oneNote.OpenHierarchy(sectionGroupName, parent.ID, out string sectionGroupID, CreateFileType.cftFolder);
             if (openImmediately)
@@ -268,6 +266,23 @@ namespace Odotocodot.OneNote.Linq
         public static string GetDefaultNotebookLocation(Application oneNote)
         {
             oneNote.GetSpecialLocation(SpecialLocation.slDefaultNotebookFolder, out string path);
+            return path;
+        }
+
+        public static string GetBackUpFolderLocation(Application oneNote)
+        {
+            oneNote.GetSpecialLocation(SpecialLocation.slBackUpFolder, out string path);
+            return path;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="oneNote"></param>
+        /// <returns>The unfiled notes section, this is also where quick notes are created to.</returns>
+        public static string GetUnfiledNotesSection(Application oneNote)
+        {
+            oneNote.GetSpecialLocation(SpecialLocation.slUnfiledNotesSection, out string path);
             return path;
         }
     }
