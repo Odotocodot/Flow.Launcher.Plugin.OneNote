@@ -49,15 +49,22 @@ namespace Odotocodot.OneNote.Linq
             return items.SelectMany(item => item.Traverse());
         }
 
-        ///// <summary>
-        ///// Returns true if the item is a deleted page or section. As well as if the item is the recycle bin section group or deleted pages section. <br/>
-        ///// Shorthand for <br/>
-        ///// <c>
-        ///// <see cref="IOneNoteItem.RecycleBinType"/> != <see cref="RecycleBinItemType.None"/>
-        ///// </c>
-        ///// </summary>
-        ///// <param name="item"></param>
-        ///// <returns></returns>
-        //public static bool IsDeleted(this IOneNoteItem item) => item.RecycleBinType != RecycleBinItemType.None;
+        /// <summary>
+        /// Returns true if the item is a deleted page or section.<br/> 
+        /// If <paramref name="includeSpecialItems"/> is <see langword="true"/>, it also returns <see langword="true"/> if the <paramref name="item"/> is the special section group "OneNote Recycle Bin" or the special section "Deleted Pages".
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="includeSpecialItems"></param>
+        /// <returns></returns>
+        public static bool IsInRecycleBin(this IOneNoteItem item, bool includeSpecialItems = true)
+        {
+            return item.ItemType switch
+            {
+                OneNoteItemType.SectionGroup => includeSpecialItems && ((OneNoteSectionGroup)item).IsRecycleBin,
+                OneNoteItemType.Section => ((OneNoteSection)item).IsInRecycleBin || (includeSpecialItems && ((OneNoteSection)item).IsDeletedPages),
+                OneNoteItemType.Page => ((OneNotePage)item).IsInRecycleBin,
+                _ => false,
+            };
+        }
     }
 }

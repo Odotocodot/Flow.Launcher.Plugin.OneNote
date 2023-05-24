@@ -23,9 +23,12 @@ namespace Odotocodot.OneNote.Linq
         /// Is the section encrypted.
         /// </summary>
         public bool Encrypted { get; init; }
+        /// <summary>
+        /// Is the section in the recycle bin.
+        /// </summary>
         public bool IsInRecycleBin { get; init; }
         /// <summary>
-        /// If true this section contains all the recently deleted pages.
+        /// If true this is a special section that contains all the recently deleted pages in this sections notebook.
         /// </summary>
         public bool IsDeletedPages { get; init; }
         /// <summary>

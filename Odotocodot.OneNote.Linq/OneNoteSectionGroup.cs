@@ -15,7 +15,7 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         public string Path { get; init; }
         /// <summary>
-        /// If true, this section group contains all the recently deleted sections as well as the "Deleted Pages" section, which contains all the recently deleted pages.
+        /// If true, this is a special section group contains all the recently deleted sections as well as the "Deleted Pages" section, which contains all the recently deleted pages.
         /// </summary>
         public bool IsRecycleBin { get; init; }
         /// <summary>
