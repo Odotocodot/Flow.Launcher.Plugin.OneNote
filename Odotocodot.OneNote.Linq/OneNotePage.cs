@@ -11,10 +11,22 @@ namespace Odotocodot.OneNote.Linq
         public bool IsUnread { get; init; }
         public string RelativePath { get; init; }
         OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Page;
-        public int Level { get; init; }
-        public DateTime DateTime { get; init; }
-        public DateTime LastModified { get; init; }
-
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => Enumerable.Empty<IOneNoteItem>();
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Level { get; init; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public DateTime DateTime { get; init; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public DateTime LastModified { get; init; }
+        /// <summary>
+        /// Returns true if the page is currently in the recycle bin.
+        /// </summary>
+        public bool IsDeletePage { get; init; }
     }
 }

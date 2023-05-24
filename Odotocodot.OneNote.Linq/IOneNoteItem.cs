@@ -22,14 +22,10 @@ namespace Odotocodot.OneNote.Linq
         string RelativePath { get; }
         /// <inheritdoc cref="OneNoteItemType"/>
         OneNoteItemType ItemType { get; }
-        ///// <inheritdoc cref="RecycleBinItemType"/>
-        //RecycleBinItemType RecycleBinType { get; }
         /// <summary>
-        /// The children of the item, e.g. for a notebook it would be sections and/or section groups.
+        /// The children of the item, e.g. for a notebook it would be sections and/or section groups. <br/>
+        /// If the item has no children an empty <see cref="IEnumerable{T}"/> (where <typeparamref name="T"/> is <see cref="IOneNoteItem"/>) is returned.
         /// </summary>
-        /// <returns>
-        /// An empty <see cref="IEnumerable{T}"/> (where <typeparamref name="T"/> is <see cref="IOneNoteItem"/>), if the item has no children.
-        /// </returns>
         IEnumerable<IOneNoteItem> Children { get; }
     }
 }

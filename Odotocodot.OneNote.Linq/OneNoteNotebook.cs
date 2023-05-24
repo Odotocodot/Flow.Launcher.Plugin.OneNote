@@ -10,7 +10,7 @@ namespace Odotocodot.OneNote.Linq
         public bool IsUnread { get; init; }
         public string RelativePath { get; init; }
         OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Notebook;
-
+        IEnumerable<IOneNoteItem> IOneNoteItem.Children => Sections;
         /// <summary>
         /// Nickname of the notebook.
         /// </summary>
@@ -23,8 +23,6 @@ namespace Odotocodot.OneNote.Linq
         /// Color of the notebook.
         /// </summary>
         public Color? Color { get; init; }
-
-        IEnumerable<IOneNoteItem> IOneNoteItem.Children => Sections;
         /// <summary>
         /// Contains the direct children of a notebook, i.e., its sections and section groups.
         /// </summary>
