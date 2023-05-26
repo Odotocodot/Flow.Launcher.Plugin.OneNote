@@ -90,7 +90,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = GetTitle(page, highlightingData),
-                TitleToolTip = $"Created: {page.DateTime}\nLast Modified: {page.LastModified}",
+                TitleToolTip = $"Created: {page.Created}\nLast Modified: {page.LastModified}",
                 AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(page, false, "\\")}",
                 TitleHighlightData = highlightingData,
                 SubTitle = GetNicePath(page, true),

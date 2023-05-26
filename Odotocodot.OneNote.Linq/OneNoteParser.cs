@@ -122,7 +122,7 @@ namespace Odotocodot.OneNote.Linq
                 Level = (int)pageElement.Attribute("pageLevel"),
                 IsUnread = GetIsUnread(pageElement),
                 RelativePath = Path.Combine(parentRelativePath[..^4], GetName(pageElement)),
-                DateTime = (DateTime)pageElement.Attribute("dateTime"),
+                Created = (DateTime)pageElement.Attribute("dateTime"),
                 LastModified = (DateTime)pageElement.Attribute("lastModifiedTime"),
             };
             return page;

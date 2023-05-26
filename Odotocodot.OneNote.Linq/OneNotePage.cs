@@ -13,13 +13,13 @@ namespace Odotocodot.OneNote.Linq
         OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Page;
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => Enumerable.Empty<IOneNoteItem>();
         /// <summary>
-        /// The page level
+        /// The page level.
         /// </summary>
         public int Level { get; init; }
         /// <summary>
         /// The time when page was created.
         /// </summary>
-        public DateTime DateTime { get; init; }
+        public DateTime Created { get; init; }
         /// <summary>
         /// The time when the page was last modified.
         /// </summary>
