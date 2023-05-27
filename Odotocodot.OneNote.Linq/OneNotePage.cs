@@ -17,7 +17,7 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         public int Level { get; init; }
         /// <summary>
-        /// The time when page was created.
+        /// The time when the page was created.
         /// </summary>
         public DateTime Created { get; init; }
         /// <summary>
@@ -25,7 +25,7 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         public DateTime LastModified { get; init; }
         /// <summary>
-        /// Is the section in the recycle bin.
+        /// Is the page in the recycle bin.
         /// </summary>
         public bool IsInRecycleBin { get; init; }
     }

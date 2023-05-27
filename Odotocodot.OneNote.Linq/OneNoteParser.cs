@@ -15,29 +15,26 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         public static IEnumerable<OneNoteNotebook> GetNotebooks(Application oneNote)
         {
-            // Get OneNote hierarchy as XML document
             oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string oneNoteXMLHierarchy);
             var oneNoteHierarchy = XElement.Parse(oneNoteXMLHierarchy);
             var one = oneNoteHierarchy.GetNamespaceOfPrefix("one");
 
-            // Transform XML into object hierarchy
             return oneNoteHierarchy.Elements(one + "Notebook")
                                    .Where(n => n.HasAttributes)
                                    .Select(n => ParseNotebook(n, one));
         }
 
         /// <summary>
-        /// Collection of pages.
+        /// Returns flattened collection of pages.
         /// </summary>
         public static IEnumerable<OneNotePage> GetPages(Application oneNote)
         {
-            // Get OneNote hierarchy as XML document
             oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string oneNoteXMLHierarchy);
             return ParsePages(oneNoteXMLHierarchy);
         }
 
         /// <summary>
-        /// Returns a list of pages that match the specified query term. <br/>
+        /// Returns a collection of pages that match the specified query term. <br/>
         /// Pass exactly the same string that you would type into the search box in the OneNote UI. You can use bitwise operators, such as AND and OR, which must be all uppercase.
         /// </summary>
         /// <param name="searchString"></param>
@@ -55,7 +52,7 @@ namespace Odotocodot.OneNote.Linq
         #region Parsing XML
         private static OneNoteNotebook ParseNotebook(XElement notebookElement, XNamespace oneNamespace)
         {
-            var notebook = new OneNoteNotebook
+            return new OneNoteNotebook
             {
                 ID = GetID(notebookElement),
                 Name = GetName(notebookElement),
@@ -68,54 +65,53 @@ namespace Odotocodot.OneNote.Linq
                                           .Where(s => s.Name.LocalName == "Section" || s.Name.LocalName == "SectionGroup")
                                           .Select(s => ParseSectionBase(s, oneNamespace, GetName(notebookElement))),
             };
-            return notebook;
         }
 
         private static IOneNoteItem ParseSectionBase(XElement xElement, XNamespace oneNamespace, string notebookName)
         {
-            if (xElement.Name.LocalName == "Section")
-                return ParseSection(xElement, oneNamespace, notebookName);
-            else
-                return ParseSectionGroup(xElement, oneNamespace, notebookName);
+            return xElement.Name.LocalName == "Section"
+                ? ParseSection(xElement, oneNamespace, notebookName)
+                : ParseSectionGroup(xElement, oneNamespace, notebookName);
         }
 
         private static OneNoteSectionGroup ParseSectionGroup(XElement sectionGroupElement, XNamespace oneNamespace, string notebookName)
         {
-            var sectionGroup = new OneNoteSectionGroup
+            return new OneNoteSectionGroup
             {
                 ID = GetID(sectionGroupElement),
                 Name = GetName(sectionGroupElement),
                 Path = GetPath(sectionGroupElement),
                 IsUnread = GetIsUnread(sectionGroupElement),
+                IsRecycleBin = GetBoolAttribute(sectionGroupElement, "isRecycleBin"),
                 RelativePath = GetRelativePath(sectionGroupElement, notebookName),
                 Sections = sectionGroupElement.Elements()
-                                              .Where(s => s.Name == oneNamespace + "Section" || s.Name == oneNamespace + "SectionGroup")
+                                              .Where(s => s.Name.LocalName == "Section" || s.Name.LocalName == "SectionGroup")
                                               .Select(s => ParseSectionBase(s, oneNamespace, notebookName))
             };
-            return sectionGroup;
         }
 
         private static OneNoteSection ParseSection(XElement sectionElement, XNamespace oneNamespace, string notebookName)
         {
-            var section = new OneNoteSection
+            return new OneNoteSection
             {
                 ID = GetID(sectionElement),
                 Name = GetName(sectionElement),
                 Path = GetPath(sectionElement),
                 IsUnread = GetIsUnread(sectionElement),
                 Color = GetColor(sectionElement),
-                Encrypted = sectionElement.Attribute("encrypted") != null && (bool)sectionElement.Attribute("encrypted"),
+                IsInRecycleBin = GetBoolAttribute(sectionElement, "isInRecycleBin"),
+                IsDeletedPages = GetBoolAttribute(sectionElement, "isDeletedPages"),
+                Encrypted = GetBoolAttribute(sectionElement, "encrypted"),
+                Locked = GetBoolAttribute(sectionElement, "locked"),
                 RelativePath = GetRelativePath(sectionElement, notebookName),
                 Pages = sectionElement.Elements(oneNamespace + "Page")
                                       .Select(pg => ParsePage(pg, GetRelativePath(sectionElement, notebookName)))
             };
-            return section;
         }
         
         private static OneNotePage ParsePage(XElement pageElement, string parentRelativePath)
         {
-            
-            var page = new OneNotePage
+            return new OneNotePage
             {
                 ID = GetID(pageElement),
                 Name = GetName(pageElement),
@@ -125,7 +121,6 @@ namespace Odotocodot.OneNote.Linq
                 Created = (DateTime)pageElement.Attribute("dateTime"),
                 LastModified = (DateTime)pageElement.Attribute("lastModifiedTime"),
             };
-            return page;
         }
         private static OneNotePage ParsePage(XElement pageElement, IOneNoteItem scope)
         {
@@ -156,18 +151,15 @@ namespace Odotocodot.OneNote.Linq
 
             return doc.Elements(one + "Notebook")
                       .Descendants(one + "Section")
-                    //.Elements(one + "Page")
-                      .Elements()
-                      .Where(x => x.HasAttributes && x.Name.LocalName == "Page")
+                      .Elements(one + "Page")
+                      //.Elements()
+                      .Where(x => x.HasAttributes)// && x.Name.LocalName == "Page")
                       .Select(pg => ParsePage(pg));
         }
 
         private static IEnumerable<OneNotePage> ParsePages(string xml, IOneNoteItem scope)
         {
-            if (scope == null)
-            {
-                throw new ArgumentNullException(nameof(scope));
-            }
+            ArgumentNullException.ThrowIfNull(scope, nameof(scope));
 
             var doc = XElement.Parse(xml);
             var one = doc.GetNamespaceOfPrefix("one");
@@ -190,11 +182,7 @@ namespace Odotocodot.OneNote.Linq
         private static string GetID(XElement element) => element.Attribute("ID").Value;
         private static string GetName(XElement element) => element.Attribute("name").Value;
         private static string GetPath(XElement element) => element.Attribute("path").Value;
-        private static bool GetIsUnread(XElement element)
-        {
-            var isUnread = element.Attribute("isUnread");
-            return isUnread != null && (bool)isUnread;
-        }
+        private static bool GetIsUnread(XElement element) => GetBoolAttribute(element, "isUnread");
         private static Color? GetColor(XElement element)
         {
             string color = element.Attribute("color").Value;
@@ -204,6 +192,11 @@ namespace Odotocodot.OneNote.Linq
         {
             var path = GetPath(element);
             return path[path.IndexOf(notebookName)..];
+        }
+        private static bool GetBoolAttribute(XElement element, string name)
+        {
+            var attr = element.Attribute(name);
+            return attr != null && (bool)attr;
         }
         #endregion
 
@@ -227,7 +220,7 @@ namespace Odotocodot.OneNote.Linq
         }
         public static void CreateQuickNote(Application oneNote, bool openImmediately)
         {
-            oneNote.GetSpecialLocation(SpecialLocation.slUnfiledNotesSection, out string path);
+            var path = GetUnfiledNotesSection(oneNote);
             oneNote.OpenHierarchy(path, null, out string sectionID, CreateFileType.cftNone);
             oneNote.CreateNewPage(sectionID, out string pageID, NewPageStyle.npsDefault);
 
@@ -254,7 +247,7 @@ namespace Odotocodot.OneNote.Linq
         }
         public static void CreateNotebook(Application oneNote, string title, bool openImmeditately)
         {
-            oneNote.GetSpecialLocation(SpecialLocation.slDefaultNotebookFolder, out string path);
+            var path = GetDefaultNotebookLocation(oneNote);
 
             oneNote.OpenHierarchy($"{path}\\{title}", null, out string notebookID, CreateFileType.cftNotebook);
             
@@ -263,27 +256,37 @@ namespace Odotocodot.OneNote.Linq
         }
         #endregion
 
+        #region Special Folder Locations
+        /// <summary>
+        /// Returns the path to the default notebook folder location, this is where new notebooks are created and saved to.
+        /// </summary>
+        /// <param name="oneNote"></param>
+        /// <returns></returns>
         public static string GetDefaultNotebookLocation(Application oneNote)
         {
             oneNote.GetSpecialLocation(SpecialLocation.slDefaultNotebookFolder, out string path);
             return path;
         }
-
-        public static string GetBackUpFolderLocation(Application oneNote)
+        /// <summary>
+        /// Returns the path to the back up folder location.
+        /// </summary>
+        /// <param name="oneNote"></param>
+        /// <returns></returns>
+        public static string GetBackUpLocation(Application oneNote)
         {
             oneNote.GetSpecialLocation(SpecialLocation.slBackUpFolder, out string path);
             return path;
         }
-
         /// <summary>
-        /// 
+        /// Returns the folder path of the unfiled notes section, this is also where quick notes are created and saved to.
         /// </summary>
         /// <param name="oneNote"></param>
-        /// <returns>The unfiled notes section, this is also where quick notes are created to.</returns>
+        /// <returns></returns>
         public static string GetUnfiledNotesSection(Application oneNote)
         {
             oneNote.GetSpecialLocation(SpecialLocation.slUnfiledNotesSection, out string path);
             return path;
         }
+        #endregion
     }
 }
