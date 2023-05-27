@@ -10,6 +10,11 @@ namespace Odotocodot.OneNote.Linq
 {
     public static class OneNoteParser
     {
+        private static string Notebook => nameof(OneNoteItemType.Notebook);
+        private static string SectionGroup => nameof(OneNoteItemType.SectionGroup);
+        private static string Section => nameof(OneNoteItemType.Section);
+        private static string Page => nameof(OneNoteItemType.Page);
+
         /// <summary>
         /// Hierarchy of notebooks with section groups, sections and Pages.
         /// </summary>
@@ -19,7 +24,7 @@ namespace Odotocodot.OneNote.Linq
             var oneNoteHierarchy = XElement.Parse(oneNoteXMLHierarchy);
             var one = oneNoteHierarchy.GetNamespaceOfPrefix("one");
 
-            return oneNoteHierarchy.Elements(one + "Notebook")
+            return oneNoteHierarchy.Elements(one + Notebook)
                                    .Where(n => n.HasAttributes)
                                    .Select(n => ParseNotebook(n, one));
         }
@@ -62,14 +67,14 @@ namespace Odotocodot.OneNote.Linq
                 Color = GetColor(notebookElement),
                 RelativePath = GetRelativePath(notebookElement, GetName(notebookElement)),
                 Sections = notebookElement.Elements()
-                                          .Where(s => s.Name.LocalName == "Section" || s.Name.LocalName == "SectionGroup")
+                                          .Where(s => s.Name.LocalName == Section || s.Name.LocalName == SectionGroup)
                                           .Select(s => ParseSectionBase(s, oneNamespace, GetName(notebookElement))),
             };
         }
 
         private static IOneNoteItem ParseSectionBase(XElement xElement, XNamespace oneNamespace, string notebookName)
         {
-            return xElement.Name.LocalName == "Section"
+            return xElement.Name.LocalName == Section
                 ? ParseSection(xElement, oneNamespace, notebookName)
                 : ParseSectionGroup(xElement, oneNamespace, notebookName);
         }
@@ -85,7 +90,7 @@ namespace Odotocodot.OneNote.Linq
                 IsRecycleBin = GetBoolAttribute(sectionGroupElement, "isRecycleBin"),
                 RelativePath = GetRelativePath(sectionGroupElement, notebookName),
                 Sections = sectionGroupElement.Elements()
-                                              .Where(s => s.Name.LocalName == "Section" || s.Name.LocalName == "SectionGroup")
+                                              .Where(s => s.Name.LocalName == Section || s.Name.LocalName == SectionGroup)
                                               .Select(s => ParseSectionBase(s, oneNamespace, notebookName))
             };
         }
@@ -99,7 +104,7 @@ namespace Odotocodot.OneNote.Linq
                 Path = GetPath(sectionElement),
                 IsUnread = GetIsUnread(sectionElement),
                 Color = GetColor(sectionElement),
-                IsInRecycleBin = GetBoolAttribute(sectionElement, "isInRecycleBin"),
+                IsInRecycleBin = GetIsInRecycleBin(sectionElement),
                 IsDeletedPages = GetBoolAttribute(sectionElement, "isDeletedPages"),
                 Encrypted = GetBoolAttribute(sectionElement, "encrypted"),
                 Locked = GetBoolAttribute(sectionElement, "locked"),
@@ -117,6 +122,7 @@ namespace Odotocodot.OneNote.Linq
                 Name = GetName(pageElement),
                 Level = (int)pageElement.Attribute("pageLevel"),
                 IsUnread = GetIsUnread(pageElement),
+                IsInRecycleBin = GetIsInRecycleBin(pageElement),
                 RelativePath = Path.Combine(parentRelativePath[..^4], GetName(pageElement)),
                 Created = (DateTime)pageElement.Attribute("dateTime"),
                 LastModified = (DateTime)pageElement.Attribute("lastModifiedTime"),
@@ -134,7 +140,7 @@ namespace Odotocodot.OneNote.Linq
         {
             var sectionElement = pageElement.Parent;
             var notebookElement = sectionElement.Parent;
-            while (notebookElement.Name.LocalName == "SectionGroup")
+            while (notebookElement.Name.LocalName == SectionGroup)
             {
                 notebookElement = notebookElement.Parent;
             }
@@ -149,9 +155,9 @@ namespace Odotocodot.OneNote.Linq
             var doc = XElement.Parse(xml);
             var one = doc.GetNamespaceOfPrefix("one");
 
-            return doc.Elements(one + "Notebook")
-                      .Descendants(one + "Section")
-                      .Elements(one + "Page")
+            return doc.Elements(one + Notebook)
+                      .Descendants(one + Section)
+                      .Elements(one + Page)
                       //.Elements()
                       .Where(x => x.HasAttributes)// && x.Name.LocalName == "Page")
                       .Select(pg => ParsePage(pg));
@@ -166,13 +172,13 @@ namespace Odotocodot.OneNote.Linq
 
             if (scope.ItemType == OneNoteItemType.Section)
             {
-                return doc.Elements(one + "Page")
+                return doc.Elements(one + Page)
                           .Select(pg => ParsePage(pg, scope.RelativePath));
             }
             else
             {
-                return doc.Descendants(one + "Section")
-                          .Elements(one + "Page")
+                return doc.Descendants(one + Section)
+                          .Elements(one + Page)
                           .Select(pg => ParsePage(pg, scope));
             }
         }
@@ -183,6 +189,7 @@ namespace Odotocodot.OneNote.Linq
         private static string GetName(XElement element) => element.Attribute("name").Value;
         private static string GetPath(XElement element) => element.Attribute("path").Value;
         private static bool GetIsUnread(XElement element) => GetBoolAttribute(element, "isUnread");
+        private static bool GetIsInRecycleBin(XElement element) => GetBoolAttribute(element, "isInRecycleBin");
         private static Color? GetColor(XElement element)
         {
             string color = element.Attribute("color").Value;
