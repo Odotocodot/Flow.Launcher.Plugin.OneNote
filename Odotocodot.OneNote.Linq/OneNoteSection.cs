@@ -15,6 +15,10 @@ namespace Odotocodot.OneNote.Linq
         /// Full path of the section.
         /// </summary>
         public string Path { get; init; }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //public bool IsReadOnly { get; init; }
         /// <summary>
         /// Returns true if an encrypted section has been unlocked allowing access, otherwise false.
         /// </summary>

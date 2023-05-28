@@ -26,17 +26,10 @@ namespace Odotocodot.OneNote.Linq
                 {
                     oneNote = new Application();
                 }
-                catch (COMException ex) //TODO: replace with exception filter
+                catch (COMException ex) when (attempt++ < 3)
                 {
-                    if (attempt++ < 3)
-                    {
-                        Trace.TraceError(ex.Message);
-                        Thread.Sleep(100);
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    Trace.TraceError(ex.Message);
+                    Thread.Sleep(100);
                 }
             }           
         }
@@ -63,16 +56,9 @@ namespace Odotocodot.OneNote.Linq
                 oneNote.Init();
                 return action(oneNote);
             }
-            catch (COMException ex)
+            catch (COMException ex) when (onException != null)
             {
-                if (onException != null)
-                {
-                    return onException(ex);
-                }
-                else
-                {
-                    throw;
-                }
+                return onException(ex);
             }
             finally
             {

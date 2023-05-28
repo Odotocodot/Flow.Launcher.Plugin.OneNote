@@ -66,6 +66,27 @@ namespace Odotocodot.OneNote.Linq
                 : ParsePages(xml, scope);
         }
 
+        //public static void DeleteItem(Application oneNote, IOneNoteItem item)
+        //{
+        //    oneNote.DeleteHierarchy(item.ID);
+        //}
+
+        ///// <summary>
+        ///// Setting <paramref name="force"/> to <see langword="true"/> to closes the notebook, even if there are changes in the notebook that OneNote cannot sync before closing.
+        ///// </summary>
+        ///// <param name="oneNote"></param>
+        ///// <param name="notebook"></param>
+        ///// <param name="force"></param>
+        //public static void CloseNotebook(Application oneNote, OneNoteNotebook notebook, bool force = false)
+        //{
+        //    oneNote.CloseNotebook(notebook.ID, force);
+        //}
+
+        //public static IOneNoteItem GetParent(Application oneNote, IOneNoteItem item)
+        //{
+        //    oneNote.GetHierarchyParent(item.ID, out string parentID);
+        //    ///Find Parent with ID
+        //}
         #region Parsing XML
         private static OneNoteNotebook ParseNotebook(XElement notebookElement, XNamespace oneNamespace)
         {
@@ -247,6 +268,9 @@ namespace Odotocodot.OneNote.Linq
             if (parent.ItemType == OneNoteItemType.Page || parent.ItemType == OneNoteItemType.Section)
                 throw new ArgumentException("The parent item type must a notebook or section group");
 
+            ArgumentException.ThrowIfNullOrEmpty(sectionName, nameof(sectionName));
+
+
             oneNote.OpenHierarchy(sectionName + ".one", parent.ID, out string sectionID, CreateFileType.cftSection);
             if(openImmediately)
                 oneNote.NavigateTo(sectionID);
@@ -256,12 +280,16 @@ namespace Odotocodot.OneNote.Linq
             if (parent.ItemType == OneNoteItemType.Page || parent.ItemType == OneNoteItemType.Section)
                 throw new ArgumentException("The parent item type must a notebook or section group", nameof(parent));
 
+            ArgumentException.ThrowIfNullOrEmpty(sectionGroupName, nameof(sectionGroupName));
+
             oneNote.OpenHierarchy(sectionGroupName, parent.ID, out string sectionGroupID, CreateFileType.cftFolder);
             if (openImmediately)
                 oneNote.NavigateTo(sectionGroupID);
         }
         public static void CreateNotebook(Application oneNote, string title, bool openImmediately)
         {
+            ArgumentException.ThrowIfNullOrEmpty(title, nameof(title));
+
             var path = GetDefaultNotebookLocation(oneNote);
 
             oneNote.OpenHierarchy($"{path}\\{title}", null, out string notebookID, CreateFileType.cftNotebook);
