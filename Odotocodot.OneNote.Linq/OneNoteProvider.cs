@@ -26,7 +26,7 @@ namespace Odotocodot.OneNote.Linq
                 {
                     oneNote = new Application();
                 }
-                catch (COMException ex)
+                catch (COMException ex) //TODO: replace with exception filter
                 {
                     if (attempt++ < 3)
                     {

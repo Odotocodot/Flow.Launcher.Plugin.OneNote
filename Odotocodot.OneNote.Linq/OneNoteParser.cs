@@ -30,8 +30,9 @@ namespace Odotocodot.OneNote.Linq
         }
 
         /// <summary>
-        /// Returns flattened collection of pages.
+        /// Returns a flattened collection of pages.
         /// </summary>
+        /// <param name="oneNote"></param>
         public static IEnumerable<OneNotePage> GetPages(Application oneNote)
         {
             oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string oneNoteXMLHierarchy);
@@ -40,18 +41,29 @@ namespace Odotocodot.OneNote.Linq
 
         /// <summary>
         /// Returns a collection of pages that match the specified query term. <br/>
-        /// Pass exactly the same string that you would type into the search box in the OneNote UI. You can use bitwise operators, such as AND and OR, which must be all uppercase.
+        /// <paramref name="searchString" /> should be exactly the same string that you would type into the search box in the OneNote UI. You can use bitwise operators, such as AND and OR, which must be all uppercase.
         /// </summary>
+        /// <param name="oneNote"></param>
         /// <param name="searchString"></param>
         public static IEnumerable<OneNotePage> FindPages(Application oneNote, string searchString)
         {
-            oneNote.FindPages(null, searchString, out string xml);
-            return ParsePages(xml);
+            return FindPages(oneNote, null, searchString);
         }
+
+        /// <inheritdoc cref="FindPages"/>
+        /// <remarks> 
+        /// Passing in <paramref name="scope"/> allows for searching within that specific OneNote item. <br/>
+        /// If <paramref name="scope" /> is <see langword="null" /> this method is equivalent to <see cref="FindPages(Application,string)"/>
+        /// </remarks>
+        /// <param name="oneNote"></param>
+        /// <param name="scope"></param>
+        /// <param name="searchString"></param>
         public static IEnumerable<OneNotePage> FindPages(Application oneNote, IOneNoteItem scope, string searchString)
         {
             oneNote.FindPages(scope?.ID, searchString, out string xml);
-            return ParsePages(xml, scope);
+            return scope == null 
+                ? ParsePages(xml) 
+                : ParsePages(xml, scope);
         }
 
         #region Parsing XML
@@ -135,7 +147,6 @@ namespace Odotocodot.OneNote.Linq
             var sectionRelativePath = GetRelativePath(sectionElement, notebookName);
             return ParsePage(pageElement, sectionRelativePath);
         }
-
         private static OneNotePage ParsePage(XElement pageElement)
         {
             var sectionElement = pageElement.Parent;
@@ -148,7 +159,6 @@ namespace Odotocodot.OneNote.Linq
             var sectionRelativePath = GetRelativePath(sectionElement, notebookName);
             return ParsePage(pageElement, sectionRelativePath);
         }
-
 
         private static IEnumerable<OneNotePage> ParsePages(string xml)
         {
@@ -165,8 +175,6 @@ namespace Odotocodot.OneNote.Linq
 
         private static IEnumerable<OneNotePage> ParsePages(string xml, IOneNoteItem scope)
         {
-            ArgumentNullException.ThrowIfNull(scope, nameof(scope));
-
             var doc = XElement.Parse(xml);
             var one = doc.GetNamespaceOfPrefix("one");
 
@@ -217,8 +225,8 @@ namespace Odotocodot.OneNote.Linq
             oneNote.GetPageContent(pageID, out string xml, PageInfo.piBasic);
 
             XDocument doc = XDocument.Parse(xml);
-            XElement Xtitle = doc.Descendants(one + "T").First();
-            Xtitle.Value = pageTitle;
+            XElement xTitle = doc.Descendants(one + "T").First();
+            xTitle.Value = pageTitle;
 
             oneNote.UpdatePageContent(doc.ToString());
 
@@ -252,13 +260,13 @@ namespace Odotocodot.OneNote.Linq
             if (openImmediately)
                 oneNote.NavigateTo(sectionGroupID);
         }
-        public static void CreateNotebook(Application oneNote, string title, bool openImmeditately)
+        public static void CreateNotebook(Application oneNote, string title, bool openImmediately)
         {
             var path = GetDefaultNotebookLocation(oneNote);
 
             oneNote.OpenHierarchy($"{path}\\{title}", null, out string notebookID, CreateFileType.cftNotebook);
             
-            if(openImmeditately)
+            if(openImmediately)
                 oneNote.NavigateTo(notebookID);
         }
         #endregion
