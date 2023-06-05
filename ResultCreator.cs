@@ -49,19 +49,19 @@ namespace Flow.Launcher.Plugin.OneNote
             return path;
         }
 
-        private string GetTitle(IOneNoteItem item, List<int> hightlightData)
+        private string GetTitle(IOneNoteItem item, List<int> highlightData)
         {
             string title = item.Name;
             if (item.IsUnread && settings.ShowUnread)
             {
-                string unread = "•  ";
+                string unread = "ï¿½  ";
                 title = title.Insert(0, unread);
 
-                if (hightlightData != null)
+                if (highlightData != null)
                 {
-                    for (int i = 0; i < hightlightData.Count; i++)
+                    for (int i = 0; i < highlightData.Count; i++)
                     {
-                        hightlightData[i] += unread.Length;
+                        highlightData[i] += unread.Length;
                     }
                 }
             }
@@ -105,7 +105,7 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
 
-        private Result CreateSecionBaseResult(IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
+        private Result CreateSectionBaseResult(IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
             string path = GetNicePath(sectionBase, false);
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(sectionBase, false, "\\")}\\";
@@ -135,12 +135,12 @@ namespace Flow.Launcher.Plugin.OneNote
         }
         public Result CreateSectionResult(OneNoteSection section, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            return CreateSecionBaseResult(section, sectionIcons.GetIcon(section.Color.Value), actionIsAutoComplete, highlightData, score);
+            return CreateSectionBaseResult(section, sectionIcons.GetIcon(section.Color.Value), actionIsAutoComplete, highlightData, score);
         }
 
         public Result CreateSectionGroupResult(OneNoteSectionGroup sectionGroup, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            return CreateSecionBaseResult(sectionGroup, Icons.SectionGroup, actionIsAutoComplete, highlightData, score);
+            return CreateSectionBaseResult(sectionGroup, Icons.SectionGroup, actionIsAutoComplete, highlightData, score);
         }
 
         public Result CreateNotebookResult(OneNoteNotebook notebook, bool actionIsAutoComplete, List<int> highlightData, int score)
