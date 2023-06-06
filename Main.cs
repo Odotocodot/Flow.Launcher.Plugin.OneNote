@@ -6,7 +6,7 @@ using System.Timers;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNotePlugin : IPlugin, IContextMenu, ISettingProvider, IDisposable
+    public class OneNotePlugin : IPlugin, IContextMenu, ISettingProvider
     {
         private PluginInitContext context;
 
@@ -24,13 +24,6 @@ namespace Flow.Launcher.Plugin.OneNote
         
         public List<Result> Query(Query query)
         {
-            if(settings.FastMode)
-            {
-                //Keep the timer running whilst typing
-                oneNoteComReleaseTimer?.Stop();
-                oneNoteComReleaseTimer?.Start();
-            }
-
             if (string.IsNullOrEmpty(query.Search))
             {
                 return new List<Result>
@@ -213,32 +206,9 @@ namespace Flow.Launcher.Plugin.OneNote
             return new SettingsView(settings);
         }
 
-        private static OneNoteProvider oneNoteApp;
-        private static Timer oneNoteComReleaseTimer; 
         public static T GetOneNote<T>(Func<OneNoteProvider, T> action, Func<COMException, T> onException = null)
         {
-            if (settings.FastMode)
-            {
-                oneNoteApp ??= new OneNoteProvider();
-                oneNoteApp.Init();
-
-                if(oneNoteComReleaseTimer == null)
-                {
-                    oneNoteComReleaseTimer = new Timer(10000);
-                    oneNoteComReleaseTimer.Elapsed += (s, e) => oneNoteApp.Release();
-                    oneNoteComReleaseTimer.Start();
-                }
-                return action(oneNoteApp);
-            }
-            else
-            {
-                return OneNoteProvider.CallOneNoteSafely(action, onException);
-            }
-        }
-
-        public void Dispose()
-        {
-            oneNoteComReleaseTimer?.Dispose();
+            return OneNoteProvider.CallOneNoteSafely(action, onException);
         }
     }
 }
