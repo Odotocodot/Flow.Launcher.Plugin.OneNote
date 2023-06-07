@@ -15,6 +15,7 @@ namespace Odotocodot.OneNote.Linq
         private static string Section => nameof(OneNoteItemType.Section);
         private static string Page => nameof(OneNoteItemType.Page);
 
+        private const string NamespacePrefix = "one";
         /// <summary>
         /// Hierarchy of notebooks with section groups, sections and Pages.
         /// </summary>
@@ -22,7 +23,7 @@ namespace Odotocodot.OneNote.Linq
         {
             oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string oneNoteXMLHierarchy);
             var oneNoteHierarchy = XElement.Parse(oneNoteXMLHierarchy);
-            var one = oneNoteHierarchy.GetNamespaceOfPrefix("one");
+            var one = oneNoteHierarchy.GetNamespaceOfPrefix(NamespacePrefix);
 
             return oneNoteHierarchy.Elements(one + Notebook)
                                    .Where(n => n.HasAttributes)
@@ -187,7 +188,7 @@ namespace Odotocodot.OneNote.Linq
         private static IEnumerable<OneNotePage> ParsePages(string xml)
         {
             var doc = XElement.Parse(xml);
-            var one = doc.GetNamespaceOfPrefix("one");
+            var one = doc.GetNamespaceOfPrefix(NamespacePrefix);
 
             return doc.Elements(one + Notebook)
                       .Descendants(one + Section)
@@ -200,7 +201,7 @@ namespace Odotocodot.OneNote.Linq
         private static IEnumerable<OneNotePage> ParsePages(string xml, IOneNoteItem scope)
         {
             var doc = XElement.Parse(xml);
-            var one = doc.GetNamespaceOfPrefix("one");
+            var one = doc.GetNamespaceOfPrefix(NamespacePrefix);
 
             if (scope.ItemType == OneNoteItemType.Section)
             {
@@ -244,7 +245,7 @@ namespace Odotocodot.OneNote.Linq
         public static void CreatePage(Application oneNote, OneNoteSection section, string pageTitle, bool openImmediately)
         {
             oneNote.GetHierarchy(null, HierarchyScope.hsNotebooks, out string oneNoteXMLHierarchy);
-            var one = XElement.Parse(oneNoteXMLHierarchy).GetNamespaceOfPrefix("one");
+            var one = XElement.Parse(oneNoteXMLHierarchy).GetNamespaceOfPrefix(NamespacePrefix);
 
             oneNote.CreateNewPage(section.ID, out string pageID, NewPageStyle.npsBlankPageWithTitle);
             oneNote.GetPageContent(pageID, out string xml, PageInfo.piBasic);
