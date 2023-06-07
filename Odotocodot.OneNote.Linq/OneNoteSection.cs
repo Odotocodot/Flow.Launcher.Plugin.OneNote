@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace Odotocodot.OneNote.Linq
@@ -9,6 +10,7 @@ namespace Odotocodot.OneNote.Linq
         public string Name { get; init; }
         public bool IsUnread { get; init; }
         public string RelativePath { get; init; }
+        public DateTime LastModified { get; init; }
         OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Section;
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => Pages;
         /// <summary>
@@ -43,7 +45,5 @@ namespace Odotocodot.OneNote.Linq
         /// The collection of pages within this section.
         /// </summary>
         public IEnumerable<OneNotePage> Pages { get; init; }
-
-
     }
 }

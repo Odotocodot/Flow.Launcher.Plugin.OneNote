@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Odotocodot.OneNote.Linq
 {
@@ -8,6 +9,7 @@ namespace Odotocodot.OneNote.Linq
         public string Name { get; init; }
         public bool IsUnread { get; init; }
         public string RelativePath { get; init; }
+        public DateTime LastModified { get; init; }
         OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.SectionGroup;
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => Sections;
         /// <summary>

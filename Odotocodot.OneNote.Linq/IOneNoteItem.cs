@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Odotocodot.OneNote.Linq
 {
@@ -20,6 +21,10 @@ namespace Odotocodot.OneNote.Linq
         /// The path of the item relative to and inclusive of its notebook 
         /// </summary>
         string RelativePath { get; }
+        /// <summary>
+        /// The time the item was last modified
+        /// </summary>
+        DateTime LastModified { get; init; }
         /// <inheritdoc cref="OneNoteItemType"/>
         OneNoteItemType ItemType { get; }
         /// <summary>

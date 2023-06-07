@@ -97,6 +97,7 @@ namespace Odotocodot.OneNote.Linq
                 NickName = notebookElement.Attribute("nickname").Value,
                 Path = GetPath(notebookElement),
                 IsUnread = GetIsUnread(notebookElement),
+                LastModified = GetLastModified(notebookElement),
                 Color = GetColor(notebookElement),
                 RelativePath = GetRelativePath(notebookElement, GetName(notebookElement)),
                 Sections = notebookElement.Elements()
@@ -120,6 +121,7 @@ namespace Odotocodot.OneNote.Linq
                 Name = GetName(sectionGroupElement),
                 Path = GetPath(sectionGroupElement),
                 IsUnread = GetIsUnread(sectionGroupElement),
+                LastModified = GetLastModified(sectionGroupElement),
                 IsRecycleBin = GetBoolAttribute(sectionGroupElement, "isRecycleBin"),
                 RelativePath = GetRelativePath(sectionGroupElement, notebookName),
                 Sections = sectionGroupElement.Elements()
@@ -137,6 +139,7 @@ namespace Odotocodot.OneNote.Linq
                 Path = GetPath(sectionElement),
                 IsUnread = GetIsUnread(sectionElement),
                 Color = GetColor(sectionElement),
+                LastModified = GetLastModified(sectionElement),
                 IsInRecycleBin = GetIsInRecycleBin(sectionElement),
                 IsDeletedPages = GetBoolAttribute(sectionElement, "isDeletedPages"),
                 Encrypted = GetBoolAttribute(sectionElement, "encrypted"),
@@ -218,6 +221,7 @@ namespace Odotocodot.OneNote.Linq
         private static string GetName(XElement element) => element.Attribute("name").Value;
         private static string GetPath(XElement element) => element.Attribute("path").Value;
         private static bool GetIsUnread(XElement element) => GetBoolAttribute(element, "isUnread");
+        private static DateTime GetLastModified(XElement element) => (DateTime)element.Attribute("lastModifiedTime");
         private static bool GetIsInRecycleBin(XElement element) => GetBoolAttribute(element, "isInRecycleBin");
         private static Color? GetColor(XElement element)
         {
