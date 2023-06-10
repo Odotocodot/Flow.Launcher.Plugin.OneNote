@@ -74,7 +74,7 @@ namespace Odotocodot.OneNote.Linq
 
         public void OpenInOneNote(IOneNoteItem item)
         {
-            oneNote.NavigateTo(item.ID);
+            OneNoteParser.OpenInOneNote(oneNote, item.ID);
         }
 
         public IEnumerable<IOneNoteItem> Traverse()
@@ -88,7 +88,7 @@ namespace Odotocodot.OneNote.Linq
 
         public void SyncItem(IOneNoteItem item)
         {
-            oneNote.SyncHierarchy(item.ID);
+            OneNoteParser.SyncItem(oneNote, item.ID);
         }
 
         public IEnumerable<OneNotePage> FindPages(string searchString)
@@ -100,14 +100,14 @@ namespace Odotocodot.OneNote.Linq
             return OneNoteParser.FindPages(oneNote, searchString, scope);
         }
 
-        public void CreatePage(OneNoteSection section, string pageTitle)
-        {
-            OneNoteParser.CreatePage(oneNote, section, pageTitle, true);
-        }
 
         public void CreateQuickNote()
         {
             OneNoteParser.CreateQuickNote(oneNote, true);
+        }
+        public void CreatePage(OneNoteSection section, string pageTitle)
+        {
+            OneNoteParser.CreatePage(oneNote, section, pageTitle, true);
         }
 
         public void CreateSection(IOneNoteItem parent, string sectionName)
