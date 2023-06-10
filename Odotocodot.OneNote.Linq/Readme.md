@@ -1,11 +1,11 @@
-## Odotocodot.OneNote.Linq
+# Odotocodot.OneNote.Linq
 
-A helper library for dealing with the Microsoft Office Interop OneNote API (link to package)
-Originally made for (link to Flow.Launcher.Plugin.OneNote)
+A helper library for dealing with the [OneNote API](https://learn.microsoft.com/en-us/office/client-developer/onenote/application-interface-onenote) ([package](https://www.nuget.org/packages/Interop.Microsoft.Office.Interop.OneNote#readme-body-tab))\
+Originally made for [Flow.Launcher.Plugin.OneNote](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote)
 
-# Features
+## Features
 //TODO
 
-# Inspired By
-https://github.com/idvorkin/onom
-https://github.com/scipbe/ScipBe-Common-Office
+## Inspired By
+[ScipeBe Common Office](https://github.com/scipbe/ScipBe-Common-Office)\
+[OneNote Object Model](https://github.com/idvorkin/onom)
