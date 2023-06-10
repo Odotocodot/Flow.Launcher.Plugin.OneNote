@@ -10,10 +10,6 @@ namespace Odotocodot.OneNote.Linq
     public class OneNoteProvider
     {
         private Application oneNote;
-
-        public IEnumerable<OneNoteNotebook> Notebooks => OneNoteParser.GetNotebooks(oneNote);
-        public IEnumerable<OneNotePage> Pages => OneNoteParser.GetPages(oneNote);
-        public string DefaultNotebookLocation => OneNoteParser.GetDefaultNotebookLocation(oneNote);
         public bool HasInstance => oneNote != null && Marshal.IsComObject(oneNote);
 
         public void Init()
@@ -66,6 +62,16 @@ namespace Odotocodot.OneNote.Linq
             }
         }
 
+        public IEnumerable<OneNoteNotebook> GetNotebooks()
+        {
+            return OneNoteParser.GetNotebooks(oneNote);
+        }
+
+        public string GetDefaultNotebookLocation()
+        {
+            return OneNoteParser.GetDefaultNotebookLocation(oneNote);
+        }
+
         public void OpenInOneNote(IOneNoteItem item)
         {
             oneNote.NavigateTo(item.ID);
@@ -73,11 +79,11 @@ namespace Odotocodot.OneNote.Linq
 
         public IEnumerable<IOneNoteItem> Traverse()
         {
-            return Notebooks.Traverse();
+            return GetNotebooks().Traverse();
         }
         public IEnumerable<IOneNoteItem> Traverse(Func<IOneNoteItem, bool> predicate)
         {
-            return Notebooks.Traverse(predicate);
+            return GetNotebooks().Traverse(predicate);
         }
 
         public void SyncItem(IOneNoteItem item)
@@ -91,7 +97,7 @@ namespace Odotocodot.OneNote.Linq
         }
         public IEnumerable<OneNotePage> FindPages(IOneNoteItem scope, string searchString)
         {
-            return OneNoteParser.FindPages(oneNote, scope, searchString);
+            return OneNoteParser.FindPages(oneNote, searchString, scope);
         }
 
         public void CreatePage(OneNoteSection section, string pageTitle)

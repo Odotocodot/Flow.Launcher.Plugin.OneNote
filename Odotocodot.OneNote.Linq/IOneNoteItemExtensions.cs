@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Odotocodot.OneNote.Linq
 {
     public static class IOneNoteItemExtensions
     {
-        /// <summary>
-        /// Depth first traversal
-        /// </summary>
-        /// <returns></returns>
         public static IEnumerable<IOneNoteItem> Traverse(this IOneNoteItem item, Func<IOneNoteItem, bool> predicate)
         {
             var stack = new Stack<IOneNoteItem>();
@@ -62,6 +59,52 @@ namespace Odotocodot.OneNote.Linq
                 OneNoteItemType.Page => ((OneNotePage)item).IsInRecycleBin,
                 _ => false,
             };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="notebook"></param>
+        /// <param name="sectionGroup"></param>
+        /// <returns></returns>
+        public static bool GetRecycleBin(this OneNoteNotebook notebook, out OneNoteSectionGroup sectionGroup)
+        {
+            sectionGroup = notebook.SectionGroups.FirstOrDefault(sg => sg.IsRecycleBin);
+            return sectionGroup != null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="items"></param>
+        /// <returns>
+        /// A flattened collection of only pages.
+        /// </returns>
+        public static IEnumerable<OneNotePage> GetPages(this IEnumerable<IOneNoteItem> items)
+        {
+            return items.Traverse(item => item.ItemType == OneNoteItemType.Page)
+                        .Cast<OneNotePage>();
+        }
+        public static IEnumerable<OneNotePage> GetPages(this IOneNoteItem item)
+        {
+            return item.Traverse(item => item.ItemType == OneNoteItemType.Page)
+                       .Cast<OneNotePage>();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>The path of the item relative to and inclusive of its notebook</returns>
+        public static string GetRelativePath(this IOneNoteItem item, string separator = "\\")
+        {
+            StringBuilder sb = new(item.Name);
+            while(item.Parent != null)
+            {
+                sb.Insert(0, separator);
+                item = item.Parent;
+                sb.Insert(0, item.Name);
+            }
+            return sb.ToString();
         }
     }
 }

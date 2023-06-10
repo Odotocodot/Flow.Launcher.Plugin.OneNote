@@ -1,18 +1,69 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Xml.Linq;
 
 namespace Odotocodot.OneNote.Linq
 {
     public record OneNoteSection : IOneNoteItem
     {
+        internal OneNoteSection() { }
+        internal OneNoteSection(XElement element, IOneNoteItem parent) : this(element, parent, true) { }
+        internal OneNoteSection(XElement element, IOneNoteItem parent, bool addChildren)
+        {
+            Parent = parent;
+            //Technically 'faster' than the XElement.GetAttribute method
+            foreach (var attribute in element.Attributes())
+            {
+                switch (attribute.Name.LocalName)
+                {
+                    case "name":
+                        Name = attribute.Value;
+                        break;
+                    case "ID":
+                        ID = attribute.Value;
+                        break;
+                    case "path":
+                        Path = attribute.Value;
+                        break;
+                    case "isUnread":
+                        IsUnread = (bool)attribute;
+                        break;
+                    case "color":
+                        Color = attribute.Value != "none" ? ColorTranslator.FromHtml(attribute.Value) : null;
+                        break;
+                    case "lastModifiedTime":
+                        LastModified = (DateTime)attribute;
+                        break;
+                    case "encrypted":
+                        Encrypted = (bool)attribute;
+                        break;
+                    case "locked":
+                        Locked = (bool)attribute;
+                        break;
+                    case "isInRecycleBin":
+                        IsInRecycleBin = (bool)attribute;
+                        break;
+                    case "isDeletedPages":
+                        IsDeletedPages = (bool)attribute;
+                        break;
+                }
+            }
+            if(addChildren)
+            {
+                Pages = element.Elements(OneNoteParser.GetXName(OneNoteItemType.Page))
+                               .Select(e => new OneNotePage(e,this));
+            }
+        }
+
         public string ID { get; init; }
         public string Name { get; init; }
         public bool IsUnread { get; init; }
-        public string RelativePath { get; init; }
         public DateTime LastModified { get; init; }
         OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Section;
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => Pages;
+        public IOneNoteItem Parent { get; init; }
         /// <summary>
         /// Full path of the section.
         /// </summary>
@@ -42,7 +93,7 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         public Color? Color { get; init; }
         /// <summary>
-        /// The collection of pages within this section.
+        /// The collection of pages within this section, the same as <see cref="IOneNoteItem.Children"/> for a section.
         /// </summary>
         public IEnumerable<OneNotePage> Pages { get; init; }
     }

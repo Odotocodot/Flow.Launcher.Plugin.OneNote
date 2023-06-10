@@ -24,29 +24,30 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private static string GetNicePath(IOneNoteItem item, bool removeSelf, string separator = " > ")
         {
-            var path = item.RelativePath;
+            return item.GetRelativePath(separator);
+            //var path = item.RelativePath;
 
-            if (path.EndsWith(".one"))
-                path = path[..^4];
+            //if (path.EndsWith(".one"))
+            //    path = path[..^4];
 
-            if (path.EndsWith("/") || path.EndsWith("\\"))
-                path = path.Remove(path.Length - 1);
+            //if (path.EndsWith("/") || path.EndsWith("\\"))
+            //    path = path.Remove(path.Length - 1);
 
-            if(removeSelf)
-            {
-                int index = path.LastIndexOf(item.Name);
+            //if(removeSelf)
+            //{
+            //    int index = path.LastIndexOf(item.Name);
 
-                if (index != -1)
-                {
-                    path = path.Remove(index, item.Name.Length);
-                    if (path.EndsWith("/") || path.EndsWith("\\"))
-                        path = path.Remove(path.Length - 1);
-                }
-            }
+            //    if (index != -1)
+            //    {
+            //        path = path.Remove(index, item.Name.Length);
+            //        if (path.EndsWith("/") || path.EndsWith("\\"))
+            //            path = path.Remove(path.Length - 1);
+            //    }
+            //}
 
-            path = path.Replace("/", separator).Replace("\\", separator);
+            //path = path.Replace("/", separator).Replace("\\", separator);
 
-            return path;
+            //return path;
         }
 
         private string GetTitle(IOneNoteItem item, List<int> highlightData)
@@ -271,7 +272,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = $"Create notebook: \"{notebookTitle}\"",
                 SubTitle = validTitle 
-                    ? $"Location: {oneNote.DefaultNotebookLocation}"
+                    ? $"Location: {oneNote.GetDefaultNotebookLocation()}"
                     : $"Notebook names cannot contain: {string.Join(' ', notebookInvalidChars)}",
                 IcoPath = Icons.NewNotebook,
                 Action = c =>

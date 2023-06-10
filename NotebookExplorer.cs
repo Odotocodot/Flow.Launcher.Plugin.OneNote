@@ -23,7 +23,7 @@ namespace Flow.Launcher.Plugin.OneNote
             string[] searchStrings = search.Split('\\', StringSplitOptions.None);
 
             IOneNoteItem currentParentItem = null;
-            IEnumerable<IOneNoteItem> currentCollection = oneNote.Notebooks;
+            IEnumerable<IOneNoteItem> currentCollection = oneNote.GetNotebooks();
 
             for (int i = 0; i < searchStrings.Length; i++)
             {

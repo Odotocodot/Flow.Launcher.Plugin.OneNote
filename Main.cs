@@ -79,11 +79,11 @@ namespace Flow.Launcher.Plugin.OneNote
                         {
                             GetOneNote(oneNote =>
                             {
-                                foreach (var notebook in oneNote.Notebooks)
+                                foreach (var notebook in oneNote.GetNotebooks())
                                 {
                                     oneNote.SyncItem(notebook);
                                 }
-                                oneNote.OpenInOneNote(oneNote.Notebooks.First());
+                                oneNote.OpenInOneNote(oneNote.GetNotebooks().First());
                                 oneNote.Release();
                                 return 0;
                             });
@@ -101,17 +101,19 @@ namespace Flow.Launcher.Plugin.OneNote
 
                 return GetOneNote(oneNote =>
                 {
-                    return oneNote.Pages.OrderByDescending(pg => pg.LastModified)
-                    .Take(count)
-                    .Select(pg =>
-                    {
-                        Result result = rc.CreatePageResult(pg);
-                        result.SubTitleToolTip = result.SubTitle;
-                        result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
-                        result.IcoPath = Icons.RecentPage;
-                        return result;
-                    })
-                    .ToList();
+                    return oneNote.GetNotebooks()
+                                  .GetPages()
+                                  .OrderByDescending(pg => pg.LastModified)
+                                  .Take(count)
+                                  .Select(pg =>
+                                  {
+                                      Result result = rc.CreatePageResult(pg);
+                                      result.SubTitleToolTip = result.SubTitle;
+                                      result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
+                                      result.IcoPath = Icons.RecentPage;
+                                      return result;
+                                  })
+                                  .ToList();
                 });
             }
 
@@ -128,7 +130,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 var results = GetOneNote(oneNote => 
                 {
-                    return rc.SearchByTitle(string.Join(" ", query.SearchTerms), oneNote.Notebooks);
+                    return rc.SearchByTitle(string.Join(" ", query.SearchTerms), oneNote.GetNotebooks());
                 });
                 
                 if (results.Any())

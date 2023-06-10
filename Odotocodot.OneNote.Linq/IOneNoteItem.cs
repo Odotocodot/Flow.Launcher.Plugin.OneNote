@@ -18,13 +18,9 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         bool IsUnread { get; }
         /// <summary>
-        /// The path of the item relative to and inclusive of its notebook 
-        /// </summary>
-        string RelativePath { get; }
-        /// <summary>
         /// The time the item was last modified
         /// </summary>
-        DateTime LastModified { get; init; }
+        DateTime LastModified { get; }
         /// <inheritdoc cref="OneNoteItemType"/>
         OneNoteItemType ItemType { get; }
         /// <summary>
@@ -32,5 +28,6 @@ namespace Odotocodot.OneNote.Linq
         /// If the item has no children an empty <see cref="IEnumerable{T}"/> (where <typeparamref name="T"/> is <see cref="IOneNoteItem"/>) is returned.
         /// </summary>
         IEnumerable<IOneNoteItem> Children { get; }
+        IOneNoteItem Parent { get; }
     }
 }

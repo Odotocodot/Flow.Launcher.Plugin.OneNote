@@ -1,8 +1,11 @@
-This is a modified version of .... see here
+## Odotocodot.OneNote.Linq
 
-Modifications:
-    Added methods that take in a reference to oneNote
-    Made some methods public etc.
-    etc
+A helper library for dealing with the Microsoft Office Interop OneNote API (link to package)
+Originally made for (link to Flow.Launcher.Plugin.OneNote)
 
-Add see here to main readme that directs to this readme with full list of changes.
+# Features
+//TODO
+
+# Inspired By
+https://github.com/idvorkin/onom
+https://github.com/scipbe/ScipBe-Common-Office

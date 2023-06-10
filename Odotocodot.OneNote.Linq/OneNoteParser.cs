@@ -10,34 +10,38 @@ namespace Odotocodot.OneNote.Linq
 {
     public static class OneNoteParser
     {
-        private static string Notebook => nameof(OneNoteItemType.Notebook);
-        private static string SectionGroup => nameof(OneNoteItemType.SectionGroup);
-        private static string Section => nameof(OneNoteItemType.Section);
-        private static string Page => nameof(OneNoteItemType.Page);
+        //private static string Notebook => nameof(OneNoteItemType.Notebook);
+        //private static string SectionGroup => nameof(OneNoteItemType.SectionGroup);
+        //private static string Section => nameof(OneNoteItemType.Section);
+        //private static string Page => nameof(OneNoteItemType.Page);
 
         private const string NamespacePrefix = "one";
+
+        private static readonly Lazy<XName[]> xNames = new Lazy<XName[]>(() =>
+        {
+            var itemTypes = Enum.GetValues<OneNoteItemType>();
+            var xNames = new XName[itemTypes.Length];
+            for (int i = 0; i < itemTypes.Length; i++)
+            {
+                xNames[(int)itemTypes[i]] = XName.Get(itemTypes[i].ToString(), "http://schemas.microsoft.com/office/onenote/2013/onenote");
+            }
+            return xNames;
+        });
+        internal static XName GetXName(OneNoteItemType itemType)
+        {
+            return xNames.Value[(int)itemType];
+        }
+
+
         /// <summary>
         /// Hierarchy of notebooks with section groups, sections and Pages.
         /// </summary>
         public static IEnumerable<OneNoteNotebook> GetNotebooks(Application oneNote)
         {
-            oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string oneNoteXMLHierarchy);
-            var oneNoteHierarchy = XElement.Parse(oneNoteXMLHierarchy);
-            var one = oneNoteHierarchy.GetNamespaceOfPrefix(NamespacePrefix);
-
-            return oneNoteHierarchy.Elements(one + Notebook)
-                                   .Where(n => n.HasAttributes)
-                                   .Select(n => ParseNotebook(n, one));
-        }
-
-        /// <summary>
-        /// Returns a flattened collection of pages.
-        /// </summary>
-        /// <param name="oneNote"></param>
-        public static IEnumerable<OneNotePage> GetPages(Application oneNote)
-        {
-            oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string oneNoteXMLHierarchy);
-            return ParsePages(oneNoteXMLHierarchy);
+            oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string xml);
+            var rootElement = XElement.Parse(xml);
+            return rootElement.Elements(GetXName(OneNoteItemType.Notebook))
+                              .Select(element => new OneNoteNotebook(element));
         }
 
         /// <summary>
@@ -48,7 +52,11 @@ namespace Odotocodot.OneNote.Linq
         /// <param name="searchString"></param>
         public static IEnumerable<OneNotePage> FindPages(Application oneNote, string searchString)
         {
-            return FindPages(oneNote, null, searchString);
+            oneNote.FindPages(null, searchString, out string xml);
+            var rootElement = XElement.Parse(xml);
+            return rootElement.Elements(GetXName(OneNoteItemType.Notebook))
+                              .Select(element => new OneNoteNotebook(element))
+                              .GetPages();
         }
 
         /// <inheritdoc cref="FindPages"/>
@@ -57,14 +65,28 @@ namespace Odotocodot.OneNote.Linq
         /// If <paramref name="scope" /> is <see langword="null" /> this method is equivalent to <see cref="FindPages(Application,string)"/>
         /// </remarks>
         /// <param name="oneNote"></param>
-        /// <param name="scope"></param>
         /// <param name="searchString"></param>
-        public static IEnumerable<OneNotePage> FindPages(Application oneNote, IOneNoteItem scope, string searchString)
+        /// <param name="scope"></param>
+        public static IEnumerable<OneNotePage> FindPages(Application oneNote, string searchString, IOneNoteItem scope)
         {
-            oneNote.FindPages(scope?.ID, searchString, out string xml);
-            return scope == null 
-                ? ParsePages(xml) 
-                : ParsePages(xml, scope);
+            ArgumentNullException.ThrowIfNull(scope, nameof(scope));
+
+            oneNote.FindPages(scope.ID, searchString, out string xml);
+
+            var rootElement = XElement.Parse(xml);
+            return rootElement.Elements(GetXName(scope.ItemType))
+                              .Select<XElement,IOneNoteItem>(element =>
+                              {
+                                  return scope.ItemType switch
+                                  {
+                                      OneNoteItemType.Notebook => new OneNoteNotebook(element),
+                                      OneNoteItemType.SectionGroup => new OneNoteSectionGroup(element, scope.Parent),
+                                      OneNoteItemType.Section => new OneNoteSection(element, scope.Parent),
+                                      OneNoteItemType.Page => new OneNotePage(element, (OneNoteSection)scope.Parent),
+                                      _ => null,
+                                  };
+                              })
+                              .GetPages();
         }
 
         //public static void DeleteItem(Application oneNote, IOneNoteItem item)
@@ -89,156 +111,152 @@ namespace Odotocodot.OneNote.Linq
         //    ///Find Parent with ID
         //}
         #region Parsing XML
-        private static OneNoteNotebook ParseNotebook(XElement notebookElement, XNamespace oneNamespace)
-        {
-            return new OneNoteNotebook
-            {
-                ID = GetID(notebookElement),
-                Name = GetName(notebookElement),
-                NickName = notebookElement.Attribute("nickname").Value,
-                Path = GetPath(notebookElement),
-                IsUnread = GetIsUnread(notebookElement),
-                LastModified = GetLastModified(notebookElement),
-                Color = GetColor(notebookElement),
-                RelativePath = GetRelativePath(notebookElement, GetName(notebookElement)),
-                Sections = notebookElement.Elements()
-                                          .Where(s => s.Name.LocalName == Section || s.Name.LocalName == SectionGroup)
-                                          .Select(s => ParseSectionBase(s, oneNamespace, GetName(notebookElement))),
-            };
-        }
+        //private static OneNoteNotebook ParseNotebook(XElement notebookElement, XNamespace oneNamespace)
+        //{
+        //    return new OneNoteNotebook
+        //    {
+        //        ID = GetID(notebookElement),
+        //        Name = GetName(notebookElement),
+        //        NickName = notebookElement.Attribute("nickname").Value,
+        //        Path = GetPath(notebookElement),
+        //        IsUnread = GetIsUnread(notebookElement),
+        //        LastModified = GetLastModified(notebookElement),
+        //        Color = GetColor(notebookElement),
+        //        RelativePath = GetRelativePath(notebookElement, GetName(notebookElement)),
+        //        Sections = notebookElement.Elements()
+        //                                  .Where(s => s.Name.LocalName == Section || s.Name.LocalName == SectionGroup)
+        //                                  .Select(s => ParseSectionBase(s, oneNamespace, GetName(notebookElement))),
+        //    };
+        //}
 
-        private static IOneNoteItem ParseSectionBase(XElement xElement, XNamespace oneNamespace, string notebookName)
-        {
-            return xElement.Name.LocalName == Section
-                ? ParseSection(xElement, oneNamespace, notebookName)
-                : ParseSectionGroup(xElement, oneNamespace, notebookName);
-        }
+        //private static IOneNoteItem ParseSectionBase(XElement xElement, XNamespace oneNamespace, string notebookName)
+        //{
+        //    return xElement.Name.LocalName == Section
+        //        ? ParseSection(xElement, oneNamespace, notebookName)
+        //        : ParseSectionGroup(xElement, oneNamespace, notebookName);
+        //}
 
-        private static OneNoteSectionGroup ParseSectionGroup(XElement sectionGroupElement, XNamespace oneNamespace, string notebookName)
-        {
-            return new OneNoteSectionGroup
-            {
-                ID = GetID(sectionGroupElement),
-                Name = GetName(sectionGroupElement),
-                Path = GetPath(sectionGroupElement),
-                IsUnread = GetIsUnread(sectionGroupElement),
-                LastModified = GetLastModified(sectionGroupElement),
-                IsRecycleBin = GetBoolAttribute(sectionGroupElement, "isRecycleBin"),
-                RelativePath = GetRelativePath(sectionGroupElement, notebookName),
-                Sections = sectionGroupElement.Elements()
-                                              .Where(s => s.Name.LocalName == Section || s.Name.LocalName == SectionGroup)
-                                              .Select(s => ParseSectionBase(s, oneNamespace, notebookName))
-            };
-        }
+        //private static OneNoteSectionGroup ParseSectionGroup(XElement sectionGroupElement, XNamespace oneNamespace, string notebookName)
+        //{
+        //    return new OneNoteSectionGroup
+        //    {
+        //        ID = GetID(sectionGroupElement),
+        //        Name = GetName(sectionGroupElement),
+        //        Path = GetPath(sectionGroupElement),
+        //        IsUnread = GetIsUnread(sectionGroupElement),
+        //        LastModified = GetLastModified(sectionGroupElement),
+        //        IsRecycleBin = GetBoolAttribute(sectionGroupElement, "isRecycleBin"),
+        //        RelativePath = GetRelativePath(sectionGroupElement, notebookName),
+        //        Sections = sectionGroupElement.Elements()
+        //                                      .Where(s => s.Name.LocalName == Section || s.Name.LocalName == SectionGroup)
+        //                                      .Select(s => ParseSectionBase(s, oneNamespace, notebookName))
+        //    };
+        //}
 
-        private static OneNoteSection ParseSection(XElement sectionElement, XNamespace oneNamespace, string notebookName)
-        {
-            return new OneNoteSection
-            {
-                ID = GetID(sectionElement),
-                Name = GetName(sectionElement),
-                Path = GetPath(sectionElement),
-                IsUnread = GetIsUnread(sectionElement),
-                Color = GetColor(sectionElement),
-                LastModified = GetLastModified(sectionElement),
-                IsInRecycleBin = GetIsInRecycleBin(sectionElement),
-                IsDeletedPages = GetBoolAttribute(sectionElement, "isDeletedPages"),
-                Encrypted = GetBoolAttribute(sectionElement, "encrypted"),
-                Locked = GetBoolAttribute(sectionElement, "locked"),
-                RelativePath = GetRelativePath(sectionElement, notebookName),
-                Pages = sectionElement.Elements(oneNamespace + "Page")
-                                      .Select(pg => ParsePage(pg, GetRelativePath(sectionElement, notebookName)))
-            };
-        }
-        
-        private static OneNotePage ParsePage(XElement pageElement, string parentRelativePath)
-        {
-            return new OneNotePage
-            {
-                ID = GetID(pageElement),
-                Name = GetName(pageElement),
-                Level = (int)pageElement.Attribute("pageLevel"),
-                IsUnread = GetIsUnread(pageElement),
-                IsInRecycleBin = GetIsInRecycleBin(pageElement),
-                RelativePath = Path.Combine(parentRelativePath[..^4], GetName(pageElement)),
-                Created = (DateTime)pageElement.Attribute("dateTime"),
-                LastModified = (DateTime)pageElement.Attribute("lastModifiedTime"),
-            };
-        }
-        private static OneNotePage ParsePage(XElement pageElement, IOneNoteItem scope)
-        {
-            var sectionElement = pageElement.Parent;
-            var notebookName = scope.RelativePath.Split(new char[] { '/', '\\' }, 2, StringSplitOptions.RemoveEmptyEntries)[0];
-            var sectionRelativePath = GetRelativePath(sectionElement, notebookName);
-            return ParsePage(pageElement, sectionRelativePath);
-        }
-        private static OneNotePage ParsePage(XElement pageElement)
-        {
-            var sectionElement = pageElement.Parent;
-            var notebookElement = sectionElement.Parent;
-            while (notebookElement.Name.LocalName == SectionGroup)
-            {
-                notebookElement = notebookElement.Parent;
-            }
-            var notebookName = GetName(notebookElement);
-            var sectionRelativePath = GetRelativePath(sectionElement, notebookName);
-            return ParsePage(pageElement, sectionRelativePath);
-        }
+        //private static OneNoteSection ParseSection(XElement sectionElement, XNamespace oneNamespace, string notebookName)
+        //{
+        //    return new OneNoteSection
+        //    {
+        //        ID = GetID(sectionElement),
+        //        Name = GetName(sectionElement),
+        //        Path = GetPath(sectionElement),
+        //        IsUnread = GetIsUnread(sectionElement),
+        //        Color = GetColor(sectionElement),
+        //        LastModified = GetLastModified(sectionElement),
+        //        IsInRecycleBin = GetIsInRecycleBin(sectionElement),
+        //        IsDeletedPages = GetBoolAttribute(sectionElement, "isDeletedPages"),
+        //        Encrypted = GetBoolAttribute(sectionElement, "encrypted"),
+        //        Locked = GetBoolAttribute(sectionElement, "locked"),
+        //        RelativePath = GetRelativePath(sectionElement, notebookName),
+        //        Pages = sectionElement.Elements(oneNamespace + Page)
+        //                              .Select(pg => ParsePage(pg, GetRelativePath(sectionElement, notebookName)))
+        //    };
+        //}
 
-        private static IEnumerable<OneNotePage> ParsePages(string xml)
-        {
-            var doc = XElement.Parse(xml);
-            var one = doc.GetNamespaceOfPrefix(NamespacePrefix);
+        //private static OneNotePage ParsePage(XElement pageElement, string parentRelativePath)
+        //{
+        //    return new OneNotePage
+        //    {
+        //        ID = GetID(pageElement),
+        //        Name = GetName(pageElement),
+        //        Level = (int)pageElement.Attribute("pageLevel"),
+        //        IsUnread = GetIsUnread(pageElement),
+        //        IsInRecycleBin = GetIsInRecycleBin(pageElement),
+        //        RelativePath = Path.Combine(parentRelativePath[..^4], GetName(pageElement)),
+        //        Created = (DateTime)pageElement.Attribute("dateTime"),
+        //        LastModified = (DateTime)pageElement.Attribute("lastModifiedTime"),
+        //    };
+        //}
+        //private static OneNotePage ParsePage(XElement pageElement, IOneNoteItem scope)
+        //{
+        //    var sectionElement = pageElement.Parent;
+        //    var notebookName = scope.RelativePath.Split(new char[] { '/', '\\' }, 2, StringSplitOptions.RemoveEmptyEntries)[0];
+        //    var sectionRelativePath = GetRelativePath(sectionElement, notebookName);
+        //    return ParsePage(pageElement, sectionRelativePath);
+        //}
+        //private static OneNotePage ParsePage(XElement pageElement)
+        //{
+        //    var sectionElement = pageElement.Parent;
+        //    var notebookElement = sectionElement.Parent;
+        //    while (notebookElement.Name.LocalName == SectionGroup)
+        //    {
+        //        notebookElement = notebookElement.Parent;
+        //    }
+        //    var notebookName = GetName(notebookElement);
+        //    var sectionRelativePath = GetRelativePath(sectionElement, notebookName);
+        //    return ParsePage(pageElement, sectionRelativePath);
+        //}
 
-            return doc.Elements(one + Notebook)
-                      .Descendants(one + Section)
-                      .Elements(one + Page)
-                      //.Elements()
-                      .Where(x => x.HasAttributes)// && x.Name.LocalName == "Page")
-                      .Select(pg => ParsePage(pg));
-        }
+        //private static IEnumerable<OneNotePage> ParsePages(string xml)
+        //{
+        //    var doc = XElement.Parse(xml);
+        //    var one = doc.GetNamespaceOfPrefix(NamespacePrefix);
 
-        private static IEnumerable<OneNotePage> ParsePages(string xml, IOneNoteItem scope)
-        {
-            var doc = XElement.Parse(xml);
-            var one = doc.GetNamespaceOfPrefix(NamespacePrefix);
+        //    return doc.Elements(one + Notebook)
+        //              .Descendants(one + Section)
+        //              .Elements(one + Page)
+        //              //.Elements()
+        //              .Where(x => x.HasAttributes)// && x.Name.LocalName == "Page")
+        //              .Select(pg => ParsePage(pg));
+        //}
 
-            if (scope.ItemType == OneNoteItemType.Section)
-            {
-                return doc.Elements(one + Page)
-                          .Select(pg => ParsePage(pg, scope.RelativePath));
-            }
-            else
-            {
-                return doc.Descendants(one + Section)
-                          .Elements(one + Page)
-                          .Select(pg => ParsePage(pg, scope));
-            }
-        }
+        //private static IEnumerable<OneNotePage> ParsePages(string xml, IOneNoteItem scope)
+        //{
+        //    var doc = XElement.Parse(xml);
+        //    var one = doc.GetNamespaceOfPrefix(NamespacePrefix);
+
+        //    if (scope.ItemType == OneNoteItemType.Section)
+        //    {
+        //        return doc.Elements(one + Page)
+        //                  .Select(pg => ParsePage(pg, scope.RelativePath));
+        //    }
+        //    else
+        //    {
+        //        return doc.Descendants(one + Section)
+        //                  .Elements(one + Page)
+        //                  .Select(pg => ParsePage(pg, scope));
+        //    }
+        //}
         #endregion
 
         #region XElement Helpers
-        private static string GetID(XElement element) => element.Attribute("ID").Value;
-        private static string GetName(XElement element) => element.Attribute("name").Value;
-        private static string GetPath(XElement element) => element.Attribute("path").Value;
-        private static bool GetIsUnread(XElement element) => GetBoolAttribute(element, "isUnread");
-        private static DateTime GetLastModified(XElement element) => (DateTime)element.Attribute("lastModifiedTime");
-        private static bool GetIsInRecycleBin(XElement element) => GetBoolAttribute(element, "isInRecycleBin");
-        private static Color? GetColor(XElement element)
-        {
-            string color = element.Attribute("color").Value;
-            return color != "none" ? ColorTranslator.FromHtml(color) : null;
-        }
-        private static string GetRelativePath(XElement element, string notebookName)
-        {
-            var path = GetPath(element);
-            return path[path.IndexOf(notebookName)..];
-        }
-        private static bool GetBoolAttribute(XElement element, string name)
-        {
-            var attr = element.Attribute(name);
-            return attr != null && (bool)attr;
-        }
+        //internal static string GetID(this XElement element) => element.Attribute("ID").Value;
+        //internal static string GetName(this XElement element) => element.Attribute("name").Value;
+        //internal static string GetPath(this XElement element) => element.Attribute("path").Value;
+        //internal static bool GetIsUnread(this XElement element) => GetBoolAttribute(element, "isUnread");
+        //internal static DateTime GetLastModified(this XElement element) => (DateTime)element.Attribute("lastModifiedTime");
+        //internal static bool GetIsInRecycleBin(this XElement element) => GetBoolAttribute(element, "isInRecycleBin");
+        //internal static Color? GetColor(this XElement element)
+        //{
+        //    string color = element.Attribute("color").Value;
+        //    return color != "none" ? ColorTranslator.FromHtml(color) : null;
+        //}
+        //internal static string GetRelativePath(this XElement element, string notebookName)
+        //{
+        //    var path = GetPath(element);
+        //    return path[path.IndexOf(notebookName)..];
+        //}
+        //internal static bool GetBoolAttribute(this XElement element, string name) => (bool?)element.Attribute(name) ?? false;
         #endregion
 
         #region Creating OneNote Items
