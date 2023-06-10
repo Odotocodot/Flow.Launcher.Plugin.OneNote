@@ -86,13 +86,10 @@ namespace Odotocodot.OneNote.Linq
         {
             oneNote.NavigateTo(id);
         }
-
         public static void SyncItem(Application oneNote, string id)
         {
             oneNote.SyncHierarchy(id);
         }
-
-        public static void 
 
         #region Creating OneNote Items
         public static void CreatePage(Application oneNote, OneNoteSection section, string pageTitle, bool openImmediately)
