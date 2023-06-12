@@ -7,9 +7,24 @@ using Microsoft.Office.Interop.OneNote;
 
 namespace Odotocodot.OneNote.Linq
 {
-    public class OneNoteProvider
+    public class OneNoteProvider : IDisposable
     {
         private Application oneNote;
+        private bool disposedValue;
+        //public OneNoteProvider()
+        //{
+        //    Init();
+        //}
+
+        //public OneNoteProvider(bool init)
+        //{
+        //    if(init)
+        //    {
+        //        Init();
+        //    }
+        //}
+
+        //TODO: convert to field, add to each method?
         public bool HasInstance => oneNote != null && Marshal.IsComObject(oneNote);
 
         public void Init()
@@ -29,52 +44,25 @@ namespace Odotocodot.OneNote.Linq
                 }
             }           
         }
-        public void Release()
-        {
-            if (oneNote != null)
-            {
-                Marshal.ReleaseComObject(oneNote);
-                oneNote = null;
-            }
-        }
-
-        /// <summary>
-        /// Automatically releases the OneNote COM Object after use
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public static T CallOneNoteSafely<T>(Func<OneNoteProvider, T> action, Func<COMException, T> onException = null)
-        {
-            OneNoteProvider oneNote = null;
-            try
-            {
-                oneNote = new OneNoteProvider();
-                oneNote.Init();
-                return action(oneNote);
-            }
-            catch (COMException ex) when (onException != null)
-            {
-                return onException(ex);
-            }
-            finally
-            {
-                oneNote.Release();
-            }
-        }
-
         public IEnumerable<OneNoteNotebook> GetNotebooks()
         {
+            COMInstanceCheck();
             return OneNoteParser.GetNotebooks(oneNote);
         }
 
-        public string GetDefaultNotebookLocation()
+        private void COMInstanceCheck()
         {
-            return OneNoteParser.GetDefaultNotebookLocation(oneNote);
+            if (!HasInstance)
+                throw new InvalidOperationException("The COM Object instance has not been set. Make sure OneNoteProvider.Init() has been called before.");
         }
 
         public void OpenInOneNote(IOneNoteItem item)
         {
             OneNoteParser.OpenInOneNote(oneNote, item.ID);
+        }
+        public void SyncItem(IOneNoteItem item)
+        {
+            OneNoteParser.SyncItem(oneNote, item.ID);
         }
 
         public IEnumerable<IOneNoteItem> Traverse()
@@ -86,11 +74,6 @@ namespace Odotocodot.OneNote.Linq
             return GetNotebooks().Traverse(predicate);
         }
 
-        public void SyncItem(IOneNoteItem item)
-        {
-            OneNoteParser.SyncItem(oneNote, item.ID);
-        }
-
         public IEnumerable<OneNotePage> FindPages(string searchString)
         {
             return OneNoteParser.FindPages(oneNote, searchString);
@@ -99,7 +82,10 @@ namespace Odotocodot.OneNote.Linq
         {
             return OneNoteParser.FindPages(oneNote, searchString, scope);
         }
-
+        public string GetDefaultNotebookLocation()
+        {
+            return OneNoteParser.GetDefaultNotebookLocation(oneNote);
+        }
 
         public void CreateQuickNote()
         {
@@ -109,20 +95,44 @@ namespace Odotocodot.OneNote.Linq
         {
             OneNoteParser.CreatePage(oneNote, section, pageTitle, true);
         }
-
         public void CreateSection(IOneNoteItem parent, string sectionName)
         {
             OneNoteParser.CreateSection(oneNote, parent, sectionName, true);
         }
-
         public void CreateSectionGroup(IOneNoteItem parent, string sectionGroupName)
         {
             OneNoteParser.CreateSectionGroup(oneNote, parent, sectionGroupName, true);
         }
-
         public void CreateNotebook(string notebookName)
         {
             OneNoteParser.CreateNotebook(oneNote, notebookName, true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                //if (disposing)
+                //{
+                //}
+
+                if(oneNote != null)
+                {
+                    Marshal.ReleaseComObject(oneNote);
+                    oneNote = null;
+                }
+                disposedValue = true;
+            }
+        }
+        ~OneNoteProvider()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -64,7 +64,6 @@ namespace Flow.Launcher.Plugin.OneNote
                             GetOneNote(oneNote =>
                             {
                                 oneNote.CreateQuickNote();
-                                oneNote.Release();
                                 return 0;
                             });
                             return true;
@@ -84,7 +83,6 @@ namespace Flow.Launcher.Plugin.OneNote
                                     oneNote.SyncItem(notebook);
                                 }
                                 oneNote.OpenInOneNote(oneNote.GetNotebooks().First());
-                                oneNote.Release();
                                 return 0;
                             });
                             return true;
@@ -210,7 +208,9 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public static T GetOneNote<T>(Func<OneNoteProvider, T> action, Func<COMException, T> onException = null)
         {
-            return OneNoteProvider.CallOneNoteSafely(action, onException);
+            using var oneNote = new OneNoteProvider();
+            oneNote.Init();
+            return action(oneNote);
         }
     }
 }
