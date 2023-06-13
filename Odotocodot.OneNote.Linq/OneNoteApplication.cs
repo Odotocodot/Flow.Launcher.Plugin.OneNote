@@ -92,12 +92,22 @@ namespace Odotocodot.OneNote.Linq
             COMInstanceCheck();
             OneNoteParser.CreatePage(oneNote, section, pageTitle, true);
         }
-        public void CreateSection(IOneNoteItem parent, string sectionName)
+        public void CreateSection(OneNoteSectionGroup parent, string sectionName)
         {
             COMInstanceCheck();
             OneNoteParser.CreateSection(oneNote, parent, sectionName, true);
         }
-        public void CreateSectionGroup(IOneNoteItem parent, string sectionGroupName)
+        public void CreateSection(OneNoteNotebook parent, string sectionName)
+        {
+            COMInstanceCheck();
+            OneNoteParser.CreateSection(oneNote, parent, sectionName, true);
+        }
+        public void CreateSectionGroup(OneNoteSectionGroup parent, string sectionGroupName)
+        {
+            COMInstanceCheck();
+            OneNoteParser.CreateSectionGroup(oneNote, parent, sectionGroupName, true);
+        }
+        public void CreateSectionGroup(OneNoteNotebook parent, string sectionGroupName)
         {
             COMInstanceCheck();
             OneNoteParser.CreateSectionGroup(oneNote, parent, sectionGroupName, true);

@@ -10,6 +10,9 @@ namespace Odotocodot.OneNote.Linq
     {
         private const string NamespacePrefix = "one";
 
+        private static readonly char[] InvalidNotebookChars = "\\/*?\"|<>:%#.".ToCharArray();
+        private static readonly char[] InvalidSectionChars  = "\\/*?\"|<>:%#&".ToCharArray();
+
         private static readonly Lazy<XName[]> xNames = new Lazy<XName[]>(() =>
         {
             var itemTypes = Enum.GetValues<OneNoteItemType>();
@@ -128,39 +131,60 @@ namespace Odotocodot.OneNote.Linq
             if(openImmediately)
                 oneNote.NavigateTo(pageID);
         }
-        public static void CreateSection(IApplication oneNote, IOneNoteItem parent, string sectionName, bool openImmediately)
-        {
-            if (parent.ItemType == OneNoteItemType.Page || parent.ItemType == OneNoteItemType.Section)
-                throw new ArgumentException("The parent item type must a notebook or section group");
-
-            ArgumentException.ThrowIfNullOrEmpty(sectionName, nameof(sectionName));
-
-
-            oneNote.OpenHierarchy(sectionName + ".one", parent.ID, out string sectionID, CreateFileType.cftSection);
-            if(openImmediately)
-                oneNote.NavigateTo(sectionID);
-        }
-        public static void CreateSectionGroup(IApplication oneNote, IOneNoteItem parent, string sectionGroupName, bool openImmediately)
-        {
-            if (parent.ItemType == OneNoteItemType.Page || parent.ItemType == OneNoteItemType.Section)
-                throw new ArgumentException("The parent item type must a notebook or section group", nameof(parent));
-
-            ArgumentException.ThrowIfNullOrEmpty(sectionGroupName, nameof(sectionGroupName));
-
-            oneNote.OpenHierarchy(sectionGroupName, parent.ID, out string sectionGroupID, CreateFileType.cftFolder);
-            if (openImmediately)
-                oneNote.NavigateTo(sectionGroupID);
-        }
-        public static void CreateNotebook(IApplication oneNote, string title, bool openImmediately)
+        private static void CreateItemBase(IApplication oneNote, IOneNoteItem parent, string title, bool openImmediately, OneNoteItemType newItemType)
         {
             ArgumentException.ThrowIfNullOrEmpty(title, nameof(title));
 
-            var path = GetDefaultNotebookLocation(oneNote);
+            string path = string.Empty;
+            CreateFileType createFileType = CreateFileType.cftNone;
+            switch (newItemType)
+            {
+                case OneNoteItemType.Notebook:
+                    if (title.IndexOfAny(InvalidNotebookChars) != -1)
+                        throw new InvalidOperationException($"Invalid notebook name. Notebook names cannot contain the symbols: \n {string.Join(' ', InvalidNotebookChars)}");
 
-            oneNote.OpenHierarchy($"{path}\\{title}", null, out string notebookID, CreateFileType.cftNotebook);
-            
+                    path = $"{GetDefaultNotebookLocation(oneNote)}\\{title}";
+                    createFileType = CreateFileType.cftNotebook;
+                    break;
+                case OneNoteItemType.SectionGroup:
+                    path = title;
+                    createFileType = CreateFileType.cftFolder;
+                    break;
+                case OneNoteItemType.Section:
+                    if (title.IndexOfAny(InvalidSectionChars) != -1)
+                        throw new InvalidOperationException($"Invalid section name. Section names cannot contain the symbols: \n {string.Join(' ', InvalidSectionChars)}");
+
+                    path = title + ".one";
+                    createFileType = CreateFileType.cftSection;
+                    break;
+            }
+
+            oneNote.OpenHierarchy(path, parent?.ID, out string newItemID, createFileType);
+
             if(openImmediately)
-                oneNote.NavigateTo(notebookID);
+                oneNote.NavigateTo(newItemID);
+
+        }
+
+        public static void CreateSection(IApplication oneNote, OneNoteSectionGroup parent, string sectionName, bool openImmediately)
+        {
+            CreateItemBase(oneNote, parent, sectionName, openImmediately, OneNoteItemType.Section);
+        }
+        public static void CreateSection(IApplication oneNote, OneNoteNotebook parent, string sectionName, bool openImmediately)
+        {
+            CreateItemBase(oneNote, parent, sectionName, openImmediately, OneNoteItemType.Section);
+        }
+        public static void CreateSectionGroup(IApplication oneNote, OneNoteSectionGroup parent, string sectionGroupName, bool openImmediately)
+        {
+            CreateItemBase(oneNote, parent, sectionGroupName, openImmediately, OneNoteItemType.SectionGroup);
+        }
+        public static void CreateSectionGroup(IApplication oneNote, OneNoteNotebook parent, string sectionGroupName, bool openImmediately)
+        {
+            CreateItemBase(oneNote, parent, sectionGroupName, openImmediately, OneNoteItemType.SectionGroup);
+        }
+        public static void CreateNotebook(IApplication oneNote, string notebookName, bool openImmediately)
+        {
+            CreateItemBase(oneNote, null, notebookName, openImmediately, OneNoteItemType.Notebook);
         }
         #endregion
 
