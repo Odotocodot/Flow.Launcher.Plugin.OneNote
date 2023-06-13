@@ -259,7 +259,7 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
 
-        public Result CreateNewNotebookResult(OneNoteProvider oneNote, string notebookTitle)
+        public Result CreateNewNotebookResult(OneNoteApplication oneNote, string notebookTitle)
         {
             notebookTitle = notebookTitle.Trim();
             bool validTitle = notebookTitle.IndexOfAny(notebookInvalidChars) == -1;

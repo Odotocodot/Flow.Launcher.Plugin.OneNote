@@ -14,7 +14,7 @@ namespace Flow.Launcher.Plugin.OneNote
             rc = resultCreator;
         }
     
-        public List<Result> Explore(OneNoteProvider oneNote, Query query)
+        public List<Result> Explore(OneNoteApplication oneNote, Query query)
         {
             var results = new List<Result>();
 
@@ -105,7 +105,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 };
             }
         }
-        private List<Result> ScopedSearch(OneNoteProvider oneNote, string query, IOneNoteItem parentItem)
+        private List<Result> ScopedSearch(OneNoteApplication oneNote, string query, IOneNoteItem parentItem)
         {
             if (query.Length == Keywords.ScopedSearch.Length)
             {
@@ -127,7 +127,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return results;
         }
 
-        private void AddNewOneNoteItemResults(OneNoteProvider oneNote, List<Result> results, IOneNoteItem parent, string query)
+        private void AddNewOneNoteItemResults(OneNoteApplication oneNote, List<Result> results, IOneNoteItem parent, string query)
         {
             if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
             {

@@ -206,10 +206,9 @@ namespace Flow.Launcher.Plugin.OneNote
             return new SettingsView(settings);
         }
 
-        public static T GetOneNote<T>(Func<OneNoteProvider, T> action, Func<COMException, T> onException = null)
+        public static T GetOneNote<T>(Func<OneNoteApplication, T> action, Func<COMException, T> onException = null)
         {
-            using var oneNote = new OneNoteProvider();
-            oneNote.Init();
+            using var oneNote = new OneNoteApplication();
             return action(oneNote);
         }
     }
