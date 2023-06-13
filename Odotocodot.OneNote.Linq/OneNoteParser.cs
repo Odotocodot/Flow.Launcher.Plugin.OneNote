@@ -29,7 +29,7 @@ namespace Odotocodot.OneNote.Linq
         /// <summary>
         /// Hierarchy of notebooks with section groups, sections and Pages.
         /// </summary>
-        public static IEnumerable<OneNoteNotebook> GetNotebooks(Application oneNote)
+        public static IEnumerable<OneNoteNotebook> GetNotebooks(IApplication oneNote)
         {
             oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string xml);
             var rootElement = XElement.Parse(xml);
@@ -43,7 +43,7 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         /// <param name="oneNote"></param>
         /// <param name="searchString"></param>
-        public static IEnumerable<OneNotePage> FindPages(Application oneNote, string searchString)
+        public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string searchString)
         {
             oneNote.FindPages(null, searchString, out string xml);
             var rootElement = XElement.Parse(xml);
@@ -55,12 +55,12 @@ namespace Odotocodot.OneNote.Linq
         /// <inheritdoc cref="FindPages"/>
         /// <remarks> 
         /// Passing in <paramref name="scope"/> allows for searching within that specific OneNote item. <br/>
-        /// If <paramref name="scope" /> is <see langword="null" /> this method is equivalent to <see cref="FindPages(Application,string)"/>
+        /// If <paramref name="scope" /> is <see langword="null" /> this method is equivalent to <see cref="FindPages(IApplication,string)"/>
         /// </remarks>
         /// <param name="oneNote"></param>
         /// <param name="searchString"></param>
         /// <param name="scope"></param>
-        public static IEnumerable<OneNotePage> FindPages(Application oneNote, string searchString, IOneNoteItem scope)
+        public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string searchString, IOneNoteItem scope)
         {
             ArgumentNullException.ThrowIfNull(scope, nameof(scope));
 
@@ -82,17 +82,17 @@ namespace Odotocodot.OneNote.Linq
                               .GetPages();
         }
 
-        public static void OpenInOneNote(Application oneNote, string id)
+        public static void OpenInOneNote(IApplication oneNote, string id)
         {
             oneNote.NavigateTo(id);
         }
-        public static void SyncItem(Application oneNote, string id)
+        public static void SyncItem(IApplication oneNote, string id)
         {
             oneNote.SyncHierarchy(id);
         }
 
         #region Creating OneNote Items
-        public static void CreatePage(Application oneNote, OneNoteSection section, string pageTitle, bool openImmediately)
+        public static void CreatePage(IApplication oneNote, OneNoteSection section, string pageTitle, bool openImmediately)
         {
             oneNote.GetHierarchy(null, HierarchyScope.hsNotebooks, out string oneNoteXMLHierarchy);
             var one = XElement.Parse(oneNoteXMLHierarchy).GetNamespaceOfPrefix(NamespacePrefix);
@@ -109,7 +109,7 @@ namespace Odotocodot.OneNote.Linq
             if(openImmediately)
                 oneNote.NavigateTo(pageID);
         }
-        public static void CreateQuickNote(Application oneNote, bool openImmediately)
+        public static void CreateQuickNote(IApplication oneNote, bool openImmediately)
         {
             var path = GetUnfiledNotesSection(oneNote);
             oneNote.OpenHierarchy(path, null, out string sectionID, CreateFileType.cftNone);
@@ -118,7 +118,7 @@ namespace Odotocodot.OneNote.Linq
             if(openImmediately)
                 oneNote.NavigateTo(pageID);
         }
-        public static void CreateSection(Application oneNote, IOneNoteItem parent, string sectionName, bool openImmediately)
+        public static void CreateSection(IApplication oneNote, IOneNoteItem parent, string sectionName, bool openImmediately)
         {
             if (parent.ItemType == OneNoteItemType.Page || parent.ItemType == OneNoteItemType.Section)
                 throw new ArgumentException("The parent item type must a notebook or section group");
@@ -130,7 +130,7 @@ namespace Odotocodot.OneNote.Linq
             if(openImmediately)
                 oneNote.NavigateTo(sectionID);
         }
-        public static void CreateSectionGroup(Application oneNote, IOneNoteItem parent, string sectionGroupName, bool openImmediately)
+        public static void CreateSectionGroup(IApplication oneNote, IOneNoteItem parent, string sectionGroupName, bool openImmediately)
         {
             if (parent.ItemType == OneNoteItemType.Page || parent.ItemType == OneNoteItemType.Section)
                 throw new ArgumentException("The parent item type must a notebook or section group", nameof(parent));
@@ -141,7 +141,7 @@ namespace Odotocodot.OneNote.Linq
             if (openImmediately)
                 oneNote.NavigateTo(sectionGroupID);
         }
-        public static void CreateNotebook(Application oneNote, string title, bool openImmediately)
+        public static void CreateNotebook(IApplication oneNote, string title, bool openImmediately)
         {
             ArgumentException.ThrowIfNullOrEmpty(title, nameof(title));
 
@@ -160,7 +160,7 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         /// <param name="oneNote"></param>
         /// <returns></returns>
-        public static string GetDefaultNotebookLocation(Application oneNote)
+        public static string GetDefaultNotebookLocation(IApplication oneNote)
         {
             oneNote.GetSpecialLocation(SpecialLocation.slDefaultNotebookFolder, out string path);
             return path;
@@ -170,7 +170,7 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         /// <param name="oneNote"></param>
         /// <returns></returns>
-        public static string GetBackUpLocation(Application oneNote)
+        public static string GetBackUpLocation(IApplication oneNote)
         {
             oneNote.GetSpecialLocation(SpecialLocation.slBackUpFolder, out string path);
             return path;
@@ -180,7 +180,7 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         /// <param name="oneNote"></param>
         /// <returns></returns>
-        public static string GetUnfiledNotesSection(Application oneNote)
+        public static string GetUnfiledNotesSection(IApplication oneNote)
         {
             oneNote.GetSpecialLocation(SpecialLocation.slUnfiledNotesSection, out string path);
             return path;
