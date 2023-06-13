@@ -82,16 +82,26 @@ namespace Odotocodot.OneNote.Linq
                               .GetPages();
         }
 
-        public static void OpenInOneNote(IApplication oneNote, string id)
+        public static void OpenInOneNote(IApplication oneNote, IOneNoteItem item)
         {
-            oneNote.NavigateTo(id);
+            oneNote.NavigateTo(item.ID);
         }
-        public static void SyncItem(IApplication oneNote, string id)
+        public static void SyncItem(IApplication oneNote, IOneNoteItem item)
         {
-            oneNote.SyncHierarchy(id);
+            oneNote.SyncHierarchy(item.ID);
         }
 
-        #region Creating OneNote Items
+        public static void DeleteItem(IApplication oneNote, IOneNoteItem item) 
+        {
+            oneNote.DeleteHierarchy(item.ID);
+        }
+
+        public static void CloseNotebook(IApplication oneNote, OneNoteNotebook notebook)
+        {
+            oneNote.CloseNotebook(notebook.ID);    
+        }
+
+        #region Creating New OneNote Items
         public static void CreatePage(IApplication oneNote, OneNoteSection section, string pageTitle, bool openImmediately)
         {
             oneNote.GetHierarchy(null, HierarchyScope.hsNotebooks, out string oneNoteXMLHierarchy);

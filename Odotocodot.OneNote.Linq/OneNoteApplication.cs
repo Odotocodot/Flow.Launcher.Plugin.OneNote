@@ -47,12 +47,12 @@ namespace Odotocodot.OneNote.Linq
         public void OpenInOneNote(IOneNoteItem item)
         {
             COMInstanceCheck();
-            OneNoteParser.OpenInOneNote(oneNote, item.ID);
+            OneNoteParser.OpenInOneNote(oneNote, item);
         }
         public void SyncItem(IOneNoteItem item)
         {
             COMInstanceCheck();
-            OneNoteParser.SyncItem(oneNote, item.ID);
+            OneNoteParser.SyncItem(oneNote, item);
         }
 
         public IEnumerable<IOneNoteItem> Traverse()
