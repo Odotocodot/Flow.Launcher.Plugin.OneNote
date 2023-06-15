@@ -11,16 +11,16 @@ namespace Odotocodot.OneNote.Linq
     {
         private Application oneNote;
         private bool disposedValue;
-        public OneNoteApplication() : this(true) {}
-        public OneNoteApplication(bool init)
+        private bool hasInstance;
+
+        public OneNoteApplication() : this(true) { }
+        public OneNoteApplication(bool initImmediately)
         {
-           if(init)
-               Init();
+            if (initImmediately)
+                Init();
         }
 
-        private bool hasInstance;
         public bool HasInstance => hasInstance;
-
         public void Init()
         {
             int attempt = 0;
@@ -30,6 +30,7 @@ namespace Odotocodot.OneNote.Linq
                 try
                 {
                     oneNote = new Application();
+                    hasInstance = oneNote != null && Marshal.IsComObject(oneNote);
                 }
                 catch (COMException ex) when (attempt++ < 3)
                 {
@@ -37,7 +38,6 @@ namespace Odotocodot.OneNote.Linq
                     Thread.Sleep(100);
                 }
             }
-            hasInstance = oneNote != null && Marshal.IsComObject(oneNote);
         }
         public IEnumerable<OneNoteNotebook> GetNotebooks()
         {
@@ -121,7 +121,16 @@ namespace Odotocodot.OneNote.Linq
         private void COMInstanceCheck()
         {
             if (!hasInstance)
-                throw new InvalidOperationException("The COM Object instance has not been set. Make sure OneNoteProvider.Init() has been called before.");
+                throw new InvalidOperationException("The COM Object instance has not been set. Make sure OneNoteProvider.Init() has been called beforehand.");
+        }
+        
+        public void ReleaseCOMInstance()
+        {
+            if (oneNote != null)
+            {
+                Marshal.ReleaseComObject(oneNote);
+                oneNote = null;
+            }
         }
         #region IDisposable
         protected virtual void Dispose(bool disposing)

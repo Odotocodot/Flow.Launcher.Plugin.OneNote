@@ -178,10 +178,10 @@ namespace Flow.Launcher.Plugin.OneNote
         private static string GetLastEdited(TimeSpan diff)
         {
             string lastEdited = "Last edited ";
-            if (PluralCheck(diff.TotalDays, "day", ref lastEdited)
-            || PluralCheck(diff.TotalHours, "hour", ref lastEdited)
-            || PluralCheck(diff.TotalMinutes, "min", ref lastEdited)
-            || PluralCheck(diff.TotalSeconds, "sec", ref lastEdited))
+            if (PluralCheck(diff.TotalDays,    "day",  ref lastEdited)
+             || PluralCheck(diff.TotalHours,   "hour", ref lastEdited)
+             || PluralCheck(diff.TotalMinutes, "min",  ref lastEdited)
+             || PluralCheck(diff.TotalSeconds, "sec",  ref lastEdited))
                 return lastEdited;
             else
                 return lastEdited += "Now.";

@@ -7,6 +7,7 @@ namespace Odotocodot.OneNote.Linq
 {
     public static class IOneNoteItemExtensions
     {
+        //Depth first traversal 
         public static IEnumerable<IOneNoteItem> Traverse(this IOneNoteItem item, Func<IOneNoteItem, bool> predicate)
         {
             var stack = new Stack<IOneNoteItem>();

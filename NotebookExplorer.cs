@@ -23,10 +23,14 @@ namespace Flow.Launcher.Plugin.OneNote
             IOneNoteItem parent = null;
             IEnumerable<IOneNoteItem> collection = oneNote.GetNotebooks();
 
-            string[] searches = fullSearch.Split('\\', StringSplitOptions.None);
-            foreach (var search in searches)
+            string[] searches = fullSearch.Split(Keywords.NotebookExplorerSeparator, StringSplitOptions.None);
+
+            for (int i = -1; i < searches.Length -1; i++)
             {
-                parent = collection.FirstOrDefault(x => x.Name == search);
+                if (i < 0)
+                    continue;
+
+                parent = collection.FirstOrDefault(item => item.Name == searches[i]);
                 if (parent == null)
                     return results;
 
@@ -40,7 +44,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 results = EmptySearch(parent, collection);
             }
-            //search by title
+            //Search by title
             else if (lastSearch.StartsWith(Keywords.SearchByTitle) && parent?.ItemType != OneNoteItemType.Page)
             {
                 results = rc.SearchByTitle(lastSearch, collection, parent);
@@ -57,9 +61,9 @@ namespace Flow.Launcher.Plugin.OneNote
                 int score = 0;
 
                 results = collection.Where(item => !ResultCreator.IsEncryptedSection(item))
-                                        .Where(item => rc.FuzzySearch(item.Name, lastSearch, out highlightData, out score))
-                                        .Select(item => rc.GetOneNoteItemResult(item, true, highlightData, score))
-                                        .ToList();
+                                    .Where(item => rc.FuzzySearch(item.Name, lastSearch, out highlightData, out score))
+                                    .Select(item => rc.GetOneNoteItemResult(item, true, highlightData, score))
+                                    .ToList();
 
                 AddCreateNewOneNoteItemResults(oneNote, results, parent, lastSearch);
             }
@@ -67,7 +71,7 @@ namespace Flow.Launcher.Plugin.OneNote
             if(parent != null)
             {
                 var result = rc.GetOneNoteItemResult(parent, false, score: int.MaxValue);
-                result.Title = $"Open {parent.Name} in OneNote";
+                result.Title = $"Open \"{parent.Name}\" in OneNote";
                 results.Add(result);
             }
             
@@ -77,8 +81,8 @@ namespace Flow.Launcher.Plugin.OneNote
         private List<Result> EmptySearch(IOneNoteItem parent, IEnumerable<IOneNoteItem> collection)
         {
             List<Result> results = collection.Where(item => !ResultCreator.IsEncryptedSection(item))
-                                .Select(item => rc.GetOneNoteItemResult(item, true))
-                                .ToList();
+                                             .Select(item => rc.GetOneNoteItemResult(item, true))
+                                             .ToList();
             if (!results.Any())
             {
                 switch (parent?.ItemType) //parent can be null if the collection contains notebooks.

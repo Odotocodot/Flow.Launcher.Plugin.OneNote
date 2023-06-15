@@ -18,32 +18,9 @@ namespace Flow.Launcher.Plugin.OneNote
             sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Icons.Section);
         }
 
-        private static string GetNicePath(IOneNoteItem item, bool removeSelf, string separator = " > ")
+        private static string GetNicePath(IOneNoteItem item, string separator = " > ")
         {
             return item.GetRelativePath(separator);
-            //var path = item.RelativePath;
-
-            //if (path.EndsWith(".one"))
-            //    path = path[..^4];
-
-            //if (path.EndsWith("/") || path.EndsWith("\\"))
-            //    path = path.Remove(path.Length - 1);
-
-            //if(removeSelf)
-            //{
-            //    int index = path.LastIndexOf(item.Name);
-
-            //    if (index != -1)
-            //    {
-            //        path = path.Remove(index, item.Name.Length);
-            //        if (path.EndsWith("/") || path.EndsWith("\\"))
-            //            path = path.Remove(path.Length - 1);
-            //    }
-            //}
-
-            //path = path.Replace("/", separator).Replace("\\", separator);
-
-            //return path;
         }
 
         private string GetTitle(IOneNoteItem item, List<int> highlightData)
@@ -88,9 +65,9 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = GetTitle(page, highlightingData),
                 TitleToolTip = $"Created: {page.Created}\nLast Modified: {page.LastModified}",
-                AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(page, false, Keywords.NotebookExplorerSeparator)}",
+                AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(page, Keywords.NotebookExplorerSeparator)}",
                 TitleHighlightData = highlightingData,
-                SubTitle = GetNicePath(page, true),
+                SubTitle = GetNicePath(page),
                 Score = score,
                 IcoPath = Icons.Logo,
                 ContextData = page,
@@ -104,8 +81,8 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private Result CreateSectionBaseResult(IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            string path = GetNicePath(sectionBase, false);
-            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(sectionBase, false, Keywords.NotebookExplorerSeparator)}{Keywords.NotebookExplorerSeparator}";
+            string path = GetNicePath(sectionBase);
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(sectionBase, Keywords.NotebookExplorerSeparator)}{Keywords.NotebookExplorerSeparator}";
 
             return new Result
             {
@@ -184,7 +161,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = $"Create page: \"{pageTitle}\"",
-                SubTitle = $"Path: {GetNicePath(section,false)} > {pageTitle}",
+                SubTitle = $"Path: {GetNicePath(section)} > {pageTitle}",
                 IcoPath = Icons.NewPage,
                 Action = c =>
                 {
@@ -207,7 +184,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = $"Create section: \"{sectionTitle}\"",
                 SubTitle = validTitle
-                        ? $"Path: {GetNicePath(parent, false)} > {sectionTitle}"
+                        ? $"Path: {GetNicePath(parent)} > {sectionTitle}"
                         : $"Section names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionChars)}",
                 IcoPath = Icons.NewSection,
                 Action = c =>
@@ -245,7 +222,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = $"Create section group: \"{sectionGroupTitle}\"",
                 SubTitle = validTitle
-                    ? $"Path: {GetNicePath(parent, false)} > {sectionGroupTitle}"
+                    ? $"Path: {GetNicePath(parent)} > {sectionGroupTitle}"
                     : $"Section group names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionGroupChars)}",
                 IcoPath = Icons.NewSectionGroup,
                 Action = c =>
