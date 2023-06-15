@@ -10,10 +10,6 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly Settings settings;
         private readonly OneNoteItemIcons notebookIcons;
         private readonly OneNoteItemIcons sectionIcons;
-
-        private readonly char[] notebookInvalidChars = "\\/*?\"|<>:%#.".ToCharArray();
-        private readonly char[] sectionInvalidChars  = "\\/*?\"|<>:%#&".ToCharArray();
-
         public ResultCreator(PluginInitContext context, Settings settings)
         {
             this.settings = settings;
@@ -92,7 +88,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = GetTitle(page, highlightingData),
                 TitleToolTip = $"Created: {page.Created}\nLast Modified: {page.LastModified}",
-                AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(page, false, "\\")}",
+                AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(page, false, Keywords.NotebookExplorerSeparator)}",
                 TitleHighlightData = highlightingData,
                 SubTitle = GetNicePath(page, true),
                 Score = score,
@@ -109,7 +105,7 @@ namespace Flow.Launcher.Plugin.OneNote
         private Result CreateSectionBaseResult(IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
             string path = GetNicePath(sectionBase, false);
-            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(sectionBase, false, "\\")}\\";
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(sectionBase, false, Keywords.NotebookExplorerSeparator)}{Keywords.NotebookExplorerSeparator}";
 
             return new Result
             {
@@ -146,7 +142,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public Result CreateNotebookResult(OneNoteNotebook notebook, bool actionIsAutoComplete, List<int> highlightData, int score)
         {
-            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}\\";
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}{Keywords.NotebookExplorerSeparator}";
 
             return new Result
             {
@@ -192,7 +188,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = Icons.NewPage,
                 Action = c =>
                 {
-                    OneNotePlugin.GetOneNote(oneNote =>
+                    _ = OneNotePlugin.GetOneNote(oneNote =>
                     {
                         oneNote.CreatePage(section, pageTitle);
                         return 0;
@@ -205,23 +201,33 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateNewSectionResult(string sectionTitle, IOneNoteItem parent)
         {
             sectionTitle = sectionTitle.Trim();
-            bool validTitle = sectionTitle.IndexOfAny(sectionInvalidChars) == -1;
+            bool validTitle = OneNoteParser.IsSectionTitleValid(sectionTitle);
 
             return new Result
             {
                 Title = $"Create section: \"{sectionTitle}\"",
                 SubTitle = validTitle
                         ? $"Path: {GetNicePath(parent, false)} > {sectionTitle}"
-                        : $"Section names cannot contain: {string.Join(' ', sectionInvalidChars)}",
+                        : $"Section names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionChars)}",
                 IcoPath = Icons.NewSection,
                 Action = c =>
                 {
                     if(!validTitle)
                         return false;
 
-                    OneNotePlugin.GetOneNote(oneNote =>
+                    _ = OneNotePlugin.GetOneNote(oneNote =>
                     {
-                        oneNote.CreateSection(parent, sectionTitle);
+                        switch (parent.ItemType)
+                        {
+                            case OneNoteItemType.Notebook:
+                                oneNote.CreateSection((OneNoteNotebook)parent, sectionTitle);
+                                break;
+                            case OneNoteItemType.SectionGroup:
+                                oneNote.CreateSection((OneNoteSectionGroup)parent, sectionTitle);
+                                break;
+                            default:
+                                break;
+                        }
                         return 0;
                     });
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
@@ -233,24 +239,34 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateNewSectionGroupResult(string sectionGroupTitle, IOneNoteItem parent)
         {
             sectionGroupTitle = sectionGroupTitle.Trim();
-            bool validTitle = sectionGroupTitle.IndexOfAny(sectionInvalidChars) == -1;
+            bool validTitle = OneNoteParser.IsSectionGroupTitleValid(sectionGroupTitle);
 
             return new Result
             {
                 Title = $"Create section group: \"{sectionGroupTitle}\"",
                 SubTitle = validTitle
                     ? $"Path: {GetNicePath(parent, false)} > {sectionGroupTitle}"
-                    : $"Section group names cannot contain: {string.Join(' ', sectionInvalidChars)}",
+                    : $"Section group names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionGroupChars)}",
                 IcoPath = Icons.NewSectionGroup,
                 Action = c =>
                 {
                     if (!validTitle)
                         return false;
 
-                    OneNotePlugin.GetOneNote(oneNote => 
-                    { 
-                        oneNote.CreateSectionGroup(parent, sectionGroupTitle); 
-                        return 0; 
+                    _ = OneNotePlugin.GetOneNote(oneNote =>
+                    {
+                        switch (parent.ItemType)
+                        {
+                            case OneNoteItemType.Notebook:
+                                oneNote.CreateSectionGroup((OneNoteNotebook)parent, sectionGroupTitle);
+                                break;
+                            case OneNoteItemType.SectionGroup:
+                                oneNote.CreateSectionGroup((OneNoteSectionGroup)parent, sectionGroupTitle);
+                                break;
+                            default:
+                                break;
+                        }
+                        return 0;
                     });
 
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
@@ -262,24 +278,24 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateNewNotebookResult(OneNoteApplication oneNote, string notebookTitle)
         {
             notebookTitle = notebookTitle.Trim();
-            bool validTitle = notebookTitle.IndexOfAny(notebookInvalidChars) == -1;
+            bool validTitle = OneNoteParser.IsNotebookTitleValid(notebookTitle);
 
             return new Result
             {
                 Title = $"Create notebook: \"{notebookTitle}\"",
                 SubTitle = validTitle 
                     ? $"Location: {oneNote.GetDefaultNotebookLocation()}"
-                    : $"Notebook names cannot contain: {string.Join(' ', notebookInvalidChars)}",
+                    : $"Notebook names cannot contain: {string.Join(' ', OneNoteParser.InvalidNotebookChars)}",
                 IcoPath = Icons.NewNotebook,
                 Action = c =>
                 {
                     if (!validTitle) 
                         return false;
 
-                    OneNotePlugin.GetOneNote(oneNote => 
-                    { 
-                        oneNote.CreateNotebook(notebookTitle); 
-                        return 0; 
+                    _ = OneNotePlugin.GetOneNote(oneNote =>
+                    {
+                        oneNote.CreateNotebook(notebookTitle);
+                        return 0;
                     });
 
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);

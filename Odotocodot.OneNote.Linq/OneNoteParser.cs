@@ -1,6 +1,7 @@
 ﻿using Microsoft.Office.Interop.OneNote;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -10,8 +11,9 @@ namespace Odotocodot.OneNote.Linq
     {
         private const string NamespacePrefix = "one";
 
-        private static readonly char[] InvalidNotebookChars = "\\/*?\"|<>:%#.".ToCharArray();
-        private static readonly char[] InvalidSectionChars  = "\\/*?\"|<>:%#&".ToCharArray();
+        public static readonly char[] InvalidNotebookChars = "\\/*?\"|<>:%#.".ToCharArray();
+        public static readonly char[] InvalidSectionChars  = "\\/*?\"|<>:%#&".ToCharArray();
+        public static readonly char[] InvalidSectionGroupChars = InvalidSectionChars;
 
         private static readonly Lazy<XName[]> xNames = new Lazy<XName[]>(() =>
         {
@@ -131,6 +133,7 @@ namespace Odotocodot.OneNote.Linq
             if(openImmediately)
                 oneNote.NavigateTo(pageID);
         }
+
         private static void CreateItemBase(IApplication oneNote, IOneNoteItem parent, string title, bool openImmediately, OneNoteItemType newItemType)
         {
             ArgumentException.ThrowIfNullOrEmpty(title, nameof(title));
@@ -140,18 +143,21 @@ namespace Odotocodot.OneNote.Linq
             switch (newItemType)
             {
                 case OneNoteItemType.Notebook:
-                    if (title.IndexOfAny(InvalidNotebookChars) != -1)
+                    if (!IsNotebookTitleValid(title))
                         throw new InvalidOperationException($"Invalid notebook name. Notebook names cannot contain the symbols: \n {string.Join(' ', InvalidNotebookChars)}");
 
-                    path = $"{GetDefaultNotebookLocation(oneNote)}\\{title}";
+                    path = Path.Combine(GetDefaultNotebookLocation(oneNote), title);
                     createFileType = CreateFileType.cftNotebook;
                     break;
                 case OneNoteItemType.SectionGroup:
+                    if (!IsSectionGroupTitleValid(title))
+                        throw new InvalidOperationException($"Invalid section group name. Section groups names cannot contain the symbols: \n {string.Join(' ', InvalidSectionGroupChars)}");
+                    
                     path = title;
                     createFileType = CreateFileType.cftFolder;
                     break;
                 case OneNoteItemType.Section:
-                    if (title.IndexOfAny(InvalidSectionChars) != -1)
+                    if (!IsSectionTitleValid(title))
                         throw new InvalidOperationException($"Invalid section name. Section names cannot contain the symbols: \n {string.Join(' ', InvalidSectionChars)}");
 
                     path = title + ".one";
@@ -186,6 +192,21 @@ namespace Odotocodot.OneNote.Linq
         {
             CreateItemBase(oneNote, null, notebookName, openImmediately, OneNoteItemType.Notebook);
         }
+
+        public static bool IsNotebookTitleValid(string notebookTitle)
+        {
+            return notebookTitle.IndexOfAny(InvalidNotebookChars) == -1;
+        }
+        public static bool IsSectionTitleValid(string sectionTitle)
+        {
+            return sectionTitle.IndexOfAny(InvalidSectionChars) == -1;
+        }
+        public static bool IsSectionGroupTitleValid(string sectionGroupTitle)
+        {
+            return sectionGroupTitle.IndexOfAny(InvalidSectionGroupChars) == -1;
+        }
+
+
         #endregion
 
         #region Special Folder Locations
