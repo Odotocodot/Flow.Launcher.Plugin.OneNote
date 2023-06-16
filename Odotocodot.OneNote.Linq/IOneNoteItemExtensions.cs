@@ -96,9 +96,9 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         /// <param name="item"></param>
         /// <returns>The path of the item relative to and inclusive of its notebook</returns>
-        public static string GetRelativePath(this IOneNoteItem item, string separator = "\\")
+        public static string GetRelativePath(this IOneNoteItem item, bool includeSelf = true, string separator = "\\")
         {
-            StringBuilder sb = new(item.Name);
+            StringBuilder sb = includeSelf ? new(item.Name) : new();
             while(item.Parent != null)
             {
                 sb.Insert(0, separator);
