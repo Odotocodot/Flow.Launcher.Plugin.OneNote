@@ -165,7 +165,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 var result = GetOneNote(oneNote =>
                 {
-                    return rc.GetOneNoteItemResult(item, false);
+                    return rc.CreateOneNoteItemResult(item, false);
                 });
                 result.Title = $"Open and sync \"{item.Name}\"";
                 result.SubTitle = string.Empty;

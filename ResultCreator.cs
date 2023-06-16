@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics.SymbolStore;
 using System.Linq;
 using Odotocodot.OneNote.Linq;
 
@@ -13,6 +11,9 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly OneNoteItemIcons notebookIcons;
         private readonly OneNoteItemIcons sectionIcons;
 
+        private const string PathSeparator = " > ";
+        private const int RightAlignment = 5;
+
         public ResultCreator(PluginInitContext context, Settings settings)
         {
             this.settings = settings;
@@ -21,7 +22,7 @@ namespace Flow.Launcher.Plugin.OneNote
             sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Icons.Section);
         }
 
-        private static string GetNicePath(IOneNoteItem item, bool includeSelf = true, string separator = " > ")
+        private static string GetNicePath(IOneNoteItem item, bool includeSelf = true, string separator = PathSeparator)
         {
             return item.GetRelativePath(includeSelf, separator);
         }
@@ -46,96 +47,63 @@ namespace Flow.Launcher.Plugin.OneNote
         }
 
         #region Create OneNote Item Results
-        public Result GetOneNoteItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int> highlightData = null, int score = 0)
+        public Result CreatePageResult(OneNotePage page, string query = null)
         {
-            return item.ItemType switch
-            {
-                OneNoteItemType.Notebook => CreateNotebookResult((OneNoteNotebook)item, actionIsAutoComplete, highlightData, score),
-                OneNoteItemType.SectionGroup => CreateSectionGroupResult((OneNoteSectionGroup)item, actionIsAutoComplete, highlightData, score),
-                OneNoteItemType.Section => CreateSectionResult((OneNoteSection)item, actionIsAutoComplete, highlightData, score),
-                OneNoteItemType.Page => CreatePageResult((OneNotePage)item, highlightData, score),
-                _ => new Result(),
-            };
-        }
-        public Result CreatePageResult(OneNotePage page, string query)
-        {
-            return CreatePageResult(page, context.API.FuzzySearch(query, page.Name).MatchData);
+            return CreateOneNoteItemResult(page, false, string.IsNullOrWhiteSpace(query) ? null : context.API.FuzzySearch(query, page.Name).MatchData);
         }
 
-        public Result CreateItemBaseResult(IOneNoteItem item, bool actionIsAutoComplete, List<int> highlightData = null, int score = 0)
+        public Result CreateOneNoteItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int> highlightData = null, int score = 0)
         {
             string titleToolTip = null;
             string subTitleToolTip = null;
-            string autoCompleteText = null;
-            string subTitle = null;
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(item, true, Keywords.NotebookExplorerSeparator)}";
+            string subTitle = GetNicePath(item, true);
             string iconPath = null;
-            Func<ActionContext, bool> action = null;
+
             switch (item.ItemType)
             {
                 case OneNoteItemType.Notebook:
                     OneNoteNotebook notebook = (OneNoteNotebook)item;
-                    titleToolTip = $"{"Number of sections:",-26} {notebook.Sections.Count(),4}\n{"Number of sections groups:",-26} {notebook.SectionGroups.Count(),4}";
-                    iconPath = notebookIcons.GetIcon(notebook.Color.Value),
-                    action = c =>
-                    {
-                        if (actionIsAutoComplete)
-                        {
-                            context.API.ChangeQuery(autoCompleteText);
-                            return false;
-                        }
-                        OpenOneNoteItem(notebook);
+                    subTitle = string.Empty;
+                    autoCompleteText += Keywords.NotebookExplorerSeparator;
 
-                        return true;
-                    };
+                    titleToolTip = $"{notebook.Name}\n\n"+
+                    $"Last Modified:\t{notebook.LastModified}\n\n"+
+                    $"Sections:\t\t{notebook.Sections.Count(),RightAlignment}\n"+
+                    $"Sections Groups:\t{notebook.SectionGroups.Count(),RightAlignment}";
+
+                    iconPath = notebookIcons.GetIcon(notebook.Color.Value);
                     break;
                 case OneNoteItemType.SectionGroup:
                     OneNoteSectionGroup sectionGroup = (OneNoteSectionGroup)item;
-                    subTitle = GetNicePath(sectionGroup, true);
-                    autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(sectionGroup, true, Keywords.NotebookExplorerSeparator)}{Keywords.NotebookExplorerSeparator}";
-                    subTitleToolTip = $"{subTitle}\n{"Number of sections:",-26} {sectionGroup.Sections.Count(),4}\n{"Number of sections groups:",-26} {sectionGroup.SectionGroups.Count(),4}";
+                    autoCompleteText += Keywords.NotebookExplorerSeparator;
+
+                    subTitleToolTip = $"{sectionGroup.Name}\n\n" +
+                    $"Last Modified:\t{sectionGroup.LastModified}\n\n" +
+                    $"Sections:\t\t{sectionGroup.Sections.Count(),RightAlignment}\n" +
+                    $"Sections Groups:\t{sectionGroup.SectionGroups.Count(),RightAlignment}";
+                    
                     iconPath = Icons.SectionGroup;
-                    action = c =>
-                    {
-                        if (actionIsAutoComplete)
-                        {
-                            context.API.ChangeQuery(autoCompleteText);
-                            return false;
-                        }
-                        OpenOneNoteItem(sectionGroup);
-                        return true;
-                    };
                     break;
                 case OneNoteItemType.Section:
                     OneNoteSection section = (OneNoteSection)item;
-                    subTitle = GetNicePath(section, true);
-                    autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(section, true, Keywords.NotebookExplorerSeparator)}{Keywords.NotebookExplorerSeparator}";
-                    subTitleToolTip = $"{subTitle}\nNumber of pages: {section.Pages.Count()}";
-                    iconPath = sectionIcons.GetIcon(section.Color.Value);
-                    action = c =>
-                    {
-                        if (actionIsAutoComplete)
-                        {
-                            context.API.ChangeQuery(autoCompleteText);
-                            return false;
-                        }
-                        OpenOneNoteItem(section);
+                    autoCompleteText += Keywords.NotebookExplorerSeparator;
 
-                        return true;
-                    };
+                    subTitleToolTip = $"{subTitle}\n\n"+
+                    $"Last Modified:\t{section.LastModified}\n\n"+
+                    $"Pages:\t{section.Pages.Count(),RightAlignment}";
+
+                    iconPath = sectionIcons.GetIcon(section.Color.Value);
                     break;
                 case OneNoteItemType.Page:
                     OneNotePage page = (OneNotePage)item;
-                    subTitleToolTip = $"{"Created:",-18} {page.Created,20}\n{"Last Modified:",-18} {page.LastModified,20}";
-                    autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(page, true, Keywords.NotebookExplorerSeparator)}";
-                    subTitle = GetNicePath(page, false);
+                    actionIsAutoComplete = false;
+                    subTitleToolTip = $"{subTitle}\n\n"+
+                    $"Created:\t\t{page.Created}\n"+
+                    $"Last Modified:\t{page.LastModified}";
+
+                    subTitle =  subTitle.Remove(subTitle.Length - (page.Name.Length + PathSeparator.Length));
                     iconPath = Icons.Logo;
-                    action = c =>
-                    {
-                        OpenOneNoteItem(page);
-                        return true;
-                    };
-                    break;
-                default:
                     break;
             }
             return new Result
@@ -149,79 +117,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 Score = score,
                 IcoPath = iconPath,
                 ContextData = item,
-                Action = action,
-            };
-        }
-        public Result CreatePageResult(OneNotePage page, List<int> highlightingData = null, int score = 0)
-        {
-            return new Result
-            {
-                Title = GetTitle(page, highlightingData),
-                TitleToolTip = $"{"Created:",-18} {page.Created,20}\n{"Last Modified:",-18} {page.LastModified,20}",
-                AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(page, true, Keywords.NotebookExplorerSeparator)}",
-                TitleHighlightData = highlightingData,
-                SubTitle = GetNicePath(page,false),
-                Score = score,
-                IcoPath = Icons.Logo,
-                ContextData = page,
-                Action = c =>
-                {
-                    OpenOneNoteItem(page);
-                    return true;
-                },
-            };
-        }
-        private Result CreateSectionBaseResult(IOneNoteItem sectionBase, string iconPath, bool actionIsAutoComplete, List<int> highlightData, int score)
-        {
-            string path = GetNicePath(sectionBase, true);
-            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(sectionBase, true, Keywords.NotebookExplorerSeparator)}{Keywords.NotebookExplorerSeparator}";
-
-            return new Result
-            {
-                Title = GetTitle(sectionBase, highlightData),
-                TitleHighlightData = highlightData,
-                SubTitle = path,
-                SubTitleToolTip = $"{path} | Number of pages: {sectionBase.Children.Count()}",
-                AutoCompleteText = autoCompleteText,
-                ContextData = sectionBase,
-                Score = score,
-                IcoPath = iconPath,
-                Action = c =>
-                {
-                    if(actionIsAutoComplete)
-                    {
-                        context.API.ChangeQuery(autoCompleteText);
-                        return false;
-                    }
-                    OpenOneNoteItem(sectionBase);
-
-                    return true;
-                }
-            };
-        }
-        public Result CreateSectionResult(OneNoteSection section, bool actionIsAutoComplete, List<int> highlightData, int score)
-        {
-            return CreateSectionBaseResult(section, sectionIcons.GetIcon(section.Color.Value), actionIsAutoComplete, highlightData, score);
-        }
-
-        public Result CreateSectionGroupResult(OneNoteSectionGroup sectionGroup, bool actionIsAutoComplete, List<int> highlightData, int score)
-        {
-            return CreateSectionBaseResult(sectionGroup, Icons.SectionGroup, actionIsAutoComplete, highlightData, score);
-        }
-
-        public Result CreateNotebookResult(OneNoteNotebook notebook, bool actionIsAutoComplete, List<int> highlightData, int score)
-        {
-            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{notebook.Name}{Keywords.NotebookExplorerSeparator}";
-
-            return new Result
-            {
-                Title = GetTitle(notebook, highlightData),
-                TitleToolTip = $"Number of sections: {notebook.Sections.Count()}",
-                TitleHighlightData = highlightData,
-                AutoCompleteText = autoCompleteText,
-                ContextData = notebook,
-                Score = score,
-                IcoPath = notebookIcons.GetIcon(notebook.Color.Value),
                 Action = c =>
                 {
                     if (actionIsAutoComplete)
@@ -229,20 +124,15 @@ namespace Flow.Launcher.Plugin.OneNote
                         context.API.ChangeQuery(autoCompleteText);
                         return false;
                     }
-                    OpenOneNoteItem(notebook);
+                    _ = OneNotePlugin.GetOneNote(oneNote =>
+                    {
+                        oneNote.SyncItem(item);
+                        oneNote.OpenInOneNote(item);
+                        return 0;
+                    });
                     return true;
-                }
+                },
             };
-        }
-
-        private static void OpenOneNoteItem(IOneNoteItem item)
-        {
-            OneNotePlugin.GetOneNote(oneNote =>
-            {
-                oneNote.SyncItem(item);
-                oneNote.OpenInOneNote(item);
-                return 0;
-            });
         }
         #endregion
 
@@ -400,7 +290,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                 return FuzzySearch(item.Name, currentSearch, out highlightData, out score);
             })
-            .Select(item => GetOneNoteItemResult(item, false, highlightData, score))
+            .Select(item => CreateOneNoteItemResult(item, false, highlightData, score))
             .ToList();
 
             if (!results.Any())
@@ -442,7 +332,7 @@ namespace Flow.Launcher.Plugin.OneNote
         //    return items.Where(item =>
         //    {
         //          if setting.showEncrypted, 
-        //          if setting.ShowRecyclebin
+        //          if setting.ShowRecycleBin
         //        if (item.ItemType == OneNoteItemType.Section)
         //        {
         //            return !((OneNoteSection)item).Encrypted;
