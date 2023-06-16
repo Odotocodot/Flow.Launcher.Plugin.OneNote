@@ -314,33 +314,6 @@ namespace Flow.Launcher.Plugin.OneNote
             }
             return false;
         }
-
-
-        //public static IEnumerable<IOneNoteItem> RemoveEncrypted(this IEnumerable<IOneNoteItem> items)
-        //{
-        //    return items.Where(item =>
-        //    {
-        //        if (item.ItemType == OneNoteItemType.Section)
-        //        {
-        //            return !((OneNoteSection)item).Encrypted;
-        //        }
-        //        return true;
-        //    });
-        //}
-        //public static IEnumerable<IOneNoteItem> SettingsCheck(this IEnumerable<IOneNoteItem> items)
-        //{
-        //    return items.Where(item =>
-        //    {
-        //          if setting.showEncrypted, 
-        //          if setting.ShowRecycleBin
-        //        if (item.ItemType == OneNoteItemType.Section)
-        //        {
-        //            return !((OneNoteSection)item).Encrypted;
-        //        }
-        //        return true;
-        //    });
-        //}
-
         public static List<Result> NoMatchesFoundResult()
         {
             return SingleResult("No matches found",
@@ -359,6 +332,22 @@ namespace Flow.Launcher.Plugin.OneNote
                     IcoPath = iconPath,
                 }
             };
+        }
+    }
+    public static class Extensions
+    {
+        public static IEnumerable<IOneNoteItem> SettingsCheck(this IEnumerable<IOneNoteItem> items, Settings settings)
+        {
+            return items.Where(item =>
+            {
+                bool success = true;
+                if (!settings.ShowEncrypted && item.ItemType == OneNoteItemType.Section)
+                    success = !((OneNoteSection)item).Encrypted;
+
+                if (!settings.ShowRecycleBin && item.IsInRecycleBin())
+                    success = false;
+                return success;
+            });
         }
     }
 }

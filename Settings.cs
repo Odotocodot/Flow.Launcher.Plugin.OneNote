@@ -5,6 +5,7 @@
         private bool showUnread = true;
         private int defaultRecentsCount = 5;
         private bool showRecycleBin = true;
+        private bool showEncrypted = false;
 
         public bool ShowRecycleBin
         {
@@ -33,5 +34,16 @@
 				OnPropertyChanged();
             }
         }
+
+        public bool ShowEncrypted 
+        { 
+            get => showEncrypted; 
+            set 
+            { 
+                showEncrypted = value;
+                OnPropertyChanged();
+            } 
+        }
+
     }
 }
