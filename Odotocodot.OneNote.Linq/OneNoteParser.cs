@@ -50,6 +50,8 @@ namespace Odotocodot.OneNote.Linq
         /// <param name="searchString"></param>
         public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string searchString)
         {
+            ValidateSearchString(searchString);
+
             oneNote.FindPages(null, searchString, out string xml);
             var rootElement = XElement.Parse(xml);
             return rootElement.Elements(GetXName(OneNoteItemType.Notebook))
@@ -69,11 +71,13 @@ namespace Odotocodot.OneNote.Linq
         {
             ArgumentNullException.ThrowIfNull(scope, nameof(scope));
 
+            ValidateSearchString(searchString);
+
             oneNote.FindPages(scope.ID, searchString, out string xml);
 
             var rootElement = XElement.Parse(xml);
             return rootElement.Elements(GetXName(scope.ItemType))
-                              .Select<XElement,IOneNoteItem>(element =>
+                              .Select<XElement, IOneNoteItem>(element =>
                               {
                                   return scope.ItemType switch
                                   {
@@ -85,6 +89,17 @@ namespace Odotocodot.OneNote.Linq
                                   };
                               })
                               .GetPages();
+        }
+
+        private static void ValidateSearchString(string searchString)
+        {
+            ArgumentNullException.ThrowIfNull(searchString, nameof(searchString));
+
+            if (string.IsNullOrWhiteSpace(searchString))
+                throw new ArgumentException("Search string cannot be empty or only whitespace", nameof(searchString));
+
+            if (!char.IsLetterOrDigit(searchString[0]))
+                throw new ArgumentException("The first character of the search must be a letter or digit", nameof(searchString));
         }
 
         public static void OpenInOneNote(IApplication oneNote, IOneNoteItem item)
@@ -144,21 +159,21 @@ namespace Odotocodot.OneNote.Linq
             {
                 case OneNoteItemType.Notebook:
                     if (!IsNotebookTitleValid(title))
-                        throw new InvalidOperationException($"Invalid notebook name. Notebook names cannot contain the symbols: \n {string.Join(' ', InvalidNotebookChars)}");
+                        throw new ArgumentException($"Invalid notebook name. Notebook names cannot contain the symbols: \n {string.Join(' ', InvalidNotebookChars)}");
 
                     path = Path.Combine(GetDefaultNotebookLocation(oneNote), title);
                     createFileType = CreateFileType.cftNotebook;
                     break;
                 case OneNoteItemType.SectionGroup:
                     if (!IsSectionGroupTitleValid(title))
-                        throw new InvalidOperationException($"Invalid section group name. Section groups names cannot contain the symbols: \n {string.Join(' ', InvalidSectionGroupChars)}");
+                        throw new ArgumentException($"Invalid section group name. Section groups names cannot contain the symbols: \n {string.Join(' ', InvalidSectionGroupChars)}");
                     
                     path = title;
                     createFileType = CreateFileType.cftFolder;
                     break;
                 case OneNoteItemType.Section:
                     if (!IsSectionTitleValid(title))
-                        throw new InvalidOperationException($"Invalid section name. Section names cannot contain the symbols: \n {string.Join(' ', InvalidSectionChars)}");
+                        throw new ArgumentException($"Invalid section name. Section names cannot contain the symbols: \n {string.Join(' ', InvalidSectionChars)}");
 
                     path = title + ".one";
                     createFileType = CreateFileType.cftSection;
