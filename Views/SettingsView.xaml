@@ -16,7 +16,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ui:ThemeResources />
-                <ui:XamlControlsResources />
+                <!--<ui:XamlControlsResources />-->
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
         </ResourceDictionary>
@@ -31,7 +31,7 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="35" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="35" />
             <RowDefinition Height="35" />
             <RowDefinition Height="35" />
         </Grid.RowDefinitions>
@@ -56,6 +56,21 @@
             OffContent="Off"
             OnContent="On" />
         <!--  row 1  -->
+        <TextBlock
+            Grid.Row="1"
+            Grid.Column="0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Text="Show encrypted sections" />
+        <ui:ToggleSwitch
+            Grid.Row="1"
+            Grid.Column="1"
+            HorizontalAlignment="Left"
+            HorizontalContentAlignment="Left"
+            VerticalContentAlignment="Center"
+            IsOn="{Binding Settings.ShowEncrypted}"
+            OffContent="Off"
+            OnContent="On" />
         <!--  row 2  -->
         <TextBlock
             Grid.Row="2"

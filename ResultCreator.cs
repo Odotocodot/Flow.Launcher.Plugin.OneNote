@@ -32,7 +32,7 @@ namespace Flow.Launcher.Plugin.OneNote
             string title = item.Name;
             if (item.IsUnread && settings.ShowUnread)
             {
-                string unread = "�  ";
+                string unread = "\u2022  ";
                 title = title.Insert(0, unread);
 
                 if (highlightData != null)
@@ -54,61 +54,68 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public Result CreateOneNoteItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int> highlightData = null, int score = 0)
         {
+            string title = GetTitle(item, highlightData);
             string titleToolTip = null;
+            string subTitle = GetNicePath(item, true);
             string subTitleToolTip = null;
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(item, true, Keywords.NotebookExplorerSeparator)}";
-            string subTitle = GetNicePath(item, true);
             string iconPath = null;
 
             switch (item.ItemType)
             {
                 case OneNoteItemType.Notebook:
                     OneNoteNotebook notebook = (OneNoteNotebook)item;
-                    subTitle = string.Empty;
-                    autoCompleteText += Keywords.NotebookExplorerSeparator;
-
                     titleToolTip = $"{notebook.Name}\n\n"+
                     $"Last Modified:\t{notebook.LastModified}\n\n"+
                     $"Sections:\t\t{notebook.Sections.Count(),RightAlignment}\n"+
                     $"Sections Groups:\t{notebook.SectionGroups.Count(),RightAlignment}";
 
+                    subTitle = string.Empty;
+                    autoCompleteText += Keywords.NotebookExplorerSeparator;
                     iconPath = notebookIcons.GetIcon(notebook.Color.Value);
                     break;
                 case OneNoteItemType.SectionGroup:
                     OneNoteSectionGroup sectionGroup = (OneNoteSectionGroup)item;
-                    autoCompleteText += Keywords.NotebookExplorerSeparator;
-
-                    subTitleToolTip = $"{sectionGroup.Name}\n\n" +
+                    subTitleToolTip = $"{subTitle}\n\n" +
                     $"Last Modified:\t{sectionGroup.LastModified}\n\n" +
                     $"Sections:\t\t{sectionGroup.Sections.Count(),RightAlignment}\n" +
                     $"Sections Groups:\t{sectionGroup.SectionGroups.Count(),RightAlignment}";
-                    
+
+                    autoCompleteText += Keywords.NotebookExplorerSeparator;                    
                     iconPath = Icons.SectionGroup;
                     break;
                 case OneNoteItemType.Section:
                     OneNoteSection section = (OneNoteSection)item;
-                    autoCompleteText += Keywords.NotebookExplorerSeparator;
+                    if (section.Encrypted)
+                    {
+                        title += " [Encrypted]";
+                        if (section.Locked)
+                            title += "[Locked]";
+                        else
+                            title += "[Unlocked]";
+                    }
 
                     subTitleToolTip = $"{subTitle}\n\n"+
                     $"Last Modified:\t{section.LastModified}\n\n"+
                     $"Pages:\t{section.Pages.Count(),RightAlignment}";
 
+                    autoCompleteText += Keywords.NotebookExplorerSeparator;
                     iconPath = sectionIcons.GetIcon(section.Color.Value);
                     break;
                 case OneNoteItemType.Page:
                     OneNotePage page = (OneNotePage)item;
                     actionIsAutoComplete = false;
+                    subTitle =  subTitle.Remove(subTitle.Length - (page.Name.Length + PathSeparator.Length));
                     subTitleToolTip = $"{subTitle}\n\n"+
                     $"Created:\t\t{page.Created}\n"+
                     $"Last Modified:\t{page.LastModified}";
 
-                    subTitle =  subTitle.Remove(subTitle.Length - (page.Name.Length + PathSeparator.Length));
                     iconPath = Icons.Logo;
                     break;
             }
             return new Result
             {
-                Title = GetTitle(item, highlightData),
+                Title = title,
                 TitleToolTip = titleToolTip,
                 TitleHighlightData = highlightData,
                 SubTitle = subTitle,
@@ -265,17 +272,10 @@ namespace Flow.Launcher.Plugin.OneNote
 
         #endregion
 
-        public List<Result> SearchByTitle(string query, IEnumerable<IOneNoteItem> currentCollection, IOneNoteItem parentItem = null)
+        public List<Result> SearchByTitle(string query, IEnumerable<IOneNoteItem> currentCollection, IOneNoteItem parent = null)
         {
-            if (query.Length == Keywords.SearchByTitle.Length)
-            {
-                var title = "Now searching by title";
-
-                if (parentItem != null)
-                    title += $" in \"{parentItem.Name}\"";
-
-                return SingleResult(title, null, Icons.Search);
-            }
+            if (query.Length == Keywords.SearchByTitle.Length && parent == null)
+                return SingleResult($"Now searching by title.", null, Icons.Search);
 
             List<int> highlightData = null;
             int score = 0;
@@ -284,14 +284,14 @@ namespace Flow.Launcher.Plugin.OneNote
             var currentSearch = query[Keywords.SearchByTitle.Length..];
 
             results = currentCollection.Traverse(item =>
-            {
-                if (IsEncryptedSection(item))
-                    return false;
+                                        {
+                                            if (!SettingsCheck(item))
+                                                return false;
 
-                return FuzzySearch(item.Name, currentSearch, out highlightData, out score);
-            })
-            .Select(item => CreateOneNoteItemResult(item, false, highlightData, score))
-            .ToList();
+                                            return FuzzySearch(item.Name, currentSearch, out highlightData, out score);
+                                        })
+                                        .Select(item => CreateOneNoteItemResult(item, false, highlightData, score))
+                                        .ToList();
 
             if (!results.Any())
                 results = NoMatchesFoundResult();
@@ -306,19 +306,27 @@ namespace Flow.Launcher.Plugin.OneNote
             return matchResult.IsSearchPrecisionScoreMet();
         }
 
-        public static bool IsEncryptedSection(IOneNoteItem item)
+        public bool SettingsCheck(IOneNoteItem item)
         {
-            if (item.ItemType == OneNoteItemType.Section)
-            {
-                return ((OneNoteSection)item).Encrypted;
-            }
-            return false;
+            bool success = true;
+            if (!settings.ShowEncrypted && item.ItemType == OneNoteItemType.Section)
+                success = !((OneNoteSection)item).Encrypted;
+
+            if (!settings.ShowRecycleBin && item.IsInRecycleBin())
+                success = false;
+            return success;
         }
         public static List<Result> NoMatchesFoundResult()
         {
             return SingleResult("No matches found",
                                 "Try searching something else, or syncing your notebooks.",
                                 Icons.Logo);
+        }
+        public static List<Result> InvalidQuery()
+        {
+            return SingleResult("Invalid query",
+                                "The first character of the search must be a letter or a digit",
+                                Icons.Warning);
         }
 
         public static List<Result> SingleResult(string title, string subTitle, string iconPath)
@@ -332,22 +340,6 @@ namespace Flow.Launcher.Plugin.OneNote
                     IcoPath = iconPath,
                 }
             };
-        }
-    }
-    public static class Extensions
-    {
-        public static IEnumerable<IOneNoteItem> SettingsCheck(this IEnumerable<IOneNoteItem> items, Settings settings)
-        {
-            return items.Where(item =>
-            {
-                bool success = true;
-                if (!settings.ShowEncrypted && item.ItemType == OneNoteItemType.Section)
-                    success = !((OneNoteSection)item).Encrypted;
-
-                if (!settings.ShowRecycleBin && item.IsInRecycleBin())
-                    success = false;
-                return success;
-            });
         }
     }
 }

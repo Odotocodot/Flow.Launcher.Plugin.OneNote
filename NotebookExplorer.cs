@@ -60,7 +60,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 List<int> highlightData = null;
                 int score = 0;
 
-                results = collection.Where(item => !ResultCreator.IsEncryptedSection(item))
+                results = collection.Where(rc.SettingsCheck)
                                     .Where(item => rc.FuzzySearch(item.Name, lastSearch, out highlightData, out score))
                                     .Select(item => rc.CreateOneNoteItemResult(item, true, highlightData, score))
                                     .ToList();
@@ -70,8 +70,18 @@ namespace Flow.Launcher.Plugin.OneNote
 
             if(parent != null)
             {
-                var result = rc.CreateOneNoteItemResult(parent, false, score: int.MaxValue);
+                var result = rc.CreateOneNoteItemResult(parent, false, score: 4000);
                 result.Title = $"Open \"{parent.Name}\" in OneNote";
+
+                if(lastSearch.StartsWith(Keywords.SearchByTitle))
+                    result.SubTitle = $"Now search by title in \"{parent.Name}\"";
+
+                else if(lastSearch.StartsWith(Keywords.ScopedSearch))
+                    result.SubTitle = $"Now searching all pages in \"{parent.Name}\"";
+
+                else
+                    result.SubTitle = $"Use \'{Keywords.ScopedSearch}\' to search this item. Use \'{Keywords.SearchByTitle}\' to search by title in this item";
+                
                 results.Add(result);
             }
             
@@ -80,7 +90,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private List<Result> EmptySearch(IOneNoteItem parent, IEnumerable<IOneNoteItem> collection)
         {
-            List<Result> results = collection.Where(item => !ResultCreator.IsEncryptedSection(item))
+            List<Result> results = collection.Where(rc.SettingsCheck)
                                              .Select(item => rc.CreateOneNoteItemResult(item, true))
                                              .ToList();
             if (!results.Any())
@@ -95,7 +105,9 @@ namespace Flow.Launcher.Plugin.OneNote
                         break;
                     case OneNoteItemType.Section:
                         //can create page
-                        results.Add(NoItemsInCollectionResult("page", Icons.NewPage));
+                        if (!((OneNoteSection)parent).Locked)
+                            results.Add(NoItemsInCollectionResult("page", Icons.NewPage));
+
                         break;
                     default:
                         break;
@@ -115,19 +127,18 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
 
-        private List<Result> ScopedSearch(OneNoteApplication oneNote, string query, IOneNoteItem parentItem)
+        private List<Result> ScopedSearch(OneNoteApplication oneNote, string query, IOneNoteItem parent)
         {
             if (query.Length == Keywords.ScopedSearch.Length)
-            {
-                return ResultCreator.SingleResult($"Now searching all pages in \"{parentItem.Name}\"",
-                                                  null,
-                                                  Icons.Search);
-            }
+                return ResultCreator.NoMatchesFoundResult();
+
+            if (!char.IsLetterOrDigit(query[Keywords.ScopedSearch.Length]))
+                return ResultCreator.InvalidQuery();
 
             string currentSearch = query[Keywords.SearchByTitle.Length..];
             var results = new List<Result>();
 
-            results = oneNote.FindPages(parentItem, currentSearch)
+            results = oneNote.FindPages(parent, currentSearch)
                              .Select(pg => rc.CreatePageResult(pg, currentSearch))
                              .ToList();
 

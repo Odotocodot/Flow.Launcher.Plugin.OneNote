@@ -140,9 +140,7 @@ namespace Flow.Launcher.Plugin.OneNote
             //Check for invalid start of query i.e. symbols
             if (!char.IsLetterOrDigit(query.Search[0]))
             {
-                return ResultCreator.SingleResult("Invalid query",
-                                                  "The first character of the search must be a letter or a digit",
-                                                  Icons.Warning);
+                return ResultCreator.InvalidQuery();
             }
 
             //Default search 
