@@ -76,19 +76,16 @@ namespace Odotocodot.OneNote.Linq
             oneNote.FindPages(scope.ID, searchString, out string xml);
 
             var rootElement = XElement.Parse(xml);
-            return rootElement.Elements(GetXName(scope.ItemType))
-                              .Select<XElement, IOneNoteItem>(element =>
-                              {
-                                  return scope.ItemType switch
-                                  {
-                                      OneNoteItemType.Notebook => new OneNoteNotebook(element),
-                                      OneNoteItemType.SectionGroup => new OneNoteSectionGroup(element, scope.Parent),
-                                      OneNoteItemType.Section => new OneNoteSection(element, scope.Parent),
-                                      OneNoteItemType.Page => new OneNotePage(element, (OneNoteSection)scope.Parent),
-                                      _ => null,
-                                  };
-                              })
-                              .GetPages();
+
+            IOneNoteItem root = scope.ItemType switch
+            {
+                OneNoteItemType.Notebook => new OneNoteNotebook(rootElement),
+                OneNoteItemType.SectionGroup => new OneNoteSectionGroup(rootElement, scope.Parent),
+                OneNoteItemType.Section => new OneNoteSection(rootElement, scope.Parent),
+                OneNoteItemType.Page => new OneNotePage(rootElement, (OneNoteSection)scope.Parent),
+                _ => null,
+            };
+            return root.GetPages();
         }
 
         private static void ValidateSearchString(string searchString)
