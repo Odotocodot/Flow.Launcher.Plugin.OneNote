@@ -1,0 +1,119 @@
+﻿<UserControl
+    x:Class="Flow.Launcher.Plugin.OneNote.UI.SettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Flow.Launcher.Plugin.OneNote"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:vm="clr-namespace:Flow.Launcher.Plugin.OneNote.UI"
+    d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="900"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemeResources />
+                <!--<ui:XamlControlsResources />-->
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="StackPanelStyle" TargetType="StackPanel">
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Grid.Column" Value="0" />
+            </Style>
+            <Style x:Key="TitleStyle" TargetType="TextBlock">
+                <Setter Property="Margin" Value="0,0,8,0" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style x:Key="SubTitleStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource Color04B}" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Margin" Value="0,0,0,0" />
+                <Setter Property="Padding" Value="0,0,24,0" />
+                <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+            </Style>
+            <Style x:Key="ToggleSwitchStyle" TargetType="ui:ToggleSwitch">
+                <Setter Property="Grid.Column" Value="1" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="OffContent" Value="Off" />
+                <Setter Property="OnContent" Value="On" />
+            </Style>
+            <GridLength x:Key="GridRowHeight">35</GridLength>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="60,10,10,10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="220" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{StaticResource GridRowHeight}" />
+            <RowDefinition Height="{StaticResource GridRowHeight}" />
+            <RowDefinition Height="{StaticResource GridRowHeight}" />
+            <RowDefinition Height="{StaticResource GridRowHeight}" />
+            <RowDefinition Height="{StaticResource GridRowHeight}" />
+        </Grid.RowDefinitions>
+        <!--  row  0  -->
+        <StackPanel Grid.Row="0" Style="{DynamicResource StackPanelStyle}">
+            <TextBlock Style="{DynamicResource TitleStyle}" Text="Show Recycle Bin items" />
+            <TextBlock Style="{DynamicResource SubTitleStyle}" Text="When using the notebook explorer, show items in the recycle bin" />
+        </StackPanel>
+        <ui:ToggleSwitch
+            Grid.Row="0"
+            IsOn="{Binding Settings.ShowRecycleBin}"
+            Style="{DynamicResource ToggleSwitchStyle}" />
+        <!--  row 1  -->
+        <StackPanel Grid.Row="1" Style="{DynamicResource StackPanelStyle}">
+            <TextBlock Style="{DynamicResource TitleStyle}" Text="Show encrypted sections" />
+            <TextBlock Style="{DynamicResource SubTitleStyle}" Text="When using the notebook explorer, show encrypted sections, if the section has been unlocked allow access." />
+        </StackPanel>
+        <ui:ToggleSwitch
+            Grid.Row="1"
+            IsOn="{Binding Settings.ShowEncrypted}"
+            Style="{DynamicResource ToggleSwitchStyle}" />
+        <!--  row 2  -->
+        <StackPanel Grid.Row="2" Style="{DynamicResource StackPanelStyle}">
+            <TextBlock Style="{DynamicResource TitleStyle}" Text="Display unread icon" />
+            <TextBlock Style="{DynamicResource SubTitleStyle}" Text="Displays bullet point (&#x2022;) when a item has unread changes." />
+        </StackPanel>
+        <ui:ToggleSwitch
+            Grid.Row="2"
+            IsOn="{Binding Settings.ShowUnread}"
+            Style="{DynamicResource ToggleSwitchStyle}" />
+        <!--  row 3  -->
+        <StackPanel Grid.Row="3" Style="{DynamicResource StackPanelStyle}">
+            <TextBlock Style="{DynamicResource TitleStyle}" Text="Default number of recent pages" />
+            <TextBlock Style="{DynamicResource SubTitleStyle}" Text="The inital number of recent pages to show when using rcnpgs:" />
+        </StackPanel>
+        <ComboBox
+            Grid.Row="3"
+            Grid.Column="1"
+            VerticalAlignment="Center"
+            VerticalContentAlignment="Center"
+            BorderBrush="Transparent"
+            ItemsSource="{Binding DefaultRecentCountOptions}"
+            SelectedItem="{Binding Settings.DefaultRecentsCount}" />
+        <!--  row 4  -->
+        <!--<StackPanel Grid.Row="4" Style="{DynamicResource StackPanelStyle}">
+            <TextBlock Style="{DynamicResource TitleStyle}" Text="Create colored icons for notebook and sections." />
+        </StackPanel>
+        <StackPanel
+            Grid.Row="4"
+            Grid.Column="1"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Orientation="Horizontal">
+            <ui:ToggleSwitch Style="{DynamicResource ToggleSwitchStyle}" />
+            <Button Margin="10,0,0,0">
+                Delete Cached Images ..MB
+            </Button>
+        </StackPanel>-->
+    </Grid>
+</UserControl>

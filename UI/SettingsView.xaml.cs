@@ -1,7 +1,6 @@
-﻿using Flow.Launcher.Plugin.OneNote.ViewModels;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 
-namespace Flow.Launcher.Plugin.OneNote
+namespace Flow.Launcher.Plugin.OneNote.UI
 {
     public partial class SettingsView : UserControl
     {
