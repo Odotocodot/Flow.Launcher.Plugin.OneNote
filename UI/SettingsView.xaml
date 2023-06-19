@@ -18,6 +18,7 @@
                 <ui:ThemeResources />
                 <!--<ui:XamlControlsResources />-->
             </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis" />
             <Style x:Key="StackPanelStyle" TargetType="StackPanel">
                 <Setter Property="HorizontalAlignment" Value="Left" />
                 <Setter Property="VerticalAlignment" Value="Center" />
@@ -28,12 +29,18 @@
                 <Setter Property="HorizontalAlignment" Value="Left" />
                 <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
-            <Style x:Key="SubTitleStyle" TargetType="TextBlock">
+            <Style x:Key="HelperTextStyle" TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{DynamicResource Color04B}" />
                 <Setter Property="FontSize" Value="12" />
                 <Setter Property="Margin" Value="0,0,0,0" />
-                <Setter Property="Padding" Value="0,0,24,0" />
-                <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+                <Setter Property="Padding" Value="0,0,12,0" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <!--<Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type StackPanel}}}" Value="True">
+                        <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                </Style.Triggers>-->
             </Style>
             <Style x:Key="ToggleSwitchStyle" TargetType="ui:ToggleSwitch">
                 <Setter Property="Grid.Column" Value="1" />
@@ -44,13 +51,13 @@
                 <Setter Property="OffContent" Value="Off" />
                 <Setter Property="OnContent" Value="On" />
             </Style>
-            <GridLength x:Key="GridRowHeight">35</GridLength>
+            <GridLength x:Key="GridRowHeight">55</GridLength>
         </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid Margin="60,10,10,10">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="400" />
             <ColumnDefinition Width="220" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -62,8 +69,12 @@
         </Grid.RowDefinitions>
         <!--  row  0  -->
         <StackPanel Grid.Row="0" Style="{DynamicResource StackPanelStyle}">
-            <TextBlock Style="{DynamicResource TitleStyle}" Text="Show Recycle Bin items" />
-            <TextBlock Style="{DynamicResource SubTitleStyle}" Text="When using the notebook explorer, show items in the recycle bin" />
+            <TextBlock Style="{DynamicResource TitleStyle}" Text="Show recycle bin" />
+            <TextBlock Style="{DynamicResource HelperTextStyle}">
+                <Run Text="When using &quot;" />
+                <Run Text="{x:Static Member=local:Keywords.NotebookExplorer}" />
+                <Run Text="&quot; show items that are in the recycle bin." />
+            </TextBlock>
         </StackPanel>
         <ui:ToggleSwitch
             Grid.Row="0"
@@ -72,7 +83,11 @@
         <!--  row 1  -->
         <StackPanel Grid.Row="1" Style="{DynamicResource StackPanelStyle}">
             <TextBlock Style="{DynamicResource TitleStyle}" Text="Show encrypted sections" />
-            <TextBlock Style="{DynamicResource SubTitleStyle}" Text="When using the notebook explorer, show encrypted sections, if the section has been unlocked allow access." />
+            <TextBlock Style="{DynamicResource HelperTextStyle}">
+                <Run Text="When using &quot;" />
+                <Run Text="{x:Static Member=local:Keywords.NotebookExplorer}" />
+                <Run Text="&quot; show encrypted sections, if the section has been unlocked allow access." />
+            </TextBlock>
         </StackPanel>
         <ui:ToggleSwitch
             Grid.Row="1"
@@ -81,7 +96,8 @@
         <!--  row 2  -->
         <StackPanel Grid.Row="2" Style="{DynamicResource StackPanelStyle}">
             <TextBlock Style="{DynamicResource TitleStyle}" Text="Display unread icon" />
-            <TextBlock Style="{DynamicResource SubTitleStyle}" Text="Displays bullet point (&#x2022;) when a item has unread changes." />
+            <TextBlock Style="{DynamicResource HelperTextStyle}" Text="Displays a bullet point (&#x2022;) when a item has unread changes." />
+
         </StackPanel>
         <ui:ToggleSwitch
             Grid.Row="2"
@@ -90,14 +106,17 @@
         <!--  row 3  -->
         <StackPanel Grid.Row="3" Style="{DynamicResource StackPanelStyle}">
             <TextBlock Style="{DynamicResource TitleStyle}" Text="Default number of recent pages" />
-            <TextBlock Style="{DynamicResource SubTitleStyle}" Text="The inital number of recent pages to show when using rcnpgs:" />
+            <TextBlock Style="{DynamicResource HelperTextStyle}">
+                <Run Text="The initial number of recent pages to show when using &quot;" />
+                <Run Text="{x:Static Member=local:Keywords.RecentPages}" />
+                <Run Text="&quot;" />
+            </TextBlock>
         </StackPanel>
         <ComboBox
             Grid.Row="3"
             Grid.Column="1"
             VerticalAlignment="Center"
             VerticalContentAlignment="Center"
-            BorderBrush="Transparent"
             ItemsSource="{Binding DefaultRecentCountOptions}"
             SelectedItem="{Binding Settings.DefaultRecentsCount}" />
         <!--  row 4  -->
