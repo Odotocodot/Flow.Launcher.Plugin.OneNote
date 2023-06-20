@@ -18,8 +18,26 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             this.settings = settings;
             this.context = context;
-            notebookIcons = new OneNoteItemIcons(context, "Images/NotebookIcons", Icons.Notebook);
-            sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Icons.Section);
+            notebookIcons = new OneNoteItemIcons(context, "Images/NotebookIcons", Icons.Notebook, settings);
+            sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Icons.Section, settings);
+        }
+
+        public OneNoteItemIcons NotebookIcons => notebookIcons;
+        public OneNoteItemIcons SectionIcons => sectionIcons;
+        private string GetIconPath(IOneNoteItem item)
+        {
+            return item.ItemType switch
+            {
+                OneNoteItemType.Notebook => settings.CreateColoredIcons && ((OneNoteNotebook)item).Color.HasValue
+                                        ? notebookIcons.GetIcon(((OneNoteNotebook)item).Color.Value)
+                                        : Icons.Notebook,
+                OneNoteItemType.SectionGroup => Icons.SectionGroup,
+                OneNoteItemType.Section => settings.CreateColoredIcons && ((OneNoteSection)item).Color.HasValue
+                                        ? sectionIcons.GetIcon(((OneNoteSection)item).Color.Value)
+                                        : Icons.Section,
+                OneNoteItemType.Page => Icons.Page,
+                _ => Icons.Warning,
+            };
         }
 
         private static string GetNicePath(IOneNoteItem item, bool includeSelf = true, string separator = PathSeparator)
@@ -59,7 +77,6 @@ namespace Flow.Launcher.Plugin.OneNote
             string subTitle = GetNicePath(item, true);
             string subTitleToolTip = null;
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(item, true, Keywords.NotebookExplorerSeparator)}";
-            string iconPath = null;
 
             switch (item.ItemType)
             {
@@ -72,7 +89,6 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     subTitle = string.Empty;
                     autoCompleteText += Keywords.NotebookExplorerSeparator;
-                    iconPath = notebookIcons.GetIcon(notebook.Color.Value);
                     break;
                 case OneNoteItemType.SectionGroup:
                     OneNoteSectionGroup sectionGroup = (OneNoteSectionGroup)item;
@@ -82,7 +98,6 @@ namespace Flow.Launcher.Plugin.OneNote
                     $"Sections Groups:\t{sectionGroup.SectionGroups.Count(),RightAlignment}";
 
                     autoCompleteText += Keywords.NotebookExplorerSeparator;                    
-                    iconPath = Icons.SectionGroup;
                     break;
                 case OneNoteItemType.Section:
                     OneNoteSection section = (OneNoteSection)item;
@@ -100,7 +115,6 @@ namespace Flow.Launcher.Plugin.OneNote
                     $"Pages:\t{section.Pages.Count(),RightAlignment}";
 
                     autoCompleteText += Keywords.NotebookExplorerSeparator;
-                    iconPath = sectionIcons.GetIcon(section.Color.Value);
                     break;
                 case OneNoteItemType.Page:
                     OneNotePage page = (OneNotePage)item;
@@ -109,8 +123,6 @@ namespace Flow.Launcher.Plugin.OneNote
                     subTitleToolTip = $"{subTitle}\n\n"+
                     $"Created:\t\t{page.Created}\n"+
                     $"Last Modified:\t{page.LastModified}";
-
-                    iconPath = Icons.Logo;
                     break;
             }
             return new Result
@@ -122,7 +134,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 SubTitleToolTip = subTitleToolTip,
                 AutoCompleteText = autoCompleteText,
                 Score = score,
-                IcoPath = iconPath,
+                IcoPath = GetIconPath(item),
                 ContextData = item,
                 Action = c =>
                 {

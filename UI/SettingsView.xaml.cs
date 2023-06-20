@@ -1,13 +1,25 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 
 namespace Flow.Launcher.Plugin.OneNote.UI
 {
     public partial class SettingsView : UserControl
     {
-        public SettingsView(Settings settings)
+        private readonly SettingsViewModel viewModel;
+        public SettingsView(SettingsViewModel viewModel)
         {
             InitializeComponent();
-            DataContext = new SettingsViewModel(settings);
+            DataContext = this.viewModel = viewModel;
+        }
+
+        public void ClearCachedIcons()
+        {
+            var result = MessageBox.Show("Delete cached icons for notebooks and sections.", "Clear Cached Icons", MessageBoxButton.YesNo);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                viewModel.ClearCachedIcons();
+            }
         }
     }
 }

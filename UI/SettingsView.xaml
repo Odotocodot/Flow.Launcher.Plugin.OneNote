@@ -138,8 +138,8 @@
             <Run Text="&quot;." />
         </TextBlock>
         <!--#endregion-->
-        <!--  row 8  -->
-        <!--<StackPanel Grid.Row="8" Style="{DynamicResource StackPanelStyle}">
+        <!--#region row 8-->
+        <!-- <StackPanel Grid.Row="8" Style="{DynamicResource StackPanelStyle}">
             <TextBlock Style="{DynamicResource TitleStyle}" Text="Create colored icons for notebook and sections." />
         </StackPanel>
         <StackPanel
@@ -152,6 +152,7 @@
             <Button Margin="10,0,0,0">
                 Delete Cached Images ..MB
             </Button>
-        </StackPanel>-->
+        </StackPanel> -->
+        <!--#endregion-->
     </Grid>
 </UserControl>

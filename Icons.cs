@@ -10,6 +10,7 @@
         public const string Recent = "Images/recent.png";
         public const string RecentPage = "Images/recent_page.png";
 
+        public const string Page = Logo;
         public const string Section = "Images/section.png";
         public const string SectionGroup = "Images/section_group.png";
         public const string Notebook = "Images/notebook.png";

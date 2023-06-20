@@ -201,7 +201,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public System.Windows.Controls.Control CreateSettingPanel()
         {
-            return new UI.SettingsView(settings);
+            return new UI.SettingsView(new UI.SettingsViewModel(settings, rc));
         }
 
         public static T GetOneNote<T>(Func<OneNoteApplication, T> action, Func<COMException, T> onException = null)

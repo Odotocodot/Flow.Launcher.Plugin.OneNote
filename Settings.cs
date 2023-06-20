@@ -6,6 +6,7 @@
         private int defaultRecentsCount = 5;
         private bool showRecycleBin = true;
         private bool showEncrypted = false;
+        private bool createColoredIcons = true;
 
         public bool ShowRecycleBin
         {
@@ -43,6 +44,16 @@
                 showEncrypted = value;
                 OnPropertyChanged();
             } 
+        }
+
+        public bool CreateColoredIcons
+        {
+            get => createColoredIcons;
+            set
+            {
+                createColoredIcons = value;
+                OnPropertyChanged();
+            }
         }
 
     }
