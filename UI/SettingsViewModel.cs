@@ -18,6 +18,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI
 
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);
 
+        public int CachedIconCount => notebookIcons.CachedIconCount + sectionIcons.CachedIconCount;
+        public string CachedIconsSize => GetBytesReadable(notebookIcons.GetIconsFileSize());
 
         public void ClearCachedIcons()
         {
@@ -25,8 +27,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             sectionIcons.ClearCachedIcons();
             OnPropertyChanged(nameof(CachedIconsSize));
         }
-
-        public string CachedIconsSize => GetBytesReadable(notebookIcons.GetIconsFileSize() + sectionIcons.GetIconsFileSize());
 
         // Returns the human-readable file size for an arbitrary, 64-bit file size 
         // The default format is "0.### XB", e.g. "4.2 KB" or "1.434 GB"
@@ -70,6 +70,12 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             readable /= 1024;
             // Return formatted number with suffix
             return readable.ToString("0.### ") + suffix;
+        }
+
+        public void Notify()
+        {
+            OnPropertyChanged(nameof(CachedIconsSize));
+            OnPropertyChanged(nameof(CachedIconCount));
         }
     }
 }

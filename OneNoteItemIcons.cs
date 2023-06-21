@@ -28,6 +28,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     icons.Add(Color.FromArgb(argb), imagePath);
             }
         }
+        public int CachedIconCount => icons.Count;
 
         public void ClearCachedIcons()
         {
@@ -37,11 +38,12 @@ namespace Flow.Launcher.Plugin.OneNote
             }
             icons.Clear();
         }
+
         public long GetIconsFileSize()
         {
             return new DirectoryInfo(iconDirectory).EnumerateFiles()
                                                    .Select(file => file.Length)
-                                                   .Aggregate((a, b)=> a+b);
+                                                   .Aggregate(0L, (a, b) => a + b);
         }
 
         public string GetIcon(Color color)
