@@ -29,12 +29,14 @@ namespace Flow.Launcher.Plugin.OneNote
             return item.ItemType switch
             {
                 OneNoteItemType.Notebook => settings.CreateColoredIcons && ((OneNoteNotebook)item).Color.HasValue
-                                        ? notebookIcons.GetIcon(((OneNoteNotebook)item).Color.Value)
-                                        : Icons.Notebook,
-                OneNoteItemType.SectionGroup => Icons.SectionGroup,
+                                            ? notebookIcons.GetIcon(((OneNoteNotebook)item).Color.Value)
+                                            : Icons.Notebook,
+                OneNoteItemType.SectionGroup => ((OneNoteSectionGroup)item).IsRecycleBin 
+                                                ? Icons.RecycleBin 
+                                                : Icons.SectionGroup,
                 OneNoteItemType.Section => settings.CreateColoredIcons && ((OneNoteSection)item).Color.HasValue
-                                        ? sectionIcons.GetIcon(((OneNoteSection)item).Color.Value)
-                                        : Icons.Section,
+                                           ? sectionIcons.GetIcon(((OneNoteSection)item).Color.Value)
+                                           : Icons.Section,
                 OneNoteItemType.Page => Icons.Page,
                 _ => Icons.Warning,
             };

@@ -7,6 +7,7 @@
         public const string Sync = "Images/refresh.png";
         public const string Warning = "Images/warning.png";
         public const string Search = Logo;
+        public const string RecycleBin = "Images/recycle_bin.png";
         public const string Recent = "Images/recent.png";
         public const string RecentPage = "Images/recent_page.png";
 
