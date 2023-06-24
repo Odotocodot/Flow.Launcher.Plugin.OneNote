@@ -39,18 +39,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             double readable;
             switch (absolute_i)
             {
-                case >= 0x1000000000000000: // Exabyte
-                    suffix = "EB";
-                    readable = i >> 50;
-                    break;
-                case >= 0x4000000000000: // Petabyte
-                    suffix = "PB";
-                    readable = i >> 40;
-                    break;
-                case >= 0x10000000000: // Terabyte
-                    suffix = "TB";
-                    readable = i >> 30;
-                    break;
                 case >= 0x40000000: // Gigabyte 
                     suffix = "GB";
                     readable = i >> 20;
@@ -69,7 +57,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             // Divide by 1024 to get fractional value
             readable /= 1024;
             // Return formatted number with suffix
-            return readable.ToString("0.### ") + suffix;
+            return readable.ToString("0.## ") + suffix;
         }
 
         public void Notify()

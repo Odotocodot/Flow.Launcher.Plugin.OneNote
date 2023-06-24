@@ -12,7 +12,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             InitializeComponent();
             DataContext = this.viewModel = viewModel;
             LostFocus += (s,e) => viewModel.Notify();
-            Unloaded += (s,e) => viewModel.Notify();
         }
 
         public async void ClearCachedIcons(object sender, RoutedEventArgs e)
@@ -27,10 +26,9 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 DefaultButton = ContentDialogButton.Primary,
             };
             var result = await dialog.ShowAsync();
-            if(result == ContentDialogResult.Primary)
-            {
+
+            if (result == ContentDialogResult.Primary)
                 viewModel.ClearCachedIcons();
-            }
         }
     }
 }

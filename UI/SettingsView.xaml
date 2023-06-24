@@ -17,9 +17,31 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ui:ThemeResources />
-                <!--<ui:XamlControlsResources />-->
             </ResourceDictionary.MergedDictionaries>
-            <BooleanToVisibilityConverter x:Key="BoolToVis" />
+            <!--
+                To make the view match Flow Launcher the styles have been yoinked (replicated) from the repository. (https://github.com/Flow-Launcher/Flow.Launcher/blob/dev/Flow.Launcher/SettingWindow.xaml)
+                The MIT License (MIT)
+                
+                Copyright (c) 2019 Flow-Launcher
+                Copyright (c) 2015 Wox
+                
+                Permission is hereby granted, free of charge, to any person obtaining a copy of
+                this software and associated documentation files (the "Software"), to deal in
+                the Software without restriction, including without limitation the rights to
+                use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+                the Software, and to permit persons to whom the Software is furnished to do so,
+                subject to the following conditions:
+                
+                The above copyright notice and this permission notice shall be included in all
+                copies or substantial portions of the Software.
+                
+                THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+                IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+                FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+                COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+                IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+                CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+            -->
             <Style
                 x:Key="SideToggleSwitch"
                 BasedOn="{StaticResource DefaultToggleSwitch}"
@@ -71,7 +93,6 @@
                 <Setter Property="Margin" Value="24,0,16,0" />
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="FontSize" Value="20" />
-                <!--<Setter Property="FontFamily" Value="/Resources/#Segoe Fluent Icons" />-->
                 <Setter Property="Foreground" Value="{DynamicResource Color05B}" />
             </Style>
             <Style x:Key="TextPanel" TargetType="{x:Type StackPanel}">
@@ -112,7 +133,6 @@
                     IsOn="{Binding Settings.ShowRecycleBin}"
                     Style="{DynamicResource SideToggleSwitch}" />
                 <Grid>
-                    <!--<ui:FontIcon Glyph="&#xe74d;" Style="{StaticResource Glyph}" />-->
                     <ui:FontIcon Glyph="&#xe8a5;" Style="{StaticResource Glyph}" />
                     <ui:FontIcon Glyph="&#xf143;" Style="{StaticResource Glyph}" />
                 </Grid>
@@ -135,7 +155,6 @@
                     Grid.Column="2"
                     IsOn="{Binding Settings.ShowEncrypted}"
                     Style="{DynamicResource SideToggleSwitch}" />
-                <!--  ui:FontIcon Glyph="&#xe785;" Style="{StaticResource Glyph}" /> unlocked icons  -->
                 <ui:FontIcon Glyph="&#xe72e;" Style="{StaticResource Glyph}" />
             </ItemsControl>
         </Border>
@@ -163,10 +182,19 @@
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Create colored icons for notebook and sections" />
                 </StackPanel>
-                <ui:ToggleSwitch
-                    Grid.Column="2"
-                    IsOn="{Binding Settings.CreateColoredIcons}"
-                    Style="{DynamicResource SideToggleSwitch}" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button
+                        Margin="0,4,22,4"
+                        HorizontalAlignment="Center"
+                        HorizontalContentAlignment="Center"
+                        Click="ClearCachedIcons">
+                        <TextBlock HorizontalAlignment="Center">
+                            <Run Text="Clear Cached Images: " />
+                            <Run d:Text="1000 MB" Text="{Binding CachedIconsSize, Mode=OneWay}" />
+                        </TextBlock>
+                    </Button>
+                    <ui:ToggleSwitch IsOn="{Binding Settings.CreateColoredIcons}" Style="{DynamicResource SideToggleSwitch}" />
+                </StackPanel>
                 <ui:FontIcon Glyph="&#xe8b9;" Style="{StaticResource Glyph}" />
             </ItemsControl>
         </Border>
