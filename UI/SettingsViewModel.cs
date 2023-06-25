@@ -8,11 +8,11 @@ namespace Flow.Launcher.Plugin.OneNote.UI
     {
         private readonly OneNoteItemIcons notebookIcons;
         private readonly OneNoteItemIcons sectionIcons;
-        public SettingsViewModel(Settings settings, ResultCreator resultCreator)
+        public SettingsViewModel(Settings settings, OneNoteItemIcons notebookIcons, OneNoteItemIcons sectionIcons)
         {
             Settings = settings;
-            notebookIcons = resultCreator.NotebookIcons;
-            sectionIcons = resultCreator.SectionIcons;
+            this.notebookIcons = notebookIcons;
+            this.sectionIcons = sectionIcons;
         }
         public Settings Settings { get; init; }
 

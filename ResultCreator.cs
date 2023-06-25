@@ -14,16 +14,13 @@ namespace Flow.Launcher.Plugin.OneNote
         private const string PathSeparator = " > ";
         private const int RightAlignment = 5;
 
-        public ResultCreator(PluginInitContext context, Settings settings)
+        public ResultCreator(PluginInitContext context,OneNoteItemIcons notebookIcons, OneNoteItemIcons sectionIcons,  Settings settings)
         {
             this.settings = settings;
             this.context = context;
-            notebookIcons = new OneNoteItemIcons(context, "Images/NotebookIcons", Icons.Notebook, settings);
-            sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Icons.Section, settings);
+            this.notebookIcons = notebookIcons;
+            this.sectionIcons = sectionIcons;  
         }
-
-        public OneNoteItemIcons NotebookIcons => notebookIcons;
-        public OneNoteItemIcons SectionIcons => sectionIcons;
         private string GetIconPath(IOneNoteItem item)
         {
             return item.ItemType switch
