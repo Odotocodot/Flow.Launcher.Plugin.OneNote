@@ -152,6 +152,9 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
             {
+                if (parent.IsInRecycleBin())
+                    return;
+                
                 switch (parent?.ItemType)
                 {
                     case null:
@@ -163,7 +166,9 @@ namespace Flow.Launcher.Plugin.OneNote
                         results.Add(rc.CreateNewSectionGroupResult(query, parent));
                         break;
                     case OneNoteItemType.Section:
-                        results.Add(ResultCreator.CreateNewPageResult(query, (OneNoteSection)parent));
+                        var section = (OneNoteSection)parent;
+                        if(!section.Locked)
+                            results.Add(ResultCreator.CreateNewPageResult(query, section));
                         break;
                     default:
                         break;
