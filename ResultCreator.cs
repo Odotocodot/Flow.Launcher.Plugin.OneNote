@@ -8,35 +8,14 @@ namespace Flow.Launcher.Plugin.OneNote
     {
         private readonly PluginInitContext context;
         private readonly Settings settings;
-        private readonly OneNoteItemIcons notebookIcons;
-        private readonly OneNoteItemIcons sectionIcons;
 
         private const string PathSeparator = " > ";
         private const int RightAlignment = 5;
 
-        public ResultCreator(PluginInitContext context,OneNoteItemIcons notebookIcons, OneNoteItemIcons sectionIcons,  Settings settings)
+        public ResultCreator(PluginInitContext context,  Settings settings)
         {
             this.settings = settings;
             this.context = context;
-            this.notebookIcons = notebookIcons;
-            this.sectionIcons = sectionIcons;  
-        }
-        private string GetIconPath(IOneNoteItem item)
-        {
-            return item.ItemType switch
-            {
-                OneNoteItemType.Notebook => settings.CreateColoredIcons && ((OneNoteNotebook)item).Color.HasValue
-                                            ? notebookIcons.GetIcon(((OneNoteNotebook)item).Color.Value)
-                                            : Icons.Notebook,
-                OneNoteItemType.SectionGroup => ((OneNoteSectionGroup)item).IsRecycleBin 
-                                                ? Icons.RecycleBin 
-                                                : Icons.SectionGroup,
-                OneNoteItemType.Section => settings.CreateColoredIcons && ((OneNoteSection)item).Color.HasValue
-                                           ? sectionIcons.GetIcon(((OneNoteSection)item).Color.Value)
-                                           : Icons.Section,
-                OneNoteItemType.Page => Icons.Page,
-                _ => Icons.Warning,
-            };
         }
 
         private static string GetNicePath(IOneNoteItem item, bool includeSelf = true, string separator = PathSeparator)
@@ -133,7 +112,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 SubTitleToolTip = subTitleToolTip,
                 AutoCompleteText = autoCompleteText,
                 Score = score,
-                IcoPath = GetIconPath(item),
+                IcoPath = Icons.GetIcon(item),
                 ContextData = item,
                 Action = c =>
                 {

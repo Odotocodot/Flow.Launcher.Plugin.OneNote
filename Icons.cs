@@ -1,4 +1,6 @@
-﻿namespace Flow.Launcher.Plugin.OneNote
+﻿using Odotocodot.OneNote.Linq;
+
+namespace Flow.Launcher.Plugin.OneNote
 {
     public static class Icons
     {
@@ -20,5 +22,44 @@
         public const string NewSection = "Images/new_section.png";
         public const string NewSectionGroup = "Images/new_section_group.png";
         public const string NewNotebook = "Images/new_notebook.png";
+
+        private static OneNoteItemIcons notebookIcons;
+        private static OneNoteItemIcons sectionIcons;
+        private static Settings settings;
+        
+        public static int CachedIconCount => notebookIcons.CachedIconCount + sectionIcons.CachedIconCount;
+
+        public static void Init(PluginInitContext context, Settings settings)
+        {
+            notebookIcons = new OneNoteItemIcons(context, "Images/NotebookIcons", Notebook, settings);
+            sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Section, settings);
+            Icons.settings = settings;
+        }
+        public static string GetIcon(IOneNoteItem item)
+        {
+            return item.ItemType switch
+            {
+                OneNoteItemType.Notebook => settings.CreateColoredIcons && ((OneNoteNotebook)item).Color.HasValue
+                                            ? notebookIcons.GetIcon(((OneNoteNotebook)item).Color.Value)
+                                            : Notebook,
+                OneNoteItemType.SectionGroup => ((OneNoteSectionGroup)item).IsRecycleBin
+                                                ? RecycleBin
+                                                : SectionGroup,
+                OneNoteItemType.Section => settings.CreateColoredIcons && ((OneNoteSection)item).Color.HasValue
+                                           ? sectionIcons.GetIcon(((OneNoteSection)item).Color.Value)
+                                           : Section,
+                OneNoteItemType.Page => Page,
+                _ => Warning,
+            };
+        }
+
+        public static long GetIconsFileSize() => notebookIcons.GetIconsFileSize() + sectionIcons.GetIconsFileSize();
+
+        public static void ClearCachedIcons() 
+        {
+            notebookIcons.ClearCachedIcons();
+            sectionIcons.ClearCachedIcons();
+        } 
+
     }
 }

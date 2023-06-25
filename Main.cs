@@ -14,16 +14,12 @@ namespace Flow.Launcher.Plugin.OneNote
         private ResultCreator rc;
         private static Settings settings;
 
-        private OneNoteItemIcons notebookIcons;
-        private OneNoteItemIcons sectionIcons;
-      
         public void Init(PluginInitContext context)
         {
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
-            notebookIcons = new OneNoteItemIcons(context, "Images/NotebookIcons", Icons.Notebook, settings);
-            sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Icons.Section, settings);
-            rc = new ResultCreator(context,notebookIcons,sectionIcons, settings);
+            Icons.Init(context, settings);
+            rc = new ResultCreator(context, settings);
             notebookExplorer = new NotebookExplorer(rc);
         }
         
@@ -206,7 +202,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public System.Windows.Controls.Control CreateSettingPanel()
         {
-            return new UI.SettingsView(new UI.SettingsViewModel(settings, notebookIcons, sectionIcons));
+            return new UI.SettingsView(new UI.SettingsViewModel(settings));
         }
 
         public static T GetOneNote<T>(Func<OneNoteApplication, T> action, Func<COMException, T> onException = null)

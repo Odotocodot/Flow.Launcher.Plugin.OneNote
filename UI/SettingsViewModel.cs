@@ -6,25 +6,19 @@ namespace Flow.Launcher.Plugin.OneNote.UI
 {
     public class SettingsViewModel : BaseModel
     {
-        private readonly OneNoteItemIcons notebookIcons;
-        private readonly OneNoteItemIcons sectionIcons;
-        public SettingsViewModel(Settings settings, OneNoteItemIcons notebookIcons, OneNoteItemIcons sectionIcons)
+        public SettingsViewModel(Settings settings)
         {
             Settings = settings;
-            this.notebookIcons = notebookIcons;
-            this.sectionIcons = sectionIcons;
         }
         public Settings Settings { get; init; }
 
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);
-
-        public int CachedIconCount => notebookIcons.CachedIconCount + sectionIcons.CachedIconCount;
-        public string CachedIconsSize => GetBytesReadable(notebookIcons.GetIconsFileSize());
+        public int CachedIconCount => Icons.CachedIconCount;
+        public string CachedIconsSize => GetBytesReadable(Icons.GetIconsFileSize());
 
         public void ClearCachedIcons()
         {
-            notebookIcons.ClearCachedIcons();
-            sectionIcons.ClearCachedIcons();
+            Icons.ClearCachedIcons();
             OnPropertyChanged(nameof(CachedIconsSize));
         }
 
