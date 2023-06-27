@@ -261,51 +261,7 @@ namespace Flow.Launcher.Plugin.OneNote
         }
 
         #endregion
-
-        public List<Result> SearchByTitle(string query, IEnumerable<IOneNoteItem> currentCollection, IOneNoteItem parent = null)
-        {
-            if (query.Length == Keywords.SearchByTitle.Length && parent == null)
-                return SingleResult($"Now searching by title.", null, Icons.Search);
-
-            List<int> highlightData = null;
-            int score = 0;
-            var results = new List<Result>();
-
-            var currentSearch = query[Keywords.SearchByTitle.Length..];
-
-            results = currentCollection.Traverse(item =>
-                                        {
-                                            if (!SettingsCheck(item))
-                                                return false;
-
-                                            return FuzzySearch(item.Name, currentSearch, out highlightData, out score);
-                                        })
-                                        .Select(item => CreateOneNoteItemResult(item, false, highlightData, score))
-                                        .ToList();
-
-            if (!results.Any())
-                results = NoMatchesFoundResult();
-
-            return results;
-        }
-        public bool FuzzySearch(string itemName, string searchString, out List<int> highlightData, out int score)
-        {
-            var matchResult = context.API.FuzzySearch(searchString, itemName);
-            highlightData = matchResult.MatchData;
-            score = matchResult.Score;
-            return matchResult.IsSearchPrecisionScoreMet();
-        }
-
-        public bool SettingsCheck(IOneNoteItem item)
-        {
-            bool success = true;
-            if (!settings.ShowEncrypted && item.ItemType == OneNoteItemType.Section)
-                success = !((OneNoteSection)item).Encrypted;
-
-            if (!settings.ShowRecycleBin && item.IsInRecycleBin())
-                success = false;
-            return success;
-        }
+        
         public static List<Result> NoMatchesFoundResult()
         {
             return SingleResult("No matches found",

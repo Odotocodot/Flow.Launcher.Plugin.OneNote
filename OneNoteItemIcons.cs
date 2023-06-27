@@ -56,10 +56,10 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 return baseIconPath;
             }
-            
-            //Create Colored Image
-            using (var bitmap = new Bitmap(baseIconPath))
+            else
             {
+                //Create Colored Image
+                using var bitmap = new Bitmap(baseIconPath);
                 BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
                 int bytesPerPixel = Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
@@ -82,10 +82,11 @@ namespace Flow.Launcher.Plugin.OneNote
                 Marshal.Copy(pixels, 0, pointer, pixels.Length);
                 bitmap.UnlockBits(bitmapData);
                 path = Path.Combine(iconDirectory, color.ToArgb() + ".png");
-                bitmap.Save(path, ImageFormat.Png);
+                    bitmap.Save(path, ImageFormat.Png);
+                
+                icons.Add(color, path);
+                return path;
             }
-            icons.Add(color, path);
-            return path;
         }
     }
 }

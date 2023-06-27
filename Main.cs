@@ -10,17 +10,15 @@ namespace Flow.Launcher.Plugin.OneNote
     {
         private PluginInitContext context;
 
-        private NotebookExplorer notebookExplorer;
-        private ResultCreator rc;
-        private static Settings settings;
+        private SearchManager searchManager;
+        private Settings settings;
 
         public void Init(PluginInitContext context)
         {
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
             Icons.Init(context, settings);
-            rc = new ResultCreator(context, settings);
-            notebookExplorer = new NotebookExplorer(rc);
+            searchManager = new SearchManager(context, settings, new ResultCreator(context, settings));
         }
         
         public List<Result> Query(Query query)
@@ -100,19 +98,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                 return GetOneNote(oneNote =>
                 {
-                    return oneNote.GetNotebooks()
-                                  .GetPages()
-                                  .OrderByDescending(pg => pg.LastModified)
-                                  .Take(count)
-                                  .Select(pg =>
-                                  {
-                                      Result result = rc.CreatePageResult(pg);
-                                      result.SubTitleToolTip = result.SubTitle;
-                                      result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
-                                      result.IcoPath = Icons.RecentPage;
-                                      return result;
-                                  })
-                                  .ToList();
+                    return searchManager.RecentPages(oneNote, count);
                 });
             }
 
@@ -121,83 +107,27 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 return GetOneNote(oneNote =>
                 {
-                    return notebookExplorer.Explore(oneNote, query);
+                    return searchManager.Explore(oneNote, query);
                 });
             }
             //Search all items by title
             if(query.FirstSearch.StartsWith(Keywords.SearchByTitle))
             {
-                var results = GetOneNote(oneNote => 
+                return GetOneNote(oneNote => 
                 {
-                    return rc.SearchByTitle(string.Join(" ", query.SearchTerms), oneNote.GetNotebooks());
+                    return searchManager.TitleSearch(string.Join(" ", query.SearchTerms), oneNote.GetNotebooks());
                 });
-                
-                if (results.Any())
-                    return results;
-                    
-                return ResultCreator.NoMatchesFoundResult();
             }
-
-            //Check for invalid start of query i.e. symbols
-            if (!char.IsLetterOrDigit(query.Search[0]))
-            {
-                return ResultCreator.InvalidQuery();
-            }
-
             //Default search 
-            var searches = GetOneNote(oneNote =>
+            return GetOneNote(oneNote =>
             {
-                return oneNote.FindPages(query.Search)
-                              .Select(pg => rc.CreatePageResult(pg, query.Search));
+                return searchManager.DefaultSearch(oneNote, query.Search);
             });
-
-            if (searches.Any())
-                return searches.ToList();
-
-            return ResultCreator.NoMatchesFoundResult();
         }
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
-            var results = new List<Result>();
-            if(selectedResult.ContextData is IOneNoteItem item)
-            {
-                var result = GetOneNote(oneNote =>
-                {
-                    return rc.CreateOneNoteItemResult(item, false);
-                });
-                result.Title = $"Open and sync \"{item.Name}\"";
-                result.SubTitle = string.Empty;
-                result.ContextData = null;
-                results.Add(result);
-            }
-            return results;
-        }
-
-        private static string GetLastEdited(TimeSpan diff)
-        {
-            string lastEdited = "Last edited ";
-            if (PluralCheck(diff.TotalDays,    "day",  ref lastEdited)
-             || PluralCheck(diff.TotalHours,   "hour", ref lastEdited)
-             || PluralCheck(diff.TotalMinutes, "min",  ref lastEdited)
-             || PluralCheck(diff.TotalSeconds, "sec",  ref lastEdited))
-                return lastEdited;
-            else
-                return lastEdited += "Now.";
-
-            static bool PluralCheck(double totalTime, string timeType, ref string lastEdited)
-            {
-                var roundedTime = (int)Math.Round(totalTime);
-                if (roundedTime > 0)
-                {
-                    string plural = roundedTime == 1 ? "" : "s";
-                    lastEdited += $"{roundedTime} {timeType}{plural} ago.";
-                    return true;
-                }
-                else
-                    return false;
-
-            }
+            return searchManager.ContextMenu(selectedResult);
         }
 
         public System.Windows.Controls.Control CreateSettingPanel()
