@@ -31,24 +31,24 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public static void Init(PluginInitContext context, Settings settings)
         {
-            notebookIcons = new OneNoteItemIcons(context, "Images/NotebookIcons", Notebook, settings);
-            sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Section, settings);
+            notebookIcons = new OneNoteItemIcons(context, "Images/NotebookIcons", Notebook);
+            sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Section);
             Icons.settings = settings;
         }
         public static string GetIcon(IOneNoteItem item)
         {
-            return item.ItemType switch
+            return item switch
             {
-                OneNoteItemType.Notebook => settings.CreateColoredIcons && ((OneNoteNotebook)item).Color.HasValue
-                                            ? notebookIcons.GetIcon(((OneNoteNotebook)item).Color.Value)
-                                            : Notebook,
-                OneNoteItemType.SectionGroup => ((OneNoteSectionGroup)item).IsRecycleBin
-                                                ? RecycleBin
-                                                : SectionGroup,
-                OneNoteItemType.Section => settings.CreateColoredIcons && ((OneNoteSection)item).Color.HasValue
-                                           ? sectionIcons.GetIcon(((OneNoteSection)item).Color.Value)
-                                           : Section,
-                OneNoteItemType.Page => Page,
+                OneNoteNotebook notebook => settings.CreateColoredIcons && notebook.Color.HasValue
+                                                ? notebookIcons.GetIcon(notebook.Color.Value)
+                                                : Notebook,
+                OneNoteSectionGroup sectionGroup => sectionGroup.IsRecycleBin
+                                                        ? RecycleBin
+                                                        : SectionGroup,
+                OneNoteSection section => settings.CreateColoredIcons && section.Color.HasValue
+                                              ? sectionIcons.GetIcon(section.Color.Value)
+                                              : Section,
+                OneNotePage => Page,
                 _ => Warning,
             };
         }

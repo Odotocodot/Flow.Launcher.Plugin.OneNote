@@ -40,10 +40,10 @@ namespace Odotocodot.OneNote.Linq
 
             if(addChildren)
             {
-                Sections = element.Elements(OneNoteParser.GetXName(OneNoteItemType.Section))
+                Sections = element.Elements(OneNoteParser.GetXName<OneNoteSection>())
                                   .Select(e => new OneNoteSection(e, this));
 
-                SectionGroups = element.Elements(OneNoteParser.GetXName(OneNoteItemType.SectionGroup))
+                SectionGroups = element.Elements(OneNoteParser.GetXName<OneNoteSectionGroup>())
                                        .Select(e => new OneNoteSectionGroup(e, this)); 
             }
         }
@@ -51,7 +51,6 @@ namespace Odotocodot.OneNote.Linq
         public string Name { get; init; }
         public bool IsUnread { get; init; }
         public DateTime LastModified { get; init; }
-        OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.SectionGroup;
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => ((IEnumerable<IOneNoteItem>)Sections).Concat(SectionGroups);
         public IOneNoteItem Parent { get; init; }
         /// <summary>

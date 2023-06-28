@@ -21,8 +21,6 @@ namespace Odotocodot.OneNote.Linq
         /// The time the item was last modified
         /// </summary>
         DateTime LastModified { get; }
-        /// <inheritdoc cref="OneNoteItemType"/>
-        OneNoteItemType ItemType { get; }
         /// <summary>
         /// The children of the item, e.g. for a notebook it would be sections and/or section groups. <br/>
         /// If the item has no children an empty <see cref="IEnumerable{T}"/> (where <typeparamref name="T"/> is <see cref="IOneNoteItem"/>) is returned.

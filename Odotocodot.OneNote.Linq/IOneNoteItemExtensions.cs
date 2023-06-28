@@ -53,11 +53,11 @@ namespace Odotocodot.OneNote.Linq
         /// <param name="item"></param>
         public static bool IsInRecycleBin(this IOneNoteItem item)
         {
-            return item.ItemType switch
+            return item switch
             {
-                OneNoteItemType.SectionGroup =>  ((OneNoteSectionGroup)item).IsRecycleBin,
-                OneNoteItemType.Section => ((OneNoteSection)item).IsInRecycleBin || ((OneNoteSection)item).IsDeletedPages, //If IsDeletedPages is true IsInRecycleBin is always true
-                OneNoteItemType.Page => ((OneNotePage)item).IsInRecycleBin,
+                OneNoteSectionGroup sectionGroup =>  sectionGroup.IsRecycleBin,
+                OneNoteSection section => section.IsInRecycleBin || section.IsDeletedPages, //If IsDeletedPages is true IsInRecycleBin is always true
+                OneNotePage page => page.IsInRecycleBin,
                 _ => false,
             };
         }
@@ -83,13 +83,13 @@ namespace Odotocodot.OneNote.Linq
         /// </returns>
         public static IEnumerable<OneNotePage> GetPages(this IEnumerable<IOneNoteItem> items)
         {
-            return items.Traverse(item => item.ItemType == OneNoteItemType.Page)
-                        .Cast<OneNotePage>();
+            return items.Traverse()
+                        .OfType<OneNotePage>();
         }
         public static IEnumerable<OneNotePage> GetPages(this IOneNoteItem item)
         {
-            return item.Traverse(item => item.ItemType == OneNoteItemType.Page)
-                       .Cast<OneNotePage>();
+            return item.Traverse()
+                       .OfType<OneNotePage>();
         }
         /// <summary>
         /// 

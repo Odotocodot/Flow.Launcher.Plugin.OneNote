@@ -4,7 +4,7 @@ A helper library for dealing with the [OneNote API](https://learn.microsoft.com/
 Originally made for [Flow.Launcher.Plugin.OneNote](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote)
 
 ## Features
-//TODO
+TODO
 
 ## Inspired By
 [ScipeBe Common Office](https://github.com/scipbe/ScipBe-Common-Office)\

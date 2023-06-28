@@ -12,23 +12,22 @@ namespace Odotocodot.OneNote.Linq
         private const string NamespacePrefix = "one";
 
         public static readonly char[] InvalidNotebookChars = "\\/*?\"|<>:%#.".ToCharArray();
-        public static readonly char[] InvalidSectionChars  = "\\/*?\"|<>:%#&".ToCharArray();
+        public static readonly char[] InvalidSectionChars = "\\/*?\"|<>:%#&".ToCharArray();
         public static readonly char[] InvalidSectionGroupChars = InvalidSectionChars;
 
-        private static readonly Lazy<XName[]> xNames = new Lazy<XName[]>(() =>
+        private static readonly Lazy<Dictionary<Type, XName>> xNames = new Lazy<Dictionary<Type, XName>>(() =>
         {
-            var itemTypes = Enum.GetValues<OneNoteItemType>();
-            var xNames = new XName[itemTypes.Length];
-            for (int i = 0; i < itemTypes.Length; i++)
+            var namespaceUri = "http://schemas.microsoft.com/office/onenote/2013/onenote";
+            return new Dictionary<Type, XName>
             {
-                xNames[(int)itemTypes[i]] = XName.Get(itemTypes[i].ToString(), "http://schemas.microsoft.com/office/onenote/2013/onenote");
-            }
-            return xNames;
+                {typeof(OneNoteNotebook),       XName.Get("Notebook",       namespaceUri)},
+                {typeof(OneNoteSectionGroup),   XName.Get("SectionGroup",   namespaceUri)},
+                {typeof(OneNoteSection),        XName.Get("Section",        namespaceUri)},
+                {typeof(OneNotePage),           XName.Get("Page",           namespaceUri)}
+            };
         });
-        internal static XName GetXName(OneNoteItemType itemType)
-        {
-            return xNames.Value[(int)itemType];
-        }
+
+        internal static XName GetXName<T>() where T : IOneNoteItem => xNames.Value[typeof(T)];
 
 
         /// <summary>
@@ -38,7 +37,7 @@ namespace Odotocodot.OneNote.Linq
         {
             oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string xml);
             var rootElement = XElement.Parse(xml);
-            return rootElement.Elements(GetXName(OneNoteItemType.Notebook))
+            return rootElement.Elements(GetXName<OneNoteNotebook>())
                               .Select(element => new OneNoteNotebook(element));
         }
 
@@ -54,7 +53,7 @@ namespace Odotocodot.OneNote.Linq
 
             oneNote.FindPages(null, searchString, out string xml);
             var rootElement = XElement.Parse(xml);
-            return rootElement.Elements(GetXName(OneNoteItemType.Notebook))
+            return rootElement.Elements(GetXName<OneNoteNotebook>())
                               .Select(element => new OneNoteNotebook(element))
                               .GetPages();
         }
@@ -77,12 +76,12 @@ namespace Odotocodot.OneNote.Linq
 
             var rootElement = XElement.Parse(xml);
 
-            IOneNoteItem root = scope.ItemType switch
+            IOneNoteItem root = scope switch
             {
-                OneNoteItemType.Notebook => new OneNoteNotebook(rootElement),
-                OneNoteItemType.SectionGroup => new OneNoteSectionGroup(rootElement, scope.Parent),
-                OneNoteItemType.Section => new OneNoteSection(rootElement, scope.Parent),
-                OneNoteItemType.Page => new OneNotePage(rootElement, (OneNoteSection)scope.Parent),
+                OneNoteNotebook => new OneNoteNotebook(rootElement),
+                OneNoteSectionGroup => new OneNoteSectionGroup(rootElement, scope.Parent),
+                OneNoteSection => new OneNoteSection(rootElement, scope.Parent),
+                OneNotePage => new OneNotePage(rootElement, (OneNoteSection)scope.Parent),
                 _ => null,
             };
             return root.GetPages();
@@ -108,14 +107,14 @@ namespace Odotocodot.OneNote.Linq
             oneNote.SyncHierarchy(item.ID);
         }
 
-        public static void DeleteItem(IApplication oneNote, IOneNoteItem item) 
+        public static void DeleteItem(IApplication oneNote, IOneNoteItem item)
         {
             oneNote.DeleteHierarchy(item.ID);
         }
 
         public static void CloseNotebook(IApplication oneNote, OneNoteNotebook notebook)
         {
-            oneNote.CloseNotebook(notebook.ID);    
+            oneNote.CloseNotebook(notebook.ID);
         }
 
         #region Creating New OneNote Items
@@ -133,7 +132,7 @@ namespace Odotocodot.OneNote.Linq
 
             oneNote.UpdatePageContent(doc.ToString());
 
-            if(openImmediately)
+            if (openImmediately)
                 oneNote.NavigateTo(pageID);
         }
         public static void CreateQuickNote(IApplication oneNote, bool openImmediately)
@@ -142,33 +141,33 @@ namespace Odotocodot.OneNote.Linq
             oneNote.OpenHierarchy(path, null, out string sectionID, CreateFileType.cftNone);
             oneNote.CreateNewPage(sectionID, out string pageID, NewPageStyle.npsDefault);
 
-            if(openImmediately)
+            if (openImmediately)
                 oneNote.NavigateTo(pageID);
         }
 
-        private static void CreateItemBase(IApplication oneNote, IOneNoteItem parent, string title, bool openImmediately, OneNoteItemType newItemType)
+        private static void CreateItemBase<T>(IApplication oneNote, IOneNoteItem parent, string title, bool openImmediately) where T : IOneNoteItem
         {
             ArgumentException.ThrowIfNullOrEmpty(title, nameof(title));
 
             string path = string.Empty;
             CreateFileType createFileType = CreateFileType.cftNone;
-            switch (newItemType)
+            switch (typeof(T).Name) //kinda smelly
             {
-                case OneNoteItemType.Notebook:
+                case nameof(OneNoteNotebook):
                     if (!IsNotebookTitleValid(title))
                         throw new ArgumentException($"Invalid notebook name. Notebook names cannot contain the symbols: \n {string.Join(' ', InvalidNotebookChars)}");
 
                     path = Path.Combine(GetDefaultNotebookLocation(oneNote), title);
                     createFileType = CreateFileType.cftNotebook;
                     break;
-                case OneNoteItemType.SectionGroup:
+                case nameof(OneNoteSectionGroup):
                     if (!IsSectionGroupTitleValid(title))
                         throw new ArgumentException($"Invalid section group name. Section groups names cannot contain the symbols: \n {string.Join(' ', InvalidSectionGroupChars)}");
-                    
+
                     path = title;
                     createFileType = CreateFileType.cftFolder;
                     break;
-                case OneNoteItemType.Section:
+                case nameof(OneNoteSection):
                     if (!IsSectionTitleValid(title))
                         throw new ArgumentException($"Invalid section name. Section names cannot contain the symbols: \n {string.Join(' ', InvalidSectionChars)}");
 
@@ -179,32 +178,31 @@ namespace Odotocodot.OneNote.Linq
 
             oneNote.OpenHierarchy(path, parent?.ID, out string newItemID, createFileType);
 
-            if(openImmediately)
+            if (openImmediately)
                 oneNote.NavigateTo(newItemID);
 
         }
 
         public static void CreateSection(IApplication oneNote, OneNoteSectionGroup parent, string sectionName, bool openImmediately)
         {
-            CreateItemBase(oneNote, parent, sectionName, openImmediately, OneNoteItemType.Section);
+            CreateItemBase<OneNoteSection>(oneNote, parent, sectionName, openImmediately);
         }
         public static void CreateSection(IApplication oneNote, OneNoteNotebook parent, string sectionName, bool openImmediately)
         {
-            CreateItemBase(oneNote, parent, sectionName, openImmediately, OneNoteItemType.Section);
+            CreateItemBase<OneNoteSection>(oneNote, parent, sectionName, openImmediately);
         }
         public static void CreateSectionGroup(IApplication oneNote, OneNoteSectionGroup parent, string sectionGroupName, bool openImmediately)
         {
-            CreateItemBase(oneNote, parent, sectionGroupName, openImmediately, OneNoteItemType.SectionGroup);
+            CreateItemBase<OneNoteSectionGroup>(oneNote, parent, sectionGroupName, openImmediately);
         }
         public static void CreateSectionGroup(IApplication oneNote, OneNoteNotebook parent, string sectionGroupName, bool openImmediately)
         {
-            CreateItemBase(oneNote, parent, sectionGroupName, openImmediately, OneNoteItemType.SectionGroup);
+            CreateItemBase<OneNoteSectionGroup>(oneNote, parent, sectionGroupName, openImmediately);
         }
         public static void CreateNotebook(IApplication oneNote, string notebookName, bool openImmediately)
         {
-            CreateItemBase(oneNote, null, notebookName, openImmediately, OneNoteItemType.Notebook);
+            CreateItemBase<OneNoteNotebook>(oneNote, null, notebookName, openImmediately);
         }
-
         public static bool IsNotebookTitleValid(string notebookTitle)
         {
             return notebookTitle.IndexOfAny(InvalidNotebookChars) == -1;

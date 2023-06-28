@@ -56,10 +56,9 @@ namespace Flow.Launcher.Plugin.OneNote
             string subTitleToolTip = null;
             string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(item, true, Keywords.NotebookExplorerSeparator)}";
 
-            switch (item.ItemType)
+            switch (item)
             {
-                case OneNoteItemType.Notebook:
-                    OneNoteNotebook notebook = (OneNoteNotebook)item;
+                case OneNoteNotebook notebook:
                     titleToolTip = $"{notebook.Name}\n\n"+
                     $"Last Modified:\t{notebook.LastModified}\n\n"+
                     $"Sections:\t\t{notebook.Sections.Count(),RightAlignment}\n"+
@@ -68,8 +67,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     subTitle = string.Empty;
                     autoCompleteText += Keywords.NotebookExplorerSeparator;
                     break;
-                case OneNoteItemType.SectionGroup:
-                    OneNoteSectionGroup sectionGroup = (OneNoteSectionGroup)item;
+                case OneNoteSectionGroup sectionGroup:
                     subTitleToolTip = $"{subTitle}\n\n" +
                     $"Last Modified:\t{sectionGroup.LastModified}\n\n" +
                     $"Sections:\t\t{sectionGroup.Sections.Count(),RightAlignment}\n" +
@@ -77,8 +75,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     autoCompleteText += Keywords.NotebookExplorerSeparator;                    
                     break;
-                case OneNoteItemType.Section:
-                    OneNoteSection section = (OneNoteSection)item;
+                case OneNoteSection section:
                     if (section.Encrypted)
                     {
                         title += " [Encrypted]";
@@ -94,8 +91,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     autoCompleteText += Keywords.NotebookExplorerSeparator;
                     break;
-                case OneNoteItemType.Page:
-                    OneNotePage page = (OneNotePage)item;
+                case OneNotePage page:
                     actionIsAutoComplete = false;
                     subTitle =  subTitle.Remove(subTitle.Length - (page.Name.Length + PathSeparator.Length));
                     subTitleToolTip = $"{subTitle}\n\n"+
@@ -173,13 +169,13 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     _ = OneNotePlugin.GetOneNote(oneNote =>
                     {
-                        switch (parent.ItemType)
+                        switch (parent)
                         {
-                            case OneNoteItemType.Notebook:
-                                oneNote.CreateSection((OneNoteNotebook)parent, sectionTitle);
+                            case OneNoteNotebook notebook:
+                                oneNote.CreateSection(notebook, sectionTitle);
                                 break;
-                            case OneNoteItemType.SectionGroup:
-                                oneNote.CreateSection((OneNoteSectionGroup)parent, sectionTitle);
+                            case OneNoteSectionGroup sectionGroup:
+                                oneNote.CreateSection(sectionGroup, sectionTitle);
                                 break;
                             default:
                                 break;
@@ -211,13 +207,13 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     _ = OneNotePlugin.GetOneNote(oneNote =>
                     {
-                        switch (parent.ItemType)
+                        switch (parent)
                         {
-                            case OneNoteItemType.Notebook:
-                                oneNote.CreateSectionGroup((OneNoteNotebook)parent, sectionGroupTitle);
+                            case OneNoteNotebook notebook:
+                                oneNote.CreateSectionGroup(notebook, sectionGroupTitle);
                                 break;
-                            case OneNoteItemType.SectionGroup:
-                                oneNote.CreateSectionGroup((OneNoteSectionGroup)parent, sectionGroupTitle);
+                            case OneNoteSectionGroup sectionGroup:
+                                oneNote.CreateSectionGroup(sectionGroup, sectionGroupTitle);
                                 break;
                             default:
                                 break;

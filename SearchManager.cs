@@ -18,7 +18,7 @@ namespace Flow.Launcher.Plugin.OneNote
             rc = resultCreator;
         }
         #region Notebook Explorer
-        public List<Result> Explore(OneNoteApplication oneNote, Query query)
+        public List<Result> NotebookExplorer(OneNoteApplication oneNote, Query query)
         {
             var results = new List<Result>();
 
@@ -43,26 +43,23 @@ namespace Flow.Launcher.Plugin.OneNote
 
             string lastSearch = searches[^1];
 
-            //Empty search so show all in collection;
-            if (string.IsNullOrEmpty(lastSearch))
+            results = lastSearch switch
             {
-                results = NotebookEmptySearch(parent, collection);
-            }
-            //Search by title
-            else if (lastSearch.StartsWith(Keywords.SearchByTitle) && parent?.ItemType != OneNoteItemType.Page)
-            {
-                results = TitleSearch(lastSearch, collection, parent);
-            }
-            //Scoped search
-            else if (lastSearch.StartsWith(Keywords.ScopedSearch) && (parent?.ItemType == OneNoteItemType.Notebook || parent?.ItemType == OneNoteItemType.SectionGroup))
-            {
-                results = ScopedSearch(oneNote, lastSearch, parent);
-            }
-            //Default search
-            else
-            {
-                results = NotebookDefaultSearch(oneNote, parent, collection, lastSearch);
-            }
+                //Empty search so show all in collection
+                string ls when string.IsNullOrWhiteSpace(ls) 
+                    => NotebookEmptySearch(parent, collection),
+
+                //Search by title
+                string ls when ls.StartsWith(Keywords.SearchByTitle) && parent is not OneNotePage
+                    => TitleSearch(ls, collection, parent),
+
+                //scoped search
+                string ls when ls.StartsWith(Keywords.ScopedSearch) && (parent is OneNoteNotebook || parent is OneNoteSectionGroup)
+                    => ScopedSearch(oneNote, ls, parent),
+
+                //default search
+                _ => NotebookDefaultSearch(oneNote, parent, collection, lastSearch)
+            };
 
             if (parent != null)
             {
@@ -110,19 +107,18 @@ namespace Flow.Launcher.Plugin.OneNote
                                              .ToList();
             if (!results.Any())
             {
-                switch (parent?.ItemType) //parent can be null if the collection contains notebooks.
+                switch (parent) //parent can be null if the collection contains notebooks.
                 {
-                    case OneNoteItemType.Notebook:
-                    case OneNoteItemType.SectionGroup:
+                    case OneNoteNotebook:
+                    case OneNoteSectionGroup:
                         //can create section/section group
                         results.Add(NoItemsInCollectionResult("section", Icons.NewSection, "(unencrypted) section"));
                         results.Add(NoItemsInCollectionResult("section group", Icons.NewSectionGroup));
                         break;
-                    case OneNoteItemType.Section:
+                    case OneNoteSection section:
                         //can create page
-                        if (!((OneNoteSection)parent).Locked)
+                        if (!section.Locked)
                             results.Add(NoItemsInCollectionResult("page", Icons.NewPage));
-
                         break;
                     default:
                         break;
@@ -170,18 +166,17 @@ namespace Flow.Launcher.Plugin.OneNote
                 if (parent?.IsInRecycleBin() == true)
                     return;
 
-                switch (parent?.ItemType)
+                switch (parent)
                 {
                     case null:
                         results.Add(rc.CreateNewNotebookResult(oneNote, query));
                         break;
-                    case OneNoteItemType.Notebook:
-                    case OneNoteItemType.SectionGroup:
+                    case OneNoteNotebook:
+                    case OneNoteSectionGroup:
                         results.Add(rc.CreateNewSectionResult(query, parent));
                         results.Add(rc.CreateNewSectionGroupResult(query, parent));
                         break;
-                    case OneNoteItemType.Section:
-                        var section = (OneNoteSection)parent;
+                    case OneNoteSection section:
                         if (!section.Locked)
                             results.Add(ResultCreator.CreateNewPageResult(query, section));
                         break;
@@ -234,8 +229,12 @@ namespace Flow.Launcher.Plugin.OneNote
 
             return results;
         }
-        public List<Result> RecentPages(OneNoteApplication oneNote, int count)
+        public List<Result> RecentPages(OneNoteApplication oneNote, string query)
         {
+            int count = settings.DefaultRecentsCount;
+            if (query.Length > Keywords.RecentPages.Length && int.TryParse(query[Keywords.RecentPages.Length..], out int userChosenCount))
+                count = userChosenCount;
+
             return oneNote.GetNotebooks()
                           .GetPages()
                           .OrderByDescending(pg => pg.LastModified)
@@ -300,8 +299,8 @@ namespace Flow.Launcher.Plugin.OneNote
         private bool SettingsCheck(IOneNoteItem item)
         {
             bool success = true;
-            if (!settings.ShowEncrypted && item.ItemType == OneNoteItemType.Section)
-                success = !((OneNoteSection)item).Encrypted;
+            if (!settings.ShowEncrypted && item is OneNoteSection section)
+                success = !section.Encrypted;
 
             if (!settings.ShowRecycleBin && item.IsInRecycleBin())
                 success = false;

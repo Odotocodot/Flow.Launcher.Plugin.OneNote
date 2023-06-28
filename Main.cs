@@ -90,38 +90,15 @@ namespace Flow.Launcher.Plugin.OneNote
                 };
             }
 
-            if (query.FirstSearch.StartsWith(Keywords.RecentPages))
-            {
-                int count = settings.DefaultRecentsCount;
-                if (query.FirstSearch.Length > Keywords.RecentPages.Length && int.TryParse(query.FirstSearch[Keywords.RecentPages.Length..], out int userChosenCount))
-                    count = userChosenCount;
-
-                return GetOneNote(oneNote =>
-                {
-                    return searchManager.RecentPages(oneNote, count);
-                });
-            }
-
-            //Search via notebook structure
-            if (query.FirstSearch.StartsWith(Keywords.NotebookExplorer))
-            {
-                return GetOneNote(oneNote =>
-                {
-                    return searchManager.Explore(oneNote, query);
-                });
-            }
-            //Search all items by title
-            if(query.FirstSearch.StartsWith(Keywords.SearchByTitle))
-            {
-                return GetOneNote(oneNote => 
-                {
-                    return searchManager.TitleSearch(string.Join(" ", query.SearchTerms), oneNote.GetNotebooks());
-                });
-            }
-            //Default search 
             return GetOneNote(oneNote =>
             {
-                return searchManager.DefaultSearch(oneNote, query.Search);
+                return query.FirstSearch switch
+                {
+                    string fs when fs.StartsWith(Keywords.RecentPages) => searchManager.RecentPages(oneNote, fs),
+                    string fs when fs.StartsWith(Keywords.NotebookExplorer) => searchManager.NotebookExplorer(oneNote, query),
+                    string fs when fs.StartsWith(Keywords.SearchByTitle) => searchManager.TitleSearch(string.Join(' ', query.SearchTerms), oneNote.GetNotebooks()),
+                    _ => searchManager.DefaultSearch(oneNote, query.Search)
+                };
             });
         }
 

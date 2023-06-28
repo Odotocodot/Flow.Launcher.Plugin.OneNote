@@ -44,7 +44,6 @@ namespace Odotocodot.OneNote.Linq
         public string Name { get; init; }
         public bool IsUnread { get; init; }
         public DateTime LastModified { get; init; }
-        OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Page;
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => Enumerable.Empty<IOneNoteItem>();
         IOneNoteItem IOneNoteItem.Parent => Section;
         public OneNoteSection Section { get; init; }

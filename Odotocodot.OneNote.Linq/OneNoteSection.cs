@@ -52,7 +52,7 @@ namespace Odotocodot.OneNote.Linq
             }
             if(addChildren)
             {
-                Pages = element.Elements(OneNoteParser.GetXName(OneNoteItemType.Page))
+                Pages = element.Elements(OneNoteParser.GetXName<OneNotePage>())
                                .Select(e => new OneNotePage(e,this));
             }
         }
@@ -61,7 +61,6 @@ namespace Odotocodot.OneNote.Linq
         public string Name { get; init; }
         public bool IsUnread { get; init; }
         public DateTime LastModified { get; init; }
-        OneNoteItemType IOneNoteItem.ItemType => OneNoteItemType.Section;
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => Pages;
         public IOneNoteItem Parent { get; init; }
         /// <summary>

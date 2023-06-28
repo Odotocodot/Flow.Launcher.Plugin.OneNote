@@ -13,11 +13,9 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly Dictionary<Color, string> icons;
         private readonly string iconDirectory;
         private readonly string baseIconPath;
-        private readonly Settings settings;
 
-        public OneNoteItemIcons(PluginInitContext context, string folderName, string baseIcon, Settings settings)
+        public OneNoteItemIcons(PluginInitContext context, string folderName, string baseIcon)
         {
-            this.settings = settings;
             icons = new Dictionary<Color, string>();
             iconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, folderName);
             baseIconPath = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, baseIcon);
@@ -48,15 +46,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public string GetIcon(Color color)
         {
-            if (icons.TryGetValue(color, out string path))
-            {
-                return path;
-            }
-            else if(!settings.CreateColoredIcons)
-            {
-                return baseIconPath;
-            }
-            else
+            if (!icons.TryGetValue(color, out string path))
             {
                 //Create Colored Image
                 using var bitmap = new Bitmap(baseIconPath);
@@ -82,11 +72,12 @@ namespace Flow.Launcher.Plugin.OneNote
                 Marshal.Copy(pixels, 0, pointer, pixels.Length);
                 bitmap.UnlockBits(bitmapData);
                 path = Path.Combine(iconDirectory, color.ToArgb() + ".png");
-                    bitmap.Save(path, ImageFormat.Png);
-                
+                bitmap.Save(path, ImageFormat.Png);
+
                 icons.Add(color, path);
-                return path;
             }
+            
+            return path;
         }
     }
 }
