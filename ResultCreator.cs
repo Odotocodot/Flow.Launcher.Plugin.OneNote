@@ -117,11 +117,10 @@ namespace Flow.Launcher.Plugin.OneNote
                         context.API.ChangeQuery(autoCompleteText);
                         return false;
                     }
-                    _ = OneNotePlugin.GetOneNote(oneNote =>
+                    OneNotePlugin.GetOneNote(oneNote =>
                     {
                         oneNote.SyncItem(item);
                         oneNote.OpenInOneNote(item);
-                        return 0;
                     });
                     return true;
                 },
@@ -140,10 +139,9 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = Icons.NewPage,
                 Action = c =>
                 {
-                    _ = OneNotePlugin.GetOneNote(oneNote =>
+                    OneNotePlugin.GetOneNote(oneNote =>
                     {
                         oneNote.CreatePage(section, pageTitle);
-                        return 0;
                     });
                     return true;
                 }
@@ -167,7 +165,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     if(!validTitle)
                         return false;
 
-                    _ = OneNotePlugin.GetOneNote(oneNote =>
+                    OneNotePlugin.GetOneNote(oneNote =>
                     {
                         switch (parent)
                         {
@@ -180,7 +178,6 @@ namespace Flow.Launcher.Plugin.OneNote
                             default:
                                 break;
                         }
-                        return 0;
                     });
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
                     return true;
@@ -205,7 +202,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     if (!validTitle)
                         return false;
 
-                    _ = OneNotePlugin.GetOneNote(oneNote =>
+                    OneNotePlugin.GetOneNote(oneNote =>
                     {
                         switch (parent)
                         {
@@ -218,7 +215,6 @@ namespace Flow.Launcher.Plugin.OneNote
                             default:
                                 break;
                         }
-                        return 0;
                     });
 
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
@@ -244,10 +240,9 @@ namespace Flow.Launcher.Plugin.OneNote
                     if (!validTitle) 
                         return false;
 
-                    _ = OneNotePlugin.GetOneNote(oneNote =>
+                    OneNotePlugin.GetOneNote(oneNote =>
                     {
                         oneNote.CreateNotebook(notebookTitle);
-                        return 0;
                     });
 
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);

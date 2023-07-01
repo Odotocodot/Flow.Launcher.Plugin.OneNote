@@ -63,7 +63,6 @@ namespace Flow.Launcher.Plugin.OneNote
                             GetOneNote(oneNote =>
                             {
                                 oneNote.CreateQuickNote();
-                                return 0;
                             });
                             return true;
                         }
@@ -82,7 +81,6 @@ namespace Flow.Launcher.Plugin.OneNote
                                     oneNote.SyncItem(notebook);
                                 }
                                 oneNote.OpenInOneNote(oneNote.GetNotebooks().First());
-                                return 0;
                             });
                             return true;
                         }
@@ -99,7 +97,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     string fs when fs.StartsWith(Keywords.SearchByTitle) => searchManager.TitleSearch(string.Join(' ', query.SearchTerms), oneNote.GetNotebooks()),
                     _ => searchManager.DefaultSearch(oneNote, query.Search)
                 };
-            });
+            },context,query);
         }
 
         public List<Result> LoadContextMenus(Result selectedResult)
@@ -112,10 +110,32 @@ namespace Flow.Launcher.Plugin.OneNote
             return new UI.SettingsView(new UI.SettingsViewModel(settings));
         }
 
-        public static T GetOneNote<T>(Func<OneNoteApplication, T> action, Func<COMException, T> onException = null)
+        public static List<Result> GetOneNote(Func<OneNoteApplication, List<Result>> action, PluginInitContext context, Query query)
+        {
+            bool error = false;
+            try
+            {
+                using var oneNote = new OneNoteApplication();
+                return action(oneNote);
+            }
+            catch (Exception ex) when (ex is InvalidCastException || ex is COMException) 
+            {
+                //exceptions are randomly thrown when rapidly creating a new instance;
+                error = true;
+                return ResultCreator.SingleResult("Loading...", null, null);
+            }
+            finally
+            {
+                if(error)
+                {
+                    context.API.ChangeQuery(query.RawQuery, true);
+                }
+            }
+        }
+        public static void GetOneNote(Action<OneNoteApplication> action)
         {
             using var oneNote = new OneNoteApplication();
-            return action(oneNote);
+            action(oneNote);
         }
     }
 }
