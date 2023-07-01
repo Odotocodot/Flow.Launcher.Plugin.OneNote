@@ -94,7 +94,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 {
                     string fs when fs.StartsWith(Keywords.RecentPages) => searchManager.RecentPages(oneNote, fs),
                     string fs when fs.StartsWith(Keywords.NotebookExplorer) => searchManager.NotebookExplorer(oneNote, query),
-                    string fs when fs.StartsWith(Keywords.SearchByTitle) => searchManager.TitleSearch(string.Join(' ', query.SearchTerms), oneNote.GetNotebooks()),
+                    string fs when fs.StartsWith(Keywords.TitleSearch) => searchManager.TitleSearch(string.Join(' ', query.SearchTerms), oneNote.GetNotebooks()),
                     _ => searchManager.DefaultSearch(oneNote, query.Search)
                 };
             },context,query);

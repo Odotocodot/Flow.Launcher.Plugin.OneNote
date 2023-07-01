@@ -50,7 +50,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     => NotebookEmptySearch(parent, collection),
 
                 //Search by title
-                string ls when ls.StartsWith(Keywords.SearchByTitle) && parent is not OneNotePage
+                string ls when ls.StartsWith(Keywords.TitleSearch) && parent is not OneNotePage
                     => TitleSearch(ls, collection, parent),
 
                 //scoped search
@@ -66,7 +66,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 var result = rc.CreateOneNoteItemResult(parent, false, score: 4000);
                 result.Title = $"Open \"{parent.Name}\" in OneNote";
 
-                if (lastSearch.StartsWith(Keywords.SearchByTitle))
+                if (lastSearch.StartsWith(Keywords.TitleSearch))
                 {
                     result.SubTitle = $"Now search by title in \"{parent.Name}\"";
                 }
@@ -76,7 +76,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
                 else
                 {
-                    result.SubTitle = $"Use \'{Keywords.ScopedSearch}\' to search this item. Use \'{Keywords.SearchByTitle}\' to search by title in this item";
+                    result.SubTitle = $"Use \'{Keywords.ScopedSearch}\' to search this item. Use \'{Keywords.TitleSearch}\' to search by title in this item";
                 }
 
                 results.Add(result);
@@ -146,7 +146,7 @@ namespace Flow.Launcher.Plugin.OneNote
             if (!char.IsLetterOrDigit(query[Keywords.ScopedSearch.Length]))
                 return ResultCreator.InvalidQuery();
 
-            string currentSearch = query[Keywords.SearchByTitle.Length..];
+            string currentSearch = query[Keywords.TitleSearch.Length..];
             var results = new List<Result>();
 
             results = oneNote.FindPages(parent, currentSearch)
@@ -205,14 +205,14 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public List<Result> TitleSearch(string query, IEnumerable<IOneNoteItem> currentCollection, IOneNoteItem parent = null)
         {
-            if (query.Length == Keywords.SearchByTitle.Length && parent == null)
+            if (query.Length == Keywords.TitleSearch.Length && parent == null)
                 return ResultCreator.SingleResult($"Now searching by title.", null, Icons.Search);
 
             List<int> highlightData = null;
             int score = 0;
             var results = new List<Result>();
 
-            var currentSearch = query[Keywords.SearchByTitle.Length..];
+            var currentSearch = query[Keywords.TitleSearch.Length..];
 
             results = currentCollection.Traverse(item =>
                                         {
