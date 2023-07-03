@@ -14,11 +14,12 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly string iconDirectory;
         private readonly string baseIconPath;
 
-        public OneNoteItemIcons(PluginInitContext context, string folderName, string baseIcon)
+        public OneNoteItemIcons(string folderPath, string baseIconPath)
         {
             icons = new Dictionary<Color, string>();
-            iconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, folderName);
-            baseIconPath = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, baseIcon);
+            iconDirectory = folderPath;
+            this.baseIconPath = baseIconPath;
+
             Directory.CreateDirectory(iconDirectory);
             foreach (var imagePath in Directory.EnumerateFiles(iconDirectory))
             {

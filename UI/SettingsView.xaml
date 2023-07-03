@@ -114,9 +114,10 @@
                 <Setter Property="Padding" Value="0,0,24,0" />
                 <Setter Property="TextWrapping" Value="WrapWithOverflow" />
             </Style>
+            <Style BasedOn="{StaticResource DefaultButtonStyle}" TargetType="Button" />
         </ResourceDictionary>
     </UserControl.Resources>
-    <StackPanel Margin="60,25,25,25">
+    <StackPanel Margin="50,25,25,25" MouseEnter="StackPanel_MouseEnter">
         <!--#region Recycle Bin-->
         <Border CornerRadius="9,9,0,0" Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
@@ -132,10 +133,7 @@
                     Grid.Column="2"
                     IsOn="{Binding Settings.ShowRecycleBin}"
                     Style="{DynamicResource SideToggleSwitch}" />
-                <Grid>
-                    <ui:FontIcon Glyph="&#xe8a5;" Style="{StaticResource Glyph}" />
-                    <ui:FontIcon Glyph="&#xf143;" Style="{StaticResource Glyph}" />
-                </Grid>
+                <ui:FontIcon Glyph="&#xe74d;" Style="{StaticResource Glyph}" />
             </ItemsControl>
         </Border>
         <!--#endregion-->
@@ -184,14 +182,54 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button
-                        Margin="0,4,22,4"
+                        Margin="0,4,4,4"
                         HorizontalAlignment="Center"
                         HorizontalContentAlignment="Center"
-                        Click="ClearCachedIcons">
-                        <TextBlock HorizontalAlignment="Center">
-                            <Run Text="Clear Cached Images: " />
-                            <Run d:Text="1000 MB" Text="{Binding CachedIconsSize, Mode=OneWay}" />
-                        </TextBlock>
+                        Click="ClearCachedIcons"
+                        IsEnabled="{Binding EnableClearIconButton}">
+                        <Label HorizontalAlignment="Center">
+                            <TextBlock>
+                                <Run Text="Clear Cached Images: " />
+                                <Run d:Text="1000 MB" Text="{Binding CachedIconsSize, Mode=OneWay}" />
+                            </TextBlock>
+                        </Label>
+                    </Button>
+                    <Button Margin="0,4,22,4">
+                        <ui:FontIcon Glyph="&#xf12b;" />
+                        <ui:FlyoutService.Flyout>
+                            <ui:MenuFlyout Closed="MenuFlyout_Closed" Opened="MenuFlyout_Opened">
+                                <MenuItem Click="OpenNotebookIconsFolder">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image
+                                                Width="20"
+                                                Height="20"
+                                                Margin="0,0,5,0"
+                                                Source="{Binding NotebookIcon, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock Text="Open Notebook Icons Folder" />
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                    <MenuItem.Icon>
+                                        <ui:FontIcon Glyph="&#xed25;" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Click="OpenSectionIconsFolder">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image
+                                                Width="20"
+                                                Height="20"
+                                                Margin="0,0,5,0"
+                                                Source="{Binding SectionIcon, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock Text="Open Section Icons Folder" />
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                    <MenuItem.Icon>
+                                        <ui:FontIcon Glyph="&#xed25;" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ui:MenuFlyout>
+                        </ui:FlyoutService.Flyout>
                     </Button>
                     <ui:ToggleSwitch IsOn="{Binding Settings.CreateColoredIcons}" Style="{DynamicResource SideToggleSwitch}" />
                 </StackPanel>

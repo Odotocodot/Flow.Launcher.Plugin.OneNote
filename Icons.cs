@@ -1,4 +1,5 @@
 ﻿using Odotocodot.OneNote.Linq;
+using System.IO;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
@@ -28,11 +29,17 @@ namespace Flow.Launcher.Plugin.OneNote
         private static Settings settings;
         
         public static int CachedIconCount => notebookIcons.CachedIconCount + sectionIcons.CachedIconCount;
+        public static string NotebookIconDirectory { get; private set; }
+        public static string SectionIconDirectory {get; private set; }
 
         public static void Init(PluginInitContext context, Settings settings)
         {
-            notebookIcons = new OneNoteItemIcons(context, "Images/NotebookIcons", Notebook);
-            sectionIcons = new OneNoteItemIcons(context, "Images/SectionIcons", Section);
+            NotebookIconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images", "NotebookIcons");
+            SectionIconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images", "SectionIcons");
+
+            notebookIcons = new OneNoteItemIcons(NotebookIconDirectory, Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Notebook));
+            sectionIcons = new OneNoteItemIcons(SectionIconDirectory, Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Section));
+
             Icons.settings = settings;
         }
         public static string GetIcon(IOneNoteItem item)

@@ -11,10 +11,9 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         {
             InitializeComponent();
             DataContext = this.viewModel = viewModel;
-            LostFocus += (s,e) => viewModel.Notify();
         }
 
-        public async void ClearCachedIcons(object sender, RoutedEventArgs e)
+        private async void ClearCachedIcons(object sender, RoutedEventArgs e)
         {
             ContentDialog dialog = new ContentDialog()
             {
@@ -29,6 +28,33 @@ namespace Flow.Launcher.Plugin.OneNote.UI
 
             if (result == ContentDialogResult.Primary)
                 viewModel.ClearCachedIcons();
+        }
+
+        //quick and dirty non MVVM stuffs
+        private void OpenNotebookIconsFolder(object sender, RoutedEventArgs e)
+        {
+            SettingsViewModel.OpenNotebookIconsFolder();
+        }
+
+        private void OpenSectionIconsFolder(object sender, RoutedEventArgs e)
+        {
+            SettingsViewModel.OpenSectionIconsFolder();
+        }
+
+        private void StackPanel_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            viewModel.NotifyGetOnlyProperties();
+
+        }
+
+        private void MenuFlyout_Closed(object sender, object e)
+        {
+            viewModel.ClosedFlyout();
+        }
+
+        private void MenuFlyout_Opened(object sender, object e)
+        {
+            viewModel.OpenedFlyout();
         }
     }
 }

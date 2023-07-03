@@ -107,7 +107,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public System.Windows.Controls.Control CreateSettingPanel()
         {
-            return new UI.SettingsView(new UI.SettingsViewModel(settings));
+            return new UI.SettingsView(new UI.SettingsViewModel(context, settings));
         }
 
         public static List<Result> GetOneNote(Func<OneNoteApplication, List<Result>> action, PluginInitContext context, Query query)
@@ -120,13 +120,13 @@ namespace Flow.Launcher.Plugin.OneNote
             }
             catch (Exception ex) when (ex is InvalidCastException || ex is COMException) 
             {
-                //exceptions are randomly thrown when rapidly creating a new instance;
+                //exceptions are randomly thrown when rapidly creating a new COM object instance;
                 error = true;
                 return ResultCreator.SingleResult("Loading...", null, null);
             }
             finally
             {
-                if(error)
+                if (error)
                 {
                     context.API.ChangeQuery(query.RawQuery, true);
                 }
