@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Flow.Launcher.Plugin.OneNote.UI
 {
-    public class SettingsViewModel : BaseModel
+    public class SettingsViewModel : Model
     {
         private string notebookIcon;
         private string sectionIcon;
@@ -82,15 +80,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             return readable.ToString("0.## ") + suffix;
         }
 
-        protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
-        {
-            if (Equals(field, newValue))
-                return false;
-
-            field = newValue;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
         public void NotifyGetOnlyProperties()
         {
             OnPropertyChanged(nameof(CachedIconsSize));
