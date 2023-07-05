@@ -13,14 +13,41 @@ namespace Flow.Launcher.Plugin.OneNote
         private SearchManager searchManager;
         private Settings settings;
 
+
+        public event VisibilityChangedEventHandler VisibilityChanged;
+
+        public delegate void VisibilityChangedEventHandler(object sender, VisibilityChangedEventArgs args);
+        public class VisibilityChangedEventArgs : EventArgs
+        {
+            public bool IsVisible { get; init; }
+        }
+
         public void Init(PluginInitContext context)
         {
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
             Icons.Init(context, settings);
             searchManager = new SearchManager(context, settings, new ResultCreator(context, settings));
+            //context.API.VisibilityChanged +=
+            VisibilityChanged += GetOneNoteCom;
         }
-        
+
+        //Getting the OneNote COM is slow and expensive to do every time the user types
+        //so get it only when the main window is visible.
+        //also if left open its visible in the task manager taking up RAM!
+        private static readonly OneNoteApplication oneNote = new OneNoteApplication(false);
+        private void GetOneNoteCom(object sender, VisibilityChangedEventArgs args)
+        {
+            if(args.IsVisible)
+            {
+                oneNote.Init();
+            }
+            else
+            {
+                oneNote.ReleaseCOMInstance();
+            }
+        }
+
         public List<Result> Query(Query query)
         {
             if (string.IsNullOrEmpty(query.Search))
@@ -112,30 +139,32 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public static List<Result> GetOneNote(Func<OneNoteApplication, List<Result>> action, PluginInitContext context, Query query)
         {
-            bool error = false;
-            try
-            {
-                using var oneNote = new OneNoteApplication();
-                return action(oneNote);
-            }
-            catch (Exception ex) when (ex is InvalidCastException || ex is COMException) 
-            {
-                //exceptions are randomly thrown when rapidly creating a new COM object instance;
-                error = true;
-                return ResultCreator.SingleResult("Loading...", null, null);
-            }
-            finally
-            {
-                if (error)
-                {
-                    context.API.ChangeQuery(query.RawQuery, true);
-                }
-            }
+            return action(oneNote);
+            //bool error = false;
+            //try
+            //{
+            //    using var oneNote = new OneNoteApplication();
+            //    return action(oneNote);
+            //}
+            //catch (Exception ex) when (ex is InvalidCastException || ex is COMException) 
+            //{
+            //    //exceptions are randomly thrown when rapidly creating a new COM object instance;
+            //    error = true;
+            //    return ResultCreator.SingleResult("Loading...", null, null);
+            //}
+            //finally
+            //{
+            //    if (error)
+            //    {
+            //        context.API.ChangeQuery(query.RawQuery, true);
+            //    }
+            //}
         }
         public static void GetOneNote(Action<OneNoteApplication> action)
         {
-            using var oneNote = new OneNoteApplication();
             action(oneNote);
+            //using var oneNote = new OneNoteApplication();
+            //action(oneNote);
         }
     }
 }
