@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 
 namespace Flow.Launcher.Plugin.OneNote.UI
 {
@@ -14,17 +15,30 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         private string sectionIcon;
         private IconLooper notebookIconLooper;
         private IconLooper sectionIconLooper;
+        private readonly PluginInitContext context;
         public SettingsViewModel(PluginInitContext context, Settings settings)
         {
+            this.context = context;
             Settings = settings;
             NotebookIcon = Directory.EnumerateFiles(Icons.NotebookIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook)); 
-            SectionIcon = Directory.EnumerateFiles(Icons.SectionIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section)); 
-        }
-
+            SectionIcon = Directory.EnumerateFiles(Icons.SectionIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section));
+            Keywords = new Keyword[]{ settings.NotebookExplorerKeyword, settings.RecentPagesKeyword, settings.TitleSearchKeyword, settings.ScopedSearchKeyword };
+    }
         public Settings Settings { get; init; }
+        public Keyword[] Keywords { get; init; }
+
+        public string RecycleBinSubTitle => $"When using \"{Settings.NotebookExplorerKeyword}\" show items that are in the recycle bin";
+        public string EncryptedSectionSubTitle => $"when using \"{Settings.NotebookExplorerKeyword}\" show encrypted sections, if the section has been unlocked, allow temporary access." ;
+        public string RecentPagesSubTitle => $"The initial number of recent pages to show when using \"{Settings.RecentPagesKeyword}\"";
+        public string DefaultFlowSearchTooltip => "Whether on not to include the keyword in a default Flow Launcher query i.e. for the notebook explorer you could type "
+                                                  + $"\"{Settings.NotebookExplorerKeyword}\" instead of \"{context.CurrentPluginMetadata.ActionKeyword} {Settings.NotebookExplorerKeyword}\"";
 
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);
+#pragma warning restore CA1822 // Mark members as static
+
+        #region Icon Related
+#pragma warning disable CA1822 // Mark members as static
         public int CachedIconCount => Icons.CachedIconCount;
         public string CachedIconsSize => GetBytesReadable(Icons.GetIconsFileSize());
         public bool EnableClearIconButton => Icons.CachedIconCount > 0;
@@ -154,6 +168,10 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 enumerator?.Dispose();
             }
         }
+
+
+
+        #endregion
 
     }
 }

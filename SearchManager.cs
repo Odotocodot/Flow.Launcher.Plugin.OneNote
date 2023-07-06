@@ -22,12 +22,12 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             var results = new List<Result>();
 
-            string fullSearch = query.Search.Remove(query.Search.IndexOf(Keywords.NotebookExplorer), Keywords.NotebookExplorer.Length);
+            string fullSearch = query.Search.Remove(query.Search.IndexOf(settings.NotebookExplorerKeyword), settings.NotebookExplorerKeyword.Length);
 
             IOneNoteItem parent = null;
             IEnumerable<IOneNoteItem> collection = oneNote.GetNotebooks();
 
-            string[] searches = fullSearch.Split(Keywords.NotebookExplorerSeparator, StringSplitOptions.None);
+            string[] searches = fullSearch.Split(Keyword.NotebookExplorerSeparator, StringSplitOptions.None);
 
             for (int i = -1; i < searches.Length - 1; i++)
             {
@@ -50,11 +50,11 @@ namespace Flow.Launcher.Plugin.OneNote
                     => NotebookEmptySearch(parent, collection),
 
                 //Search by title
-                string ls when ls.StartsWith(Keywords.TitleSearch) && parent is not OneNotePage
+                string ls when ls.StartsWith(settings.TitleSearchKeyword) && parent is not OneNotePage
                     => TitleSearch(ls, collection, parent),
 
                 //scoped search
-                string ls when ls.StartsWith(Keywords.ScopedSearch) && (parent is OneNoteNotebook || parent is OneNoteSectionGroup)
+                string ls when ls.StartsWith(settings.ScopedSearchKeyword) && (parent is OneNoteNotebook || parent is OneNoteSectionGroup)
                     => ScopedSearch(oneNote, ls, parent),
 
                 //default search
@@ -66,17 +66,17 @@ namespace Flow.Launcher.Plugin.OneNote
                 var result = rc.CreateOneNoteItemResult(parent, false, score: 4000);
                 result.Title = $"Open \"{parent.Name}\" in OneNote";
 
-                if (lastSearch.StartsWith(Keywords.TitleSearch))
+                if (lastSearch.StartsWith(settings.TitleSearchKeyword))
                 {
                     result.SubTitle = $"Now search by title in \"{parent.Name}\"";
                 }
-                else if (lastSearch.StartsWith(Keywords.ScopedSearch))
+                else if (lastSearch.StartsWith(settings.ScopedSearchKeyword))
                 {
                     result.SubTitle = $"Now searching all pages in \"{parent.Name}\"";
                 }
                 else
                 {
-                    result.SubTitle = $"Use \'{Keywords.ScopedSearch}\' to search this item. Use \'{Keywords.TitleSearch}\' to search by title in this item";
+                    result.SubTitle = $"Use \'{settings.ScopedSearchKeyword}\' to search this item. Use \'{settings.TitleSearchKeyword}\' to search by title in this item";
                 }
 
                 results.Add(result);
@@ -140,13 +140,13 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private List<Result> ScopedSearch(OneNoteApplication oneNote, string query, IOneNoteItem parent)
         {
-            if (query.Length == Keywords.ScopedSearch.Length)
+            if (query.Length == settings.ScopedSearchKeyword.Length)
                 return ResultCreator.NoMatchesFoundResult();
 
-            if (!char.IsLetterOrDigit(query[Keywords.ScopedSearch.Length]))
+            if (!char.IsLetterOrDigit(query[settings.ScopedSearchKeyword.Length]))
                 return ResultCreator.InvalidQuery();
 
-            string currentSearch = query[Keywords.TitleSearch.Length..];
+            string currentSearch = query[settings.TitleSearchKeyword.Length..];
             var results = new List<Result>();
 
             results = oneNote.FindPages(parent, currentSearch)
@@ -205,14 +205,14 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public List<Result> TitleSearch(string query, IEnumerable<IOneNoteItem> currentCollection, IOneNoteItem parent = null)
         {
-            if (query.Length == Keywords.TitleSearch.Length && parent == null)
+            if (query.Length == settings.TitleSearchKeyword.Length && parent == null)
                 return ResultCreator.SingleResult($"Now searching by title.", null, Icons.Search);
 
             List<int> highlightData = null;
             int score = 0;
             var results = new List<Result>();
 
-            var currentSearch = query[Keywords.TitleSearch.Length..];
+            var currentSearch = query[settings.TitleSearchKeyword.Length..];
 
             results = currentCollection.Traverse(item =>
                                         {
@@ -232,7 +232,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public List<Result> RecentPages(OneNoteApplication oneNote, string query)
         {
             int count = settings.DefaultRecentsCount;
-            if (query.Length > Keywords.RecentPages.Length && int.TryParse(query[Keywords.RecentPages.Length..], out int userChosenCount))
+            if (query.Length > settings.RecentPagesKeyword.Length && int.TryParse(query[settings.RecentPagesKeyword.Length..], out int userChosenCount))
                 count = userChosenCount;
 
             return oneNote.GetNotebooks()

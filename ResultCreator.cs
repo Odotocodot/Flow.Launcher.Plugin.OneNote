@@ -54,7 +54,7 @@ namespace Flow.Launcher.Plugin.OneNote
             string titleToolTip = null;
             string subTitle = GetNicePath(item, true);
             string subTitleToolTip = null;
-            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {Keywords.NotebookExplorer}{GetNicePath(item, true, Keywords.NotebookExplorerSeparator)}";
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {settings.NotebookExplorerKeyword}{GetNicePath(item, true, Keyword.NotebookExplorerSeparator)}";
 
             switch (item)
             {
@@ -65,7 +65,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     $"Sections Groups:\t{notebook.SectionGroups.Count(),RightAlignment}";
 
                     subTitle = string.Empty;
-                    autoCompleteText += Keywords.NotebookExplorerSeparator;
+                    autoCompleteText += Keyword.NotebookExplorerSeparator;
                     break;
                 case OneNoteSectionGroup sectionGroup:
                     subTitleToolTip = $"{subTitle}\n\n" +
@@ -73,7 +73,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     $"Sections:\t\t{sectionGroup.Sections.Count(),RightAlignment}\n" +
                     $"Sections Groups:\t{sectionGroup.SectionGroups.Count(),RightAlignment}";
 
-                    autoCompleteText += Keywords.NotebookExplorerSeparator;                    
+                    autoCompleteText += Keyword.NotebookExplorerSeparator;                    
                     break;
                 case OneNoteSection section:
                     if (section.Encrypted)
@@ -89,7 +89,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     $"Last Modified:\t{section.LastModified}\n\n"+
                     $"Pages:\t{section.Pages.Count(),RightAlignment}";
 
-                    autoCompleteText += Keywords.NotebookExplorerSeparator;
+                    autoCompleteText += Keyword.NotebookExplorerSeparator;
                     break;
                 case OneNotePage page:
                     actionIsAutoComplete = false;

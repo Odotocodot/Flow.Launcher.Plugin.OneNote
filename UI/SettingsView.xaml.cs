@@ -15,7 +15,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
 
         private async void ClearCachedIcons(object sender, RoutedEventArgs e)
         {
-            ContentDialog dialog = new ContentDialog()
+            var dialog = new ContentDialog()
             {
                 Title = "Clear Cached Icons",
                 Content = $"Delete cached notebook and sections icons.\n" +
