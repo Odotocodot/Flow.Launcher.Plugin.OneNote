@@ -20,9 +20,9 @@
             <BooleanToVisibilityConverter x:Key="BoolToVis" />
         </ResourceDictionary>
     </UserControl.Resources>
-    <StackPanel Margin="25,25,25,25" MouseEnter="StackPanel_MouseEnter">
+    <StackPanel Margin="25,-1,25,25" MouseEnter="StackPanel_MouseEnter">
         <!--#region Recycle Bin-->
-        <Border CornerRadius="9,9,0,0" Style="{DynamicResource SettingGroupBox}">
+        <Border CornerRadius="0,0,0,0" Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Show recycle bin" />
@@ -160,55 +160,66 @@
                 BorderThickness="0"
                 Style="{StaticResource ExpanderStyle1}">
                 <Expander.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:FontIcon Glyph="&#xe819;" Style="{StaticResource Glyph}" />
-                        <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Keywords" />
-                    </StackPanel>
+                    <ItemsControl Margin="0,0,0,0" Style="{StaticResource SettingGrid}">
+                        <ui:FontIcon
+                            Grid.Column="0"
+                            Glyph="&#xe819;"
+                            Style="{StaticResource Glyph}" />
+                        <TextBlock
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Style="{DynamicResource SettingTitleLabel}"
+                            Text="Keywords" />
+                        <Button
+                            Grid.Column="2"
+                            Width="120"
+                            Margin="10,4,44,4"
+                            HorizontalAlignment="Right"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center">
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource DefaultButtonStyle}" TargetType="Button">
+                                    <Setter Property="Visibility" Value="Hidden" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Expander}}, Path=IsExpanded}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:FontIcon
+                                    Margin="0,0,15,0"
+                                    FontSize="12"
+                                    Glyph="&#xe70f;"
+                                    Style="{StaticResource Glyph}" />
+                                <TextBlock Text="Edit" />
+                            </StackPanel>
+                        </Button>
+                    </ItemsControl>
                 </Expander.Header>
                 <ListView
-                    Margin="42,15,15,22"
+                    Margin="42,5,15,10"
                     d:ItemsSource="{d:SampleData}"
                     Background="{DynamicResource Color02B}"
                     BorderBrush="DarkGray"
                     BorderThickness="1"
                     ItemsSource="{Binding Keywords}"
+                    SelectedItem="{Binding SelectedKeyword}"
                     Style="{StaticResource {x:Static GridView.GridViewStyleKey}}">
-                    <!--<ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="VerticalContentAlignment" Value="Center" />
-                            <Setter Property="HorizontalContentAlignment" Value="Left" />
-                        </Style>
-                    </ListView.ItemContainerStyle>-->
                     <ListView.View>
                         <GridView AllowsColumnReorder="False">
-                            <GridViewColumn Header="Name" TextBlock.TextAlignment="Center">
+                            <GridViewColumn Width=" 150" Header="Name">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Name}" />
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="Keyword">
+                            <GridViewColumn Width="200" Header="Keyword">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding KeywordValue}" />
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
-                            <GridViewColumn>
-                                <GridViewColumn.Header>
-                                    <TextBlock Text="Enabled in Default Flow Search" ToolTip="{Binding DefaultFlowSearchTooltip}" />
-                                </GridViewColumn.Header>
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <CheckBox IsChecked="{Binding EnableInFlowSearch}" Visibility="{Binding Path=CanBeInFlowSearch, Converter={StaticResource BoolToVis}}" />
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
-                            <GridViewColumn>
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button Margin="0,4,4,4" Content="Edit" />
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
