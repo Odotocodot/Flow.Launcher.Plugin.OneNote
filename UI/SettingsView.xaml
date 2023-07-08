@@ -17,10 +17,9 @@
                 <ui:ThemeResources />
                 <ResourceDictionary Source="Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <BooleanToVisibilityConverter x:Key="BoolToVis" />
         </ResourceDictionary>
     </UserControl.Resources>
-    <StackPanel Margin="25,-1,25,25" MouseEnter="StackPanel_MouseEnter">
+    <StackPanel Margin="25,0,25,25" MouseEnter="StackPanel_MouseEnter">
         <!--#region Recycle Bin-->
         <Border CornerRadius="0,0,0,0" Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
@@ -176,9 +175,10 @@
                             Margin="10,4,44,4"
                             HorizontalAlignment="Right"
                             HorizontalContentAlignment="Center"
-                            VerticalContentAlignment="Center">
+                            VerticalContentAlignment="Center"
+                            Click="EditButton_Click">
                             <Button.Style>
-                                <Style BasedOn="{StaticResource DefaultButtonStyle}" TargetType="Button">
+                                <Style BasedOn="{StaticResource SettingButton}" TargetType="Button">
                                     <Setter Property="Visibility" Value="Hidden" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Expander}}, Path=IsExpanded}" Value="True">
@@ -205,6 +205,8 @@
                     BorderBrush="DarkGray"
                     BorderThickness="1"
                     ItemsSource="{Binding Keywords}"
+                    MouseDoubleClick="ListView_MouseDoubleClick"
+                    MouseUp="ListView_MouseUp"
                     SelectedItem="{Binding SelectedKeyword}"
                     Style="{StaticResource {x:Static GridView.GridViewStyleKey}}">
                     <ListView.View>

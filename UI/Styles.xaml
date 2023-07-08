@@ -2,8 +2,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=PresentationFramework"
-    xmlns:primitives="clr-namespace:ModernWpf.Controls.Primitives;assembly=ModernWpf"
-    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
     xmlns:ui="http://schemas.modernwpf.com/2019">
 
     <!--
@@ -115,7 +113,10 @@
         <Setter Property="Padding" Value="0,0,24,0" />
         <Setter Property="TextWrapping" Value="WrapWithOverflow" />
     </Style>
-    <Style BasedOn="{StaticResource DefaultButtonStyle}" TargetType="Button" />
+    <Style
+        x:Key="SettingButton"
+        BasedOn="{StaticResource DefaultButtonStyle}"
+        TargetType="Button" />
 
     <Style x:Key="ExpanderStyle1" TargetType="{x:Type Expander}">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />

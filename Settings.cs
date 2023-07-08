@@ -9,10 +9,10 @@
         private bool createColoredIcons = true;
 
         #region Seializing Keywords
-        public Keyword NotebookExplorerKeyword { get; private set; } = new(0, "Notebook Explorer", $"nb:{Keyword.NotebookExplorerSeparator}", false);
-        public Keyword RecentPagesKeyword { get; private set; } = new(1, "Recent Pages", "rcntpgs:", false);
-        public Keyword TitleSearchKeyword { get; private set; } = new(2, "Search by title", "*", false, false);
-        public Keyword ScopedSearchKeyword { get; private set; } = new(3, "Search in a scope", ">", false, false);
+        public Keyword NotebookExplorerKeyword { get; private set; } = new("Notebook Explorer", $"nb:{Keyword.NotebookExplorerSeparator}");
+        public Keyword RecentPagesKeyword { get; private set; } = new("Recent Pages", "rcntpgs:");
+        public Keyword TitleSearchKeyword { get; private set; } = new("Title Search", "*");
+        public Keyword ScopedSearchKeyword { get; private set; } = new("Scoped Search", ">");
         #endregion
 
         public bool ShowRecycleBin

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 
 namespace Flow.Launcher.Plugin.OneNote.UI
 {
@@ -15,10 +14,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         private string sectionIcon;
         private IconLooper notebookIconLooper;
         private IconLooper sectionIconLooper;
-        private readonly PluginInitContext context;
         public SettingsViewModel(PluginInitContext context, Settings settings)
         {
-            this.context = context;
             Settings = settings;
             NotebookIcon = Directory.EnumerateFiles(Icons.NotebookIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook)); 
             SectionIcon = Directory.EnumerateFiles(Icons.SectionIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section));
@@ -27,11 +24,11 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         public Settings Settings { get; init; }
         public Keyword[] Keywords { get; init; }
 
+        public Keyword SelectedKeyword { get; set; }
+
         public string RecycleBinSubTitle => $"When using \"{Settings.NotebookExplorerKeyword}\" show items that are in the recycle bin";
         public string EncryptedSectionSubTitle => $"when using \"{Settings.NotebookExplorerKeyword}\" show encrypted sections, if the section has been unlocked, allow temporary access." ;
         public string RecentPagesSubTitle => $"The initial number of recent pages to show when using \"{Settings.RecentPagesKeyword}\"";
-        public string DefaultFlowSearchTooltip => "Whether on not to include the keyword in a default Flow Launcher query i.e. for the notebook explorer you could type "
-                                                  + $"\"{Settings.NotebookExplorerKeyword}\" instead of \"{context.CurrentPluginMetadata.ActionKeyword} {Settings.NotebookExplorerKeyword}\"";
 
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);
@@ -59,7 +56,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         public void ClearCachedIcons()
         {
             Icons.ClearCachedIcons();
-            NotifyGetOnlyProperties();
+            UpdateIconProperties();
         }
 
         // Returns the human-readable file size for an arbitrary, 64-bit file size 
@@ -94,7 +91,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             return readable.ToString("0.## ") + suffix;
         }
 
-        public void NotifyGetOnlyProperties()
+        public void UpdateIconProperties()
         {
             OnPropertyChanged(nameof(CachedIconsSize));
             OnPropertyChanged(nameof(CachedIconCount));
@@ -168,10 +165,13 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 enumerator?.Dispose();
             }
         }
-
-
-
         #endregion
 
+        public void UpdateSubtitleProperties()
+        {
+            OnPropertyChanged(nameof(RecycleBinSubTitle));
+            OnPropertyChanged(nameof(EncryptedSectionSubTitle));
+            OnPropertyChanged(nameof(RecentPagesSubTitle));
+        }
     }
 }

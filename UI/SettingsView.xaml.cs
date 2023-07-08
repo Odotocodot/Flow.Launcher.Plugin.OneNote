@@ -1,6 +1,7 @@
-﻿using ModernWpf.Controls;
+﻿using Modern = ModernWpf.Controls;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Flow.Launcher.Plugin.OneNote.UI
 {
@@ -15,18 +16,18 @@ namespace Flow.Launcher.Plugin.OneNote.UI
 
         private async void ClearCachedIcons(object sender, RoutedEventArgs e)
         {
-            var dialog = new ContentDialog()
+            var dialog = new Modern.ContentDialog()
             {
                 Title = "Clear Cached Icons",
                 Content = $"Delete cached notebook and sections icons.\n" +
                           $"This will delete {viewModel.CachedIconCount} icon{(viewModel.CachedIconCount != 1 ? "s" : string.Empty)}.",
                 PrimaryButtonText = "Yes",
                 CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
+                DefaultButton = Modern.ContentDialogButton.Primary,
             };
             var result = await dialog.ShowAsync();
 
-            if (result == ContentDialogResult.Primary)
+            if (result == Modern.ContentDialogResult.Primary)
                 viewModel.ClearCachedIcons();
         }
 
@@ -41,10 +42,9 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             SettingsViewModel.OpenSectionIconsFolder();
         }
 
-        private void StackPanel_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        private void StackPanel_MouseEnter(object sender, MouseEventArgs e)
         {
-            viewModel.NotifyGetOnlyProperties();
-
+            viewModel.UpdateIconProperties();
         }
 
         private void MenuFlyout_Closed(object sender, object e)
@@ -55,6 +55,54 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         private void MenuFlyout_Opened(object sender, object e)
         {
             viewModel.OpenedFlyout();
+        }
+
+        private void EditButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (viewModel.SelectedKeyword == null)
+            {
+                MessageBox.Show("Please select a keyword");
+            }
+            else
+            {
+                new ChangeKeywordWindow(viewModel).ShowDialog();
+            }
+        }
+
+        private void ListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if(e.ChangedButton == MouseButton.Left)
+            {
+                var listView = (ListView)sender;
+                
+                var hit = listView.InputHitTest(e.GetPosition(listView));
+                if (hit is FrameworkElement fe && fe.DataContext is Keyword selectedKeyword)
+                {
+                    listView.SelectedItem = selectedKeyword;
+                    EditButton_Click(sender, e);
+                }
+            }
+        }
+
+        private void ListView_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Right)
+            {
+                var listView = (ListView)sender;
+
+                var hit = listView.InputHitTest(e.GetPosition(listView));
+                if (hit is FrameworkElement fe && fe.DataContext is Keyword selectKeyword)
+                {
+                    listView.SelectedItem = selectKeyword;
+
+                    var menuItem = new MenuItem();
+                    menuItem.Click += EditButton_Click;
+                    menuItem.Header = "Edit";
+                    var contextMenu = new ContextMenu();
+                    contextMenu.Items.Add(menuItem);
+                    contextMenu.IsOpen = true;
+                }
+            }
         }
     }
 }
