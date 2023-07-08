@@ -30,26 +30,26 @@ namespace Flow.Launcher.Plugin.OneNote
                     new Result
                     {
                         Title = "Search OneNote pages",
-                        SubTitle = $"Type \"{Keywords.NotebookExplorer}\" or select this option to search by notebook structure ",
-                        AutoCompleteText = $"{query.ActionKeyword} {Keywords.NotebookExplorer}",
+                        SubTitle = $"Type \"{settings.NotebookExplorerKeyword}\" or select this option to search by notebook structure ",
+                        AutoCompleteText = $"{query.ActionKeyword} {settings.NotebookExplorerKeyword}",
                         IcoPath = Icons.Logo,
                         Score = 2000,
                         Action = c =>
                         {
-                            context.API.ChangeQuery($"{query.ActionKeyword} {Keywords.NotebookExplorer}");
+                            context.API.ChangeQuery($"{query.ActionKeyword} {settings.NotebookExplorerKeyword}");
                             return false;
                         },
                     },
                     new Result
                     {
                         Title = "See recent pages",
-                        SubTitle = $"Type \"{Keywords.RecentPages}\" or select this option to see recently modified pages",
-                        AutoCompleteText = $"{query.ActionKeyword} {Keywords.RecentPages}",
+                        SubTitle = $"Type \"{settings.RecentPagesKeyword}\" or select this option to see recently modified pages",
+                        AutoCompleteText = $"{query.ActionKeyword} {settings.RecentPagesKeyword}",
                         IcoPath = Icons.Recent,
                         Score = -1000,
                         Action = c =>
                         {
-                            context.API.ChangeQuery($"{query.ActionKeyword} {Keywords.RecentPages}");
+                            context.API.ChangeQuery($"{query.ActionKeyword} {settings.RecentPagesKeyword}");
                             return false;
                         },
                     },
@@ -92,9 +92,9 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 return query.FirstSearch switch
                 {
-                    string fs when fs.StartsWith(Keywords.RecentPages) => searchManager.RecentPages(oneNote, fs),
-                    string fs when fs.StartsWith(Keywords.NotebookExplorer) => searchManager.NotebookExplorer(oneNote, query),
-                    string fs when fs.StartsWith(Keywords.TitleSearch) => searchManager.TitleSearch(string.Join(' ', query.SearchTerms), oneNote.GetNotebooks()),
+                    string fs when fs.StartsWith(settings.RecentPagesKeyword) => searchManager.RecentPages(oneNote, fs),
+                    string fs when fs.StartsWith(settings.NotebookExplorerKeyword) => searchManager.NotebookExplorer(oneNote, query),
+                    string fs when fs.StartsWith(settings.TitleSearchKeyword) => searchManager.TitleSearch(string.Join(' ', query.SearchTerms), oneNote.GetNotebooks()),
                     _ => searchManager.DefaultSearch(oneNote, query.Search)
                 };
             },context,query);

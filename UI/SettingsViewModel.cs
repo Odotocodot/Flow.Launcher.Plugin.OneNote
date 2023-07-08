@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Flow.Launcher.Plugin.OneNote.UI
 {
-    public class SettingsViewModel : BaseModel
+    public class SettingsViewModel : Model
     {
         private string notebookIcon;
         private string sectionIcon;
@@ -20,13 +18,24 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         {
             Settings = settings;
             NotebookIcon = Directory.EnumerateFiles(Icons.NotebookIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook)); 
-            SectionIcon = Directory.EnumerateFiles(Icons.SectionIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section)); 
-        }
-
+            SectionIcon = Directory.EnumerateFiles(Icons.SectionIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section));
+            Keywords = new Keyword[]{ settings.NotebookExplorerKeyword, settings.RecentPagesKeyword, settings.TitleSearchKeyword, settings.ScopedSearchKeyword };
+    }
         public Settings Settings { get; init; }
+        public Keyword[] Keywords { get; init; }
+
+        public Keyword SelectedKeyword { get; set; }
+
+        public string RecycleBinSubTitle => $"When using \"{Settings.NotebookExplorerKeyword}\" show items that are in the recycle bin";
+        public string EncryptedSectionSubTitle => $"when using \"{Settings.NotebookExplorerKeyword}\" show encrypted sections, if the section has been unlocked, allow temporary access." ;
+        public string RecentPagesSubTitle => $"The initial number of recent pages to show when using \"{Settings.RecentPagesKeyword}\"";
 
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);
+#pragma warning restore CA1822 // Mark members as static
+
+        #region Icon Related
+#pragma warning disable CA1822 // Mark members as static
         public int CachedIconCount => Icons.CachedIconCount;
         public string CachedIconsSize => GetBytesReadable(Icons.GetIconsFileSize());
         public bool EnableClearIconButton => Icons.CachedIconCount > 0;
@@ -47,7 +56,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         public void ClearCachedIcons()
         {
             Icons.ClearCachedIcons();
-            NotifyGetOnlyProperties();
+            UpdateIconProperties();
         }
 
         // Returns the human-readable file size for an arbitrary, 64-bit file size 
@@ -82,16 +91,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             return readable.ToString("0.## ") + suffix;
         }
 
-        protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
-        {
-            if (Equals(field, newValue))
-                return false;
-
-            field = newValue;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
-        public void NotifyGetOnlyProperties()
+        public void UpdateIconProperties()
         {
             OnPropertyChanged(nameof(CachedIconsSize));
             OnPropertyChanged(nameof(CachedIconCount));
@@ -165,6 +165,13 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 enumerator?.Dispose();
             }
         }
+        #endregion
 
+        public void UpdateSubtitleProperties()
+        {
+            OnPropertyChanged(nameof(RecycleBinSubTitle));
+            OnPropertyChanged(nameof(EncryptedSectionSubTitle));
+            OnPropertyChanged(nameof(RecentPagesSubTitle));
+        }
     }
 }
