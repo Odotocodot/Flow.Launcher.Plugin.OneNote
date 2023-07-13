@@ -91,7 +91,8 @@
                     <Button Margin="0,4,22,4">
                         <ui:FontIcon Glyph="&#xf12b;" />
                         <ui:FlyoutService.Flyout>
-                            <ui:MenuFlyout Closed="MenuFlyout_Closed" Opened="MenuFlyout_Opened">
+                            <ui:MenuFlyout> 
+                                <!--  Closed="MenuFlyout_Closed" Opened="MenuFlyout_Opened">  -->
                                 <MenuItem Click="OpenNotebookIconsFolder">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
