@@ -237,6 +237,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
             return oneNote.GetNotebooks()
                           .GetPages()
+                          .Where(SettingsCheck)
                           .OrderByDescending(pg => pg.LastModified)
                           .Take(count)
                           .Select(pg =>

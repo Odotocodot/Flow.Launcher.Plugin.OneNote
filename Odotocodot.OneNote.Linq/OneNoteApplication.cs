@@ -121,7 +121,7 @@ namespace Odotocodot.OneNote.Linq
         private void COMInstanceCheck()
         {
             if (!hasInstance)
-                throw new InvalidOperationException("The COM Object instance has not been set. Make sure OneNoteProvider.Init() has been called beforehand.");
+                throw new InvalidOperationException($"The COM Object instance has not been set. Make sure {nameof(OneNoteApplication)}.{nameof(Init)} has been called beforehand.");
         }
         
         public void ReleaseCOMInstance()

@@ -29,7 +29,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 return false;
             }
 
-            if (oldKeyword == NewKeyword)
+            if (oldKeyword == newKeyword)
             {
                 errorMessage = "The new keyword is the same as the old keyword.";
                 return false;
@@ -37,13 +37,13 @@ namespace Flow.Launcher.Plugin.OneNote.UI
 
             if (Keywords.Any(k => k == newKeyword))
             {
-                Keyword alreadySetKeyword = Keywords.Where(k => k == NewKeyword).First();
+                Keyword alreadySetKeyword = Keywords.Where(k => k == newKeyword).First();
                 errorMessage = $"The new keyword matches an already set one:\n"
                                 + $"\"{alreadySetKeyword.Name}\" => \"{alreadySetKeyword.KeywordValue}\"";
                 return false;
             }
 
-            SelectedKeyword.KeywordValue = NewKeyword;
+            SelectedKeyword.KeywordValue = newKeyword;
             settingsViewModel.UpdateSubtitleProperties();
             return true;
             
