@@ -23,7 +23,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                           $"This will delete {viewModel.CachedIconCount} icon{(viewModel.CachedIconCount != 1 ? "s" : string.Empty)}.",
                 PrimaryButtonText = "Yes",
                 CloseButtonText = "Cancel",
-                DefaultButton = Modern.ContentDialogButton.Primary,
+                DefaultButton = Modern.ContentDialogButton.Close,
             };
             var result = await dialog.ShowAsync();
 
@@ -47,15 +47,15 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             viewModel.UpdateIconProperties();
         }
 
-        private void MenuFlyout_Closed(object sender, object e)
-        {
-            viewModel.ClosedFlyout();
-        }
+        //private void MenuFlyout_Closed(object sender, object e)
+        //{
+        //    viewModel.ClosedFlyout();
+        //}
 
-        private void MenuFlyout_Opened(object sender, object e)
-        {
-            viewModel.OpenedFlyout();
-        }
+        //private void MenuFlyout_Opened(object sender, object e)
+        //{
+        //    viewModel.OpenedFlyout();
+        //}
 
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
