@@ -7,30 +7,21 @@ using Microsoft.Office.Interop.OneNote;
 
 namespace Odotocodot.OneNote.Linq
 {
-    public class OneNoteApplication : IDisposable
+    public class OneNoteApplication
     {
-        private Application oneNote;
-        private bool disposedValue;
-        private bool hasInstance;
-
-        public OneNoteApplication() : this(true) { }
-        public OneNoteApplication(bool initImmediately)
-        {
-            if (initImmediately)
-                Init();
-        }
-
-        public bool HasInstance => hasInstance;
-        public void Init()
+        private static Application oneNote;
+        private static bool hasCOMInstance;
+        public static bool HasCOMInstance => hasCOMInstance;
+        public static void Init()
         {
             int attempt = 0;
 
-            while (!hasInstance)
+            while (!hasCOMInstance)
             {
                 try
                 {
                     oneNote = new Application();
-                    hasInstance = oneNote != null && Marshal.IsComObject(oneNote);
+                    hasCOMInstance = oneNote != null && Marshal.IsComObject(oneNote);
                 }
                 catch (COMException ex) when (attempt++ < 3)
                 {
@@ -44,12 +35,12 @@ namespace Odotocodot.OneNote.Linq
             COMInstanceCheck();
             return OneNoteParser.GetNotebooks(oneNote);
         }
-        public void OpenInOneNote(IOneNoteItem item)
+        public static void OpenInOneNote(IOneNoteItem item)
         {
             COMInstanceCheck();
             OneNoteParser.OpenInOneNote(oneNote, item);
         }
-        public void SyncItem(IOneNoteItem item)
+        public static void SyncItem(IOneNoteItem item)
         {
             COMInstanceCheck();
             OneNoteParser.SyncItem(oneNote, item);
@@ -82,49 +73,49 @@ namespace Odotocodot.OneNote.Linq
             return OneNoteParser.GetDefaultNotebookLocation(oneNote);
         }
 
-        public void CreateQuickNote()
+        public static void CreateQuickNote()
         {
             COMInstanceCheck();
             OneNoteParser.CreateQuickNote(oneNote, true);
         }
-        public void CreatePage(OneNoteSection section, string pageTitle)
+        public static void CreatePage(OneNoteSection section, string pageTitle)
         {
             COMInstanceCheck();
             OneNoteParser.CreatePage(oneNote, section, pageTitle, true);
         }
-        public void CreateSection(OneNoteSectionGroup parent, string sectionName)
+        public static void CreateSection(OneNoteSectionGroup parent, string sectionName)
         {
             COMInstanceCheck();
             OneNoteParser.CreateSection(oneNote, parent, sectionName, true);
         }
-        public void CreateSection(OneNoteNotebook parent, string sectionName)
+        public static void CreateSection(OneNoteNotebook parent, string sectionName)
         {
             COMInstanceCheck();
             OneNoteParser.CreateSection(oneNote, parent, sectionName, true);
         }
-        public void CreateSectionGroup(OneNoteSectionGroup parent, string sectionGroupName)
+        public static void CreateSectionGroup(OneNoteSectionGroup parent, string sectionGroupName)
         {
             COMInstanceCheck();
             OneNoteParser.CreateSectionGroup(oneNote, parent, sectionGroupName, true);
         }
-        public void CreateSectionGroup(OneNoteNotebook parent, string sectionGroupName)
+        public static void CreateSectionGroup(OneNoteNotebook parent, string sectionGroupName)
         {
             COMInstanceCheck();
             OneNoteParser.CreateSectionGroup(oneNote, parent, sectionGroupName, true);
         }
-        public void CreateNotebook(string notebookName)
+        public static void CreateNotebook(string notebookName)
         {
             COMInstanceCheck();
             OneNoteParser.CreateNotebook(oneNote, notebookName, true);
         }
 
-        private void COMInstanceCheck()
+        private static void COMInstanceCheck()
         {
-            if (!hasInstance)
+            if (!hasCOMInstance)
                 throw new InvalidOperationException($"The COM Object instance has not been set. Make sure {nameof(OneNoteApplication)}.{nameof(Init)} has been called beforehand.");
         }
         
-        public void ReleaseCOMInstance()
+        public static void ReleaseCOMInstance()
         {
             if (oneNote != null)
             {
@@ -132,34 +123,5 @@ namespace Odotocodot.OneNote.Linq
                 oneNote = null;
             }
         }
-        #region IDisposable
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    hasInstance = false;
-                }
-
-                if(oneNote != null)
-                {
-                    Marshal.ReleaseComObject(oneNote);
-                    oneNote = null;
-                }
-                disposedValue = true;
-            }
-        }
-        ~OneNoteApplication()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
     }
 }
