@@ -12,15 +12,17 @@ namespace Flow.Launcher.Plugin.OneNote.UI
     {
         private string notebookIcon;
         private string sectionIcon;
+        public readonly PluginInitContext context;
         //private IconLooper notebookIconLooper;
         //private IconLooper sectionIconLooper;
         public SettingsViewModel(PluginInitContext context, Settings settings)
         {
             Settings = settings;
+            this.context = context;
             NotebookIcon = Directory.EnumerateFiles(Icons.NotebookIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook)); 
             SectionIcon = Directory.EnumerateFiles(Icons.SectionIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section));
             Keywords = new Keyword[]{ settings.NotebookExplorerKeyword, settings.RecentPagesKeyword, settings.TitleSearchKeyword, settings.ScopedSearchKeyword };
-    }
+        }
         public Settings Settings { get; init; }
         public Keyword[] Keywords { get; init; }
 

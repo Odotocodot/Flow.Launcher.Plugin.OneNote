@@ -5,10 +5,12 @@ namespace Flow.Launcher.Plugin.OneNote.UI
     public class ChangeKeywordViewModel : Model
     {
         private readonly SettingsViewModel settingsViewModel;
+        private readonly PluginInitContext context;
         private string newKeyword;
 
         public ChangeKeywordViewModel(SettingsViewModel settingsViewModel)
         {
+            context = settingsViewModel.context;
             this.settingsViewModel = settingsViewModel;
             SelectedKeyword = settingsViewModel.SelectedKeyword;
         }
@@ -45,6 +47,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
 
             SelectedKeyword.KeywordValue = newKeyword;
             settingsViewModel.UpdateSubtitleProperties();
+            context.API.SaveSettingJsonStorage<Settings>();
             return true;
             
         }                                          
