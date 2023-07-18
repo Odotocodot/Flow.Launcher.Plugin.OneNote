@@ -7,10 +7,10 @@ using Microsoft.Office.Interop.OneNote;
 
 namespace Odotocodot.OneNote.Linq
 {
-    public class OneNoteApplication
+    public static class OneNoteApplication
     {
         private static Application oneNote;
-        private static bool hasCOMInstance;
+        private static bool hasCOMInstance = false;
         public static bool HasCOMInstance => hasCOMInstance;
         public static void Init()
         {
@@ -28,99 +28,98 @@ namespace Odotocodot.OneNote.Linq
                     Trace.TraceError(ex.Message);
                     Thread.Sleep(100);
                 }
+                catch (COMException ex) when (attempt == 3)
+                {
+                    throw new COMException("Unable to acquire a OneNote COM object", ex);
+                }
             }
         }
-        public IEnumerable<OneNoteNotebook> GetNotebooks()
+        public static IEnumerable<OneNoteNotebook> GetNotebooks()
         {
-            COMInstanceCheck();
+            Init();
             return OneNoteParser.GetNotebooks(oneNote);
         }
         public static void OpenInOneNote(IOneNoteItem item)
         {
-            COMInstanceCheck();
+            Init();
             OneNoteParser.OpenInOneNote(oneNote, item);
         }
         public static void SyncItem(IOneNoteItem item)
         {
-            COMInstanceCheck();
+            Init();
             OneNoteParser.SyncItem(oneNote, item);
         }
 
-        public IEnumerable<IOneNoteItem> Traverse()
+        public static IEnumerable<IOneNoteItem> Traverse()
         {
-            COMInstanceCheck();
+            Init();
             return GetNotebooks().Traverse();
         }
-        public IEnumerable<IOneNoteItem> Traverse(Func<IOneNoteItem, bool> predicate)
+        public static IEnumerable<IOneNoteItem> Traverse(Func<IOneNoteItem, bool> predicate)
         {
-            COMInstanceCheck();
+            Init();
             return GetNotebooks().Traverse(predicate);
         }
 
-        public IEnumerable<OneNotePage> FindPages(string searchString)
+        public static IEnumerable<OneNotePage> FindPages(string searchString)
         {
-            COMInstanceCheck();
+            Init();
             return OneNoteParser.FindPages(oneNote, searchString);
         }
-        public IEnumerable<OneNotePage> FindPages(IOneNoteItem scope, string searchString)
+        public static IEnumerable<OneNotePage> FindPages(IOneNoteItem scope, string searchString)
         {
-            COMInstanceCheck();
+            Init();
             return OneNoteParser.FindPages(oneNote, searchString, scope);
         }
-        public string GetDefaultNotebookLocation()
+        public static string GetDefaultNotebookLocation()
         {
-            COMInstanceCheck();
+            Init();
             return OneNoteParser.GetDefaultNotebookLocation(oneNote);
         }
 
         public static void CreateQuickNote()
         {
-            COMInstanceCheck();
+            Init();
             OneNoteParser.CreateQuickNote(oneNote, true);
         }
         public static void CreatePage(OneNoteSection section, string pageTitle)
         {
-            COMInstanceCheck();
+            Init();
             OneNoteParser.CreatePage(oneNote, section, pageTitle, true);
         }
         public static void CreateSection(OneNoteSectionGroup parent, string sectionName)
         {
-            COMInstanceCheck();
+            Init();
             OneNoteParser.CreateSection(oneNote, parent, sectionName, true);
         }
         public static void CreateSection(OneNoteNotebook parent, string sectionName)
         {
-            COMInstanceCheck();
+            Init();
             OneNoteParser.CreateSection(oneNote, parent, sectionName, true);
         }
         public static void CreateSectionGroup(OneNoteSectionGroup parent, string sectionGroupName)
         {
-            COMInstanceCheck();
+            Init();
             OneNoteParser.CreateSectionGroup(oneNote, parent, sectionGroupName, true);
         }
         public static void CreateSectionGroup(OneNoteNotebook parent, string sectionGroupName)
         {
-            COMInstanceCheck();
+            Init();
             OneNoteParser.CreateSectionGroup(oneNote, parent, sectionGroupName, true);
         }
         public static void CreateNotebook(string notebookName)
         {
-            COMInstanceCheck();
+            Init();
             OneNoteParser.CreateNotebook(oneNote, notebookName, true);
-        }
-
-        private static void COMInstanceCheck()
-        {
-            if (!hasCOMInstance)
-                throw new InvalidOperationException($"The COM Object instance has not been set. Make sure {nameof(OneNoteApplication)}.{nameof(Init)} has been called beforehand.");
         }
         
         public static void ReleaseCOMInstance()
         {
-            if (oneNote != null)
+            if (hasCOMInstance)
             {
                 Marshal.ReleaseComObject(oneNote);
                 oneNote = null;
+                hasCOMInstance = false;
             }
         }
     }

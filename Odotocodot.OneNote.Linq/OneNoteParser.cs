@@ -95,7 +95,7 @@ namespace Odotocodot.OneNote.Linq
                 throw new ArgumentException("Search string cannot be empty or only whitespace", nameof(searchString));
 
             if (!char.IsLetterOrDigit(searchString[0]))
-                throw new ArgumentException("The first character of the search must be a letter or digit", nameof(searchString));
+                throw new ArgumentException("The first character of the search must be a letter or a digit", nameof(searchString));
         }
 
         public static void OpenInOneNote(IApplication oneNote, IOneNoteItem item)
@@ -175,7 +175,7 @@ namespace Odotocodot.OneNote.Linq
                     createFileType = CreateFileType.cftSection;
                     break;
             }
-
+            
             oneNote.OpenHierarchy(path, parent?.ID, out string newItemID, createFileType);
 
             if (openImmediately)
@@ -215,7 +215,6 @@ namespace Odotocodot.OneNote.Linq
         {
             return sectionGroupTitle.IndexOfAny(InvalidSectionGroupChars) == -1;
         }
-
 
         #endregion
 

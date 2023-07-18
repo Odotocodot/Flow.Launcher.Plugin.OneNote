@@ -47,6 +47,11 @@ namespace Odotocodot.OneNote.Linq
             return items.SelectMany(item => item.Traverse());
         }
 
+        public static void OpenInOneNote(this IOneNoteItem item)
+        {
+            OneNoteApplication.OpenInOneNote(item);
+        }
+        
         /// <summary>
         /// Returns true if the item is a deleted page, deleted section, recycle bin section group, or deleted pages section.
         /// </summary>

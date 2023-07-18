@@ -18,14 +18,14 @@ namespace Flow.Launcher.Plugin.OneNote
             rc = resultCreator;
         }
         #region Notebook Explorer
-        public List<Result> NotebookExplorer(OneNoteApplication oneNote, Query query)
+        public List<Result> NotebookExplorer(Query query)
         {
             var results = new List<Result>();
 
             string fullSearch = query.Search.Remove(query.Search.IndexOf(settings.NotebookExplorerKeyword), settings.NotebookExplorerKeyword.Length);
 
             IOneNoteItem parent = null;
-            IEnumerable<IOneNoteItem> collection = oneNote.GetNotebooks();
+            IEnumerable<IOneNoteItem> collection = OneNoteApplication.GetNotebooks();
 
             string[] searches = fullSearch.Split(Keyword.NotebookExplorerSeparator, StringSplitOptions.None);
 
@@ -55,10 +55,10 @@ namespace Flow.Launcher.Plugin.OneNote
 
                 //scoped search
                 string ls when ls.StartsWith(settings.ScopedSearchKeyword) && (parent is OneNoteNotebook || parent is OneNoteSectionGroup)
-                    => ScopedSearch(oneNote, ls, parent),
+                    => ScopedSearch(ls, parent),
 
                 //default search
-                _ => NotebookDefaultSearch(oneNote, parent, collection, lastSearch)
+                _ => NotebookDefaultSearch(parent, collection, lastSearch)
             };
 
             if (parent != null)
@@ -85,7 +85,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return results;
         }
 
-        private List<Result> NotebookDefaultSearch(OneNoteApplication oneNote, IOneNoteItem parent, IEnumerable<IOneNoteItem> collection, string lastSearch)
+        private List<Result> NotebookDefaultSearch(IOneNoteItem parent, IEnumerable<IOneNoteItem> collection, string lastSearch)
         {
             List<Result> results;
             List<int> highlightData = null;
@@ -96,7 +96,7 @@ namespace Flow.Launcher.Plugin.OneNote
                                 .Select(item => rc.CreateOneNoteItemResult(item, true, highlightData, score))
                                 .ToList();
 
-            AddCreateNewOneNoteItemResults(oneNote, results, parent, lastSearch);
+            AddCreateNewOneNoteItemResults(results, parent, lastSearch);
             return results;
         }
 
@@ -138,7 +138,7 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
 
-        private List<Result> ScopedSearch(OneNoteApplication oneNote, string query, IOneNoteItem parent)
+        private List<Result> ScopedSearch(string query, IOneNoteItem parent)
         {
             if (query.Length == settings.ScopedSearchKeyword.Length)
                 return ResultCreator.NoMatchesFoundResult();
@@ -149,7 +149,7 @@ namespace Flow.Launcher.Plugin.OneNote
             string currentSearch = query[settings.TitleSearchKeyword.Length..];
             var results = new List<Result>();
 
-            results = oneNote.FindPages(parent, currentSearch)
+            results = OneNoteApplication.FindPages(parent, currentSearch)
                              .Select(pg => rc.CreatePageResult(pg, currentSearch))
                              .ToList();
 
@@ -159,7 +159,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return results;
         }
 
-        private void AddCreateNewOneNoteItemResults(OneNoteApplication oneNote, List<Result> results, IOneNoteItem parent, string query)
+        private void AddCreateNewOneNoteItemResults(List<Result> results, IOneNoteItem parent, string query)
         {
             if (!results.Any(result => string.Equals(query.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
             {
@@ -169,7 +169,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 switch (parent)
                 {
                     case null:
-                        results.Add(rc.CreateNewNotebookResult(oneNote, query));
+                        results.Add(rc.CreateNewNotebookResult(query));
                         break;
                     case OneNoteNotebook:
                     case OneNoteSectionGroup:
@@ -186,7 +186,7 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
         #endregion
-        public List<Result> DefaultSearch(OneNoteApplication oneNote, string query)
+        public List<Result> DefaultSearch(string query)
         {
             //Check for invalid start of query i.e. symbols
             if (!char.IsLetterOrDigit(query[0]))
@@ -194,7 +194,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 return ResultCreator.InvalidQuery();
             }
 
-            var results = oneNote.FindPages(query)
+            var results = OneNoteApplication.FindPages(query)
                                  .Select(pg => rc.CreatePageResult(pg, query));
                           
             if (results.Any())
@@ -229,26 +229,26 @@ namespace Flow.Launcher.Plugin.OneNote
 
             return results;
         }
-        public List<Result> RecentPages(OneNoteApplication oneNote, string query)
+        public List<Result> RecentPages(string query)
         {
             int count = settings.DefaultRecentsCount;
             if (query.Length > settings.RecentPagesKeyword.Length && int.TryParse(query[settings.RecentPagesKeyword.Length..], out int userChosenCount))
                 count = userChosenCount;
 
-            return oneNote.GetNotebooks()
-                          .GetPages()
-                          .Where(SettingsCheck)
-                          .OrderByDescending(pg => pg.LastModified)
-                          .Take(count)
-                          .Select(pg =>
-                          {
-                              Result result = rc.CreatePageResult(pg);
-                              result.SubTitleToolTip = result.SubTitle;
-                              result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
-                              result.IcoPath = Icons.RecentPage;
-                              return result;
-                          })
-                          .ToList();
+            return OneNoteApplication.GetNotebooks()
+                                     .GetPages()
+                                     .Where(SettingsCheck)
+                                     .OrderByDescending(pg => pg.LastModified)
+                                     .Take(count)
+                                     .Select(pg =>
+                                     {
+                                         Result result = rc.CreatePageResult(pg);
+                                         result.SubTitleToolTip = result.SubTitle;
+                                         result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
+                                         result.IcoPath = Icons.RecentPage;
+                                         return result;
+                                     })
+                                     .ToList();
         }
 
         public List<Result> ContextMenu(Result selectedResult)

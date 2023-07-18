@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNotePlugin : IPlugin, IContextMenu, ISettingProvider
+    public class OneNotePlugin : IPlugin, IContextMenu, ISettingProvider, IDisposable
     {
         private PluginInitContext context;
 
@@ -18,6 +17,19 @@ namespace Flow.Launcher.Plugin.OneNote
             settings = context.API.LoadSettingJsonStorage<Settings>();
             Icons.Init(context, settings);
             searchManager = new SearchManager(context, settings, new ResultCreator(context, settings));
+            context.API.VisibilityChanged += OnVisibilityChanged;
+        }
+
+        public void OnVisibilityChanged(object _, VisibilityChangedEventArgs e)
+        {
+            if (!context.CurrentPluginMetadata.Disabled && e.IsVisible)
+            {
+                OneNoteApplication.Init();
+            }
+            else
+            {
+                OneNoteApplication.ReleaseCOMInstance();
+            }
         }
         
         public List<Result> Query(Query query)
@@ -59,10 +71,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         Score = -4000,
                         Action = c =>
                         {
-                            GetOneNote(oneNote =>
-                            {
-                                oneNote.CreateQuickNote();
-                            });
+                            OneNoteApplication.CreateQuickNote();
                             return true;
                         }
                     },
@@ -73,30 +82,24 @@ namespace Flow.Launcher.Plugin.OneNote
                         Score = int.MinValue,
                         Action = c =>
                         {
-                            GetOneNote(oneNote =>
+                            foreach (var notebook in OneNoteApplication.GetNotebooks())
                             {
-                                foreach (var notebook in oneNote.GetNotebooks())
-                                {
-                                    oneNote.SyncItem(notebook);
-                                }
-                                oneNote.OpenInOneNote(oneNote.GetNotebooks().First());
-                            });
+                                OneNoteApplication.SyncItem(notebook);
+                            }
+                            OneNoteApplication.GetNotebooks().First().OpenInOneNote();
                             return true;
                         }
                     },
                 };
             }
 
-            return GetOneNote(oneNote =>
+            return query.FirstSearch switch
             {
-                return query.FirstSearch switch
-                {
-                    string fs when fs.StartsWith(settings.RecentPagesKeyword) => searchManager.RecentPages(oneNote, fs),
-                    string fs when fs.StartsWith(settings.NotebookExplorerKeyword) => searchManager.NotebookExplorer(oneNote, query),
-                    string fs when fs.StartsWith(settings.TitleSearchKeyword) => searchManager.TitleSearch(string.Join(' ', query.SearchTerms), oneNote.GetNotebooks()),
-                    _ => searchManager.DefaultSearch(oneNote, query.Search)
-                };
-            },context,query);
+                string fs when fs.StartsWith(settings.RecentPagesKeyword) => searchManager.RecentPages(fs),
+                string fs when fs.StartsWith(settings.NotebookExplorerKeyword) => searchManager.NotebookExplorer(query),
+                string fs when fs.StartsWith(settings.TitleSearchKeyword) => searchManager.TitleSearch(string.Join(' ', query.SearchTerms), OneNoteApplication.GetNotebooks()),
+                _ => searchManager.DefaultSearch(query.Search)
+            };
         }
 
         public List<Result> LoadContextMenus(Result selectedResult)
@@ -109,32 +112,10 @@ namespace Flow.Launcher.Plugin.OneNote
             return new UI.SettingsView(new UI.SettingsViewModel(context, settings));
         }
 
-        public static List<Result> GetOneNote(Func<OneNoteApplication, List<Result>> action, PluginInitContext context, Query query)
+        public void Dispose()
         {
-            bool error = false;
-            try
-            {
-                using var oneNote = new OneNoteApplication();
-                return action(oneNote);
-            }
-            catch (Exception ex) when (ex is InvalidCastException || ex is COMException) 
-            {
-                //exceptions are randomly thrown when rapidly creating a new COM object instance;
-                error = true;
-                return ResultCreator.SingleResult("Loading...", null, null);
-            }
-            finally
-            {
-                if (error)
-                {
-                    context.API.ChangeQuery(query.RawQuery, true);
-                }
-            }
-        }
-        public static void GetOneNote(Action<OneNoteApplication> action)
-        {
-            using var oneNote = new OneNoteApplication();
-            action(oneNote);
+            context.API.VisibilityChanged -= OnVisibilityChanged;
+            OneNoteApplication.ReleaseCOMInstance();
         }
     }
 }
