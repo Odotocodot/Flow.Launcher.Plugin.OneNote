@@ -61,15 +61,15 @@ namespace Odotocodot.OneNote.Linq
             return GetNotebooks().Traverse(predicate);
         }
 
-        public static IEnumerable<OneNotePage> FindPages(string searchString)
+        public static IEnumerable<OneNotePage> FindPages(string search)
         {
             Init();
-            return OneNoteParser.FindPages(oneNote, searchString);
+            return OneNoteParser.FindPages(oneNote, search);
         }
-        public static IEnumerable<OneNotePage> FindPages(IOneNoteItem scope, string searchString)
+        public static IEnumerable<OneNotePage> FindPages(IOneNoteItem scope, string search)
         {
             Init();
-            return OneNoteParser.FindPages(oneNote, searchString, scope);
+            return OneNoteParser.FindPages(oneNote, search, scope);
         }
         public static string GetDefaultNotebookLocation()
         {

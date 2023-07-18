@@ -289,9 +289,9 @@ namespace Flow.Launcher.Plugin.OneNote
 
             }
         }
-        private bool FuzzySearch(string itemName, string searchString, out List<int> highlightData, out int score)
+        private bool FuzzySearch(string itemName, string search, out List<int> highlightData, out int score)
         {
-            var matchResult = context.API.FuzzySearch(searchString, itemName);
+            var matchResult = context.API.FuzzySearch(search, itemName);
             highlightData = matchResult.MatchData;
             score = matchResult.Score;
             return matchResult.IsSearchPrecisionScoreMet();

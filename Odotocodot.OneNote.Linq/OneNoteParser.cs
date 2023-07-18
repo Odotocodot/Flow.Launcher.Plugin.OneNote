@@ -15,7 +15,7 @@ namespace Odotocodot.OneNote.Linq
         public static readonly char[] InvalidSectionChars = "\\/*?\"|<>:%#&".ToCharArray();
         public static readonly char[] InvalidSectionGroupChars = InvalidSectionChars;
 
-        private static readonly Lazy<Dictionary<Type, XName>> xNames = new Lazy<Dictionary<Type, XName>>(() =>
+        private static readonly Lazy<Dictionary<Type, XName>> xNames = new (() =>
         {
             var namespaceUri = "http://schemas.microsoft.com/office/onenote/2013/onenote";
             return new Dictionary<Type, XName>
@@ -43,15 +43,15 @@ namespace Odotocodot.OneNote.Linq
 
         /// <summary>
         /// Returns a collection of pages that match the specified query term. <br/>
-        /// <paramref name="searchString" /> should be exactly the same string that you would type into the search box in the OneNote UI. You can use bitwise operators, such as AND and OR, which must be all uppercase.
+        /// <paramref name="search" /> should be exactly the same string that you would type into the search box in the OneNote UI. You can use bitwise operators, such as AND and OR, which must be all uppercase.
         /// </summary>
         /// <param name="oneNote"></param>
-        /// <param name="searchString"></param>
-        public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string searchString)
+        /// <param name="search"></param>
+        public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string search)
         {
-            ValidateSearchString(searchString);
+            ValidateSearch(search);
 
-            oneNote.FindPages(null, searchString, out string xml);
+            oneNote.FindPages(null, search, out string xml);
             var rootElement = XElement.Parse(xml);
             return rootElement.Elements(GetXName<OneNoteNotebook>())
                               .Select(element => new OneNoteNotebook(element))
@@ -64,15 +64,15 @@ namespace Odotocodot.OneNote.Linq
         /// If <paramref name="scope" /> is <see langword="null" /> this method is equivalent to <see cref="FindPages(IApplication,string)"/>
         /// </remarks>
         /// <param name="oneNote"></param>
-        /// <param name="searchString"></param>
+        /// <param name="search"></param>
         /// <param name="scope"></param>
-        public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string searchString, IOneNoteItem scope)
+        public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string search, IOneNoteItem scope)
         {
             ArgumentNullException.ThrowIfNull(scope, nameof(scope));
 
-            ValidateSearchString(searchString);
+            ValidateSearch(search);
 
-            oneNote.FindPages(scope.ID, searchString, out string xml);
+            oneNote.FindPages(scope.ID, search, out string xml);
 
             var rootElement = XElement.Parse(xml);
 
@@ -87,15 +87,15 @@ namespace Odotocodot.OneNote.Linq
             return root.GetPages();
         }
 
-        private static void ValidateSearchString(string searchString)
+        private static void ValidateSearch(string search)
         {
-            ArgumentNullException.ThrowIfNull(searchString, nameof(searchString));
+            ArgumentNullException.ThrowIfNull(search, nameof(search));
 
-            if (string.IsNullOrWhiteSpace(searchString))
-                throw new ArgumentException("Search string cannot be empty or only whitespace", nameof(searchString));
+            if (string.IsNullOrWhiteSpace(search))
+                throw new ArgumentException("Search string cannot be empty or only whitespace", nameof(search));
 
-            if (!char.IsLetterOrDigit(searchString[0]))
-                throw new ArgumentException("The first character of the search must be a letter or a digit", nameof(searchString));
+            if (!char.IsLetterOrDigit(search[0]))
+                throw new ArgumentException("The first character of the search must be a letter or a digit", nameof(search));
         }
 
         public static void OpenInOneNote(IApplication oneNote, IOneNoteItem item)
