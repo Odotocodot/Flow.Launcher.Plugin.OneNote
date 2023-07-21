@@ -51,6 +51,11 @@ namespace Odotocodot.OneNote.Linq
         {
             OneNoteApplication.OpenInOneNote(item);
         }
+
+        public static void Sync(this IOneNoteItem item)
+        {
+            OneNoteApplication.SyncItem(item);
+        }
         
         /// <summary>
         /// Returns true if the item is a deleted page, deleted section, recycle bin section group, or deleted pages section.

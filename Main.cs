@@ -4,7 +4,7 @@ using System.Linq;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNotePlugin : IPlugin, IContextMenu, ISettingProvider, IDisposable
+    public class Main : IPlugin, IContextMenu, ISettingProvider, IDisposable
     {
         private PluginInitContext context;
 
@@ -22,11 +22,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public void OnVisibilityChanged(object _, VisibilityChangedEventArgs e)
         {
-            if (!context.CurrentPluginMetadata.Disabled && e.IsVisible)
-            {
-                OneNoteApplication.Init();
-            }
-            else
+            if (context.CurrentPluginMetadata.Disabled || !e.IsVisible)
             {
                 OneNoteApplication.ReleaseCOMInstance();
             }
@@ -34,6 +30,7 @@ namespace Flow.Launcher.Plugin.OneNote
         
         public List<Result> Query(Query query)
         {
+            OneNoteApplication.Init();
             if (string.IsNullOrEmpty(query.Search))
             {
                 return new List<Result>
