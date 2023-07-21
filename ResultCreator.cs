@@ -10,7 +10,6 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly Settings settings;
 
         private const string PathSeparator = " > ";
-        private const int RightAlignment = 5;
 
         public ResultCreator(PluginInitContext context,  Settings settings)
         {
@@ -60,18 +59,18 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 case OneNoteNotebook notebook:
                     titleToolTip = $"{notebook.Name}\n\n"+
-                    $"Last Modified:\t{notebook.LastModified}\n\n"+
-                    $"Sections:\t\t{notebook.Sections.Count(),RightAlignment}\n"+
-                    $"Sections Groups:\t{notebook.SectionGroups.Count(),RightAlignment}";
+                    $"Last Modified:\t{notebook.LastModified:F}\n"+
+                    $"Sections:\t\t{notebook.Sections.Count()}\n"+
+                    $"Sections Groups:\t{notebook.SectionGroups.Count()}";
 
                     subTitle = string.Empty;
                     autoCompleteText += Keyword.NotebookExplorerSeparator;
                     break;
                 case OneNoteSectionGroup sectionGroup:
                     subTitleToolTip = $"{subTitle}\n\n" +
-                    $"Last Modified:\t{sectionGroup.LastModified}\n\n" +
-                    $"Sections:\t\t{sectionGroup.Sections.Count(),RightAlignment}\n" +
-                    $"Sections Groups:\t{sectionGroup.SectionGroups.Count(),RightAlignment}";
+                    $"Last Modified:\t{sectionGroup.LastModified:F}\n" +
+                    $"Sections:\t\t{sectionGroup.Sections.Count()}\n" +
+                    $"Sections Groups:\t{sectionGroup.SectionGroups.Count()}";
 
                     autoCompleteText += Keyword.NotebookExplorerSeparator;                    
                     break;
@@ -86,8 +85,8 @@ namespace Flow.Launcher.Plugin.OneNote
                     }
 
                     subTitleToolTip = $"{subTitle}\n\n"+
-                    $"Last Modified:\t{section.LastModified}\n\n"+
-                    $"Pages:\t{section.Pages.Count(),RightAlignment}";
+                    $"Last Modified:\t{section.LastModified}\n"+
+                    $"Pages:\t\t{section.Pages.Count()}";
 
                     autoCompleteText += Keyword.NotebookExplorerSeparator;
                     break;
@@ -95,8 +94,8 @@ namespace Flow.Launcher.Plugin.OneNote
                     actionIsAutoComplete = false;
                     subTitle =  subTitle.Remove(subTitle.Length - (page.Name.Length + PathSeparator.Length));
                     subTitleToolTip = $"{subTitle}\n\n"+
-                    $"Created:\t\t{page.Created}\n"+
-                    $"Last Modified:\t{page.LastModified}";
+                    $"Created:\t\t{page.Created:F}\n"+
+                    $"Last Modified:\t{page.LastModified:F}";
                     break;
             }
             return new Result
