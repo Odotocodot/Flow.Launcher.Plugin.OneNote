@@ -1,78 +1,63 @@
 using System;
 using System.Collections.Generic;
-using ScipBe.Common.Office.OneNote;
 using System.Linq;
-
+using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNotePlugin : IPlugin, IContextMenu
+    public class Main : IPlugin, IContextMenu, ISettingProvider, IDisposable
     {
         private PluginInitContext context;
-        private bool hasOneNote;
-        private readonly int recentPagesCount = 5;
-        public IOneNoteExtNotebook lastSelectedNotebook;
-        public IOneNoteExtSection lastSelectedSection;
 
-        private NotebookExplorer notebookExplorer;
-        private ResultCreator rc;
+        private SearchManager searchManager;
+        private Settings settings;
 
         public void Init(PluginInitContext context)
         {
             this.context = context;
-            try
-            {
-                _ = OneNoteProvider.PageItems.Any();
-                hasOneNote = true;
-            }
-            catch (Exception)
-            {
-                hasOneNote = false;
-                return;
-            }
-            rc = new ResultCreator(context, this);
-            notebookExplorer = new NotebookExplorer(context, this, rc);
+            settings = context.API.LoadSettingJsonStorage<Settings>();
+            Icons.Init(context, settings);
+            searchManager = new SearchManager(context, settings, new ResultCreator(context, settings));
+            context.API.VisibilityChanged += OnVisibilityChanged;
         }
 
+        public void OnVisibilityChanged(object _, VisibilityChangedEventArgs e)
+        {
+            if (context.CurrentPluginMetadata.Disabled || !e.IsVisible)
+            {
+                OneNoteApplication.ReleaseCOMInstance();
+            }
+        }
+        
         public List<Result> Query(Query query)
         {
-            if (!hasOneNote)
-            {
-                return new List<Result>()
-                {
-                    new Result
-                    {
-                        Title = "OneNote is not installed.",
-                        IcoPath = Icons.Unavailable
-                    }
-                };
-            }
+            OneNoteApplication.Init();
             if (string.IsNullOrEmpty(query.Search))
             {
-                return new List<Result>()
+                return new List<Result>
                 {
                     new Result
                     {
                         Title = "Search OneNote pages",
-                        SubTitle = $"Type \"{Keywords.NotebookExplorer}\" or select this option to search by notebook structure ",
-                        AutoCompleteText = $"{query.ActionKeyword} {Keywords.NotebookExplorer}",
+                        SubTitle = $"Type \"{settings.NotebookExplorerKeyword}\" or select this option to search by notebook structure ",
+                        AutoCompleteText = $"{query.ActionKeyword} {settings.NotebookExplorerKeyword}",
                         IcoPath = Icons.Logo,
                         Score = 2000,
                         Action = c =>
                         {
-                            context.API.ChangeQuery($"{query.ActionKeyword} {Keywords.NotebookExplorer}");
+                            context.API.ChangeQuery($"{query.ActionKeyword} {settings.NotebookExplorerKeyword}");
                             return false;
                         },
                     },
                     new Result
                     {
                         Title = "See recent pages",
-                        SubTitle = $"Type \"{Keywords.RecentPages}\" or select this option to see recently modified pages",
-                        AutoCompleteText = $"{query.ActionKeyword} {Keywords.RecentPages}",
+                        SubTitle = $"Type \"{settings.RecentPagesKeyword}\" or select this option to see recently modified pages",
+                        AutoCompleteText = $"{query.ActionKeyword} {settings.RecentPagesKeyword}",
                         IcoPath = Icons.Recent,
                         Score = -1000,
                         Action = c =>
                         {
-                            context.API.ChangeQuery($"{query.ActionKeyword} {Keywords.RecentPages}");
+                            context.API.ChangeQuery($"{query.ActionKeyword} {settings.RecentPagesKeyword}");
                             return false;
                         },
                     },
@@ -83,7 +68,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         Score = -4000,
                         Action = c =>
                         {
-                            ScipBeExtensions.CreateAndOpenPage();
+                            OneNoteApplication.CreateQuickNote();
                             return true;
                         }
                     },
@@ -94,135 +79,40 @@ namespace Flow.Launcher.Plugin.OneNote
                         Score = int.MinValue,
                         Action = c =>
                         {
-                            OneNoteProvider.NotebookItems.OpenAndSync(OneNoteProvider.PageItems.First());
-                            return false;
+                            foreach (var notebook in OneNoteApplication.GetNotebooks())
+                            {
+                                OneNoteApplication.SyncItem(notebook);
+                            }
+                            OneNoteApplication.GetNotebooks().First().OpenInOneNote();
+                            return true;
                         }
                     },
                 };
             }
-            if (query.FirstSearch.StartsWith(Keywords.RecentPages))
+
+            return query.FirstSearch switch
             {
-                int count = recentPagesCount;
-                if (query.FirstSearch.Length > Keywords.RecentPages.Length && int.TryParse(query.FirstSearch[Keywords.RecentPages.Length..], out int userChosenCount))
-                    count = userChosenCount;
-
-                return OneNoteProvider.PageItems.OrderByDescending(pg => pg.LastModified)
-                    .Take(count)
-                    .Select(pg =>
-                    {
-                        Result result = rc.CreatePageResult(pg);
-                        result.SubTitle = $"{GetLastEdited(DateTime.Now - pg.LastModified)}\t{result.SubTitle}";
-                        result.IcoPath = Icons.RecentPage;
-                        return result;
-                    })
-                    .ToList();
-            }
-
-            //Search via notebook structure
-            //NOTE: There is no nested sections i.e. there is nothing for the Section Group in the structure 
-            if (query.FirstSearch.StartsWith(Keywords.NotebookExplorer))
-                return notebookExplorer.Explore(query);
-
-            //Check for invalid start of query i.e. symbols
-            if (!char.IsLetterOrDigit(query.Search[0]))
-                return new List<Result>()
-                {
-                    new Result
-                    {
-                        Title = "Invalid query",
-                        SubTitle = "The first character of the search must be a letter or a digit",
-                        IcoPath = Icons.Warning,
-                    }
-                };
-            //Default search 
-            var searches = OneNoteProvider.FindPages(query.Search)
-                .Select(pg => rc.CreatePageResult(pg, context.API.FuzzySearch(query.Search, pg.Name).MatchData));
-
-            if (searches.Any())
-                return searches.ToList();
-                
-            return new List<Result>
-            {
-                new Result
-                {
-                    Title = "No matches found",
-                    SubTitle = "Try searching something else, or syncing your notebooks.",
-                    IcoPath = Icons.Logo,
-                }
+                string fs when fs.StartsWith(settings.RecentPagesKeyword) => searchManager.RecentPages(fs),
+                string fs when fs.StartsWith(settings.NotebookExplorerKeyword) => searchManager.NotebookExplorer(query),
+                string fs when fs.StartsWith(settings.TitleSearchKeyword) => searchManager.TitleSearch(string.Join(' ', query.SearchTerms), OneNoteApplication.GetNotebooks()),
+                _ => searchManager.DefaultSearch(query.Search)
             };
         }
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
-            List<Result> results = new List<Result>();
-            switch (selectedResult.ContextData)
-            {
-                case IOneNoteExtNotebook notebook:
-                    Result result = rc.CreateNotebookResult(notebook);
-                    result.Title = "Open and sync notebook";
-                    result.SubTitle = notebook.Name;
-                    result.ContextData = null;
-                    result.Action = c =>
-                    {
-                        notebook.OpenAndSync();
-                        lastSelectedNotebook = null;
-                        return true;
-                    };
-                    results.Add(result);
-                    break;
-                case IOneNoteExtSection section:
-                    Result sResult = rc.CreateSectionResult(section, lastSelectedNotebook);
-                    sResult.Title = "Open and sync section";
-                    sResult.SubTitle = section.Name;
-                    sResult.ContextData = null;
-                    sResult.Action = c =>
-                    {
-                        section.OpenAndSync();
-                        lastSelectedNotebook = null;
-                        lastSelectedSection = null;
-                        return true;
-                    };
-                    Result nbResult = rc.CreateNotebookResult(lastSelectedNotebook);
-                    nbResult.Title = "Open and sync notebook";
-                    nbResult.SubTitle = lastSelectedNotebook.Name;
-                    nbResult.Action = c =>
-                    {
-                        lastSelectedNotebook.OpenAndSync();
-                        lastSelectedNotebook = null;
-                        lastSelectedSection = null;
-                        return true;
-                    };
-                    results.Add(sResult);
-                    results.Add(nbResult);
-                    break;
-            }
-            return results;
+            return searchManager.ContextMenu(selectedResult);
         }
 
-        private static string GetLastEdited(TimeSpan diff)
+        public System.Windows.Controls.Control CreateSettingPanel()
         {
-            string lastEdited = "Last edited ";
-            if (PluralCheck(diff.TotalDays, "day", ref lastEdited)
-            || PluralCheck(diff.TotalHours, "hour", ref lastEdited)
-            || PluralCheck(diff.TotalMinutes, "min", ref lastEdited)
-            || PluralCheck(diff.TotalSeconds, "sec", ref lastEdited))
-                return lastEdited;
-            else
-                return lastEdited += "Now.";
+            return new UI.SettingsView(new UI.SettingsViewModel(context, settings));
+        }
 
-            bool PluralCheck(double totalTime, string timeType, ref string lastEdited)
-            {
-                var roundedTime = (int)Math.Round(totalTime);
-                if (roundedTime > 0)
-                {
-                    string plural = roundedTime == 1 ? "" : "s";
-                    lastEdited += $"{roundedTime} {timeType}{plural} ago.";
-                    return true;
-                }
-                else
-                    return false;
-
-            }
+        public void Dispose()
+        {
+            context.API.VisibilityChanged -= OnVisibilityChanged;
+            OneNoteApplication.ReleaseCOMInstance();
         }
     }
 }

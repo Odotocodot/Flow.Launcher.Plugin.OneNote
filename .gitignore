@@ -354,3 +354,6 @@ MigrationBackup/
 #Flow launcher specific
 release.ps1
 appveyor.yml
+
+#VSCode
+.vscode/
