@@ -39,11 +39,13 @@ namespace Odotocodot.OneNote.Linq
                         break;
                 }
             }
+            RelativePath = $"{OneNoteParser.RelativePathSeparator}{parent.RelativePath}";
         }
         public string ID { get; init; }
         public string Name { get; init; }
         public bool IsUnread { get; init; }
         public DateTime LastModified { get; init; }
+        public string RelativePath { get; init; }
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => Enumerable.Empty<IOneNoteItem>();
         IOneNoteItem IOneNoteItem.Parent => Section;
         public OneNoteSection Section { get; init; }

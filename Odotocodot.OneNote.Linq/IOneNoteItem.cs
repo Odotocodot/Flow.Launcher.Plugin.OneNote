@@ -27,5 +27,10 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         IEnumerable<IOneNoteItem> Children { get; }
         IOneNoteItem Parent { get; }
+        /// <summary>
+        /// The path of the item relative to and inclusive of its notebook
+        /// </summary>
+        string RelativePath { get; }
+        
     }
 }

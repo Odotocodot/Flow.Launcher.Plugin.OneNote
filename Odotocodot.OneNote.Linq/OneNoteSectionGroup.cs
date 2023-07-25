@@ -46,6 +46,7 @@ namespace Odotocodot.OneNote.Linq
                 SectionGroups = element.Elements(OneNoteParser.GetXName<OneNoteSectionGroup>())
                                        .Select(e => new OneNoteSectionGroup(e, this)); 
             }
+            RelativePath = $"{OneNoteParser.RelativePathSeparator}{parent.RelativePath}";
         }
         public string ID { get; init; }
         public string Name { get; init; }
@@ -53,6 +54,7 @@ namespace Odotocodot.OneNote.Linq
         public DateTime LastModified { get; init; }
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => ((IEnumerable<IOneNoteItem>)Sections).Concat(SectionGroups);
         public IOneNoteItem Parent { get; init; }
+        public string RelativePath { get; }
         /// <summary>
         /// Full path of the section group.
         /// </summary>

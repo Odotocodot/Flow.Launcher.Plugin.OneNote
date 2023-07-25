@@ -54,6 +54,7 @@ namespace Odotocodot.OneNote.Linq
         public string Name { get; init; }
         public bool IsUnread { get; init; }
         public DateTime LastModified { get; init; }
+        public string RelativePath => Name;
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => ((IEnumerable<IOneNoteItem>)Sections).Concat(SectionGroups);
         IOneNoteItem IOneNoteItem.Parent => null;
         /// <summary>

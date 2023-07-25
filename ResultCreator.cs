@@ -19,7 +19,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private static string GetNicePath(IOneNoteItem item, bool includeSelf = true, string separator = PathSeparator)
         {
-            return item.GetRelativePath(includeSelf, separator);
+            return item.RelativePath.Replace(OneNoteParser.RelativePathSeparator, separator);
         }
 
         private string GetTitle(IOneNoteItem item, List<int> highlightData)

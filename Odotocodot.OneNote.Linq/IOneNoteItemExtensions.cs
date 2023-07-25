@@ -106,21 +106,22 @@ namespace Odotocodot.OneNote.Linq
             return item.Traverse()
                        .OfType<OneNotePage>();
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns>The path of the item relative to and inclusive of its notebook</returns>
-        public static string GetRelativePath(this IOneNoteItem item, bool includeSelf = true, string separator = "\\")
-        {
-            StringBuilder sb = includeSelf ? new(item.Name) : new();
-            while(item.Parent != null)
-            {
-                sb.Insert(0, separator);
-                item = item.Parent;
-                sb.Insert(0, item.Name);
-            }
-            return sb.ToString();
-        }
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="item"></param>
+        ///// <returns>The path of the item relative to and inclusive of its notebook</returns>
+        //public static string GetRelativePath(this IOneNoteItem item, bool includeSelf = true, string separator = "\\")
+        //{
+        //    StringBuilder sb = includeSelf ? new(item.Name) : new();
+        //    while(item.Parent != null)
+        //    {
+        //        sb.Insert(0, separator);
+        //        item = item.Parent;
+        //        sb.Insert(0, item.Name);
+        //    }
+        //    return sb.ToString();
+        //}
     }
 }

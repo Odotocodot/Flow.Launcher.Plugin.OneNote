@@ -15,6 +15,8 @@ namespace Odotocodot.OneNote.Linq
         public static readonly char[] InvalidSectionChars = "\\/*?\"|<>:%#&".ToCharArray();
         public static readonly char[] InvalidSectionGroupChars = InvalidSectionChars;
 
+        public const string RelativePathSeparator = "\\";
+
         private static readonly Lazy<Dictionary<Type, XName>> xNames = new (() =>
         {
             var namespaceUri = "http://schemas.microsoft.com/office/onenote/2013/onenote";
