@@ -49,6 +49,11 @@ namespace Odotocodot.OneNote.Linq
             Init();
             OneNoteParser.SyncItem(oneNote, item);
         }
+        public static string GetPageContent(OneNotePage page)
+        {
+            Init();
+            return OneNoteParser.GetPageContent(oneNote, page);
+        }
 
         public static IEnumerable<IOneNoteItem> Traverse()
         {

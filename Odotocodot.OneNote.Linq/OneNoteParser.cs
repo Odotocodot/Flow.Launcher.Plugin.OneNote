@@ -107,6 +107,12 @@ namespace Odotocodot.OneNote.Linq
             oneNote.SyncHierarchy(item.ID);
         }
 
+        public static string GetPageContent(Application oneNote, OneNotePage page)
+        {
+            oneNote.GetPageContent(page.ID, out string xml);
+            return xml;
+        }
+
         public static void DeleteItem(IApplication oneNote, IOneNoteItem item)
         {
             oneNote.DeleteHierarchy(item.ID);
@@ -249,6 +255,7 @@ namespace Odotocodot.OneNote.Linq
             oneNote.GetSpecialLocation(SpecialLocation.slUnfiledNotesSection, out string path);
             return path;
         }
+
         #endregion
     }
 }

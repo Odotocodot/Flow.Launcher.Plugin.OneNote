@@ -56,7 +56,12 @@ namespace Odotocodot.OneNote.Linq
         {
             OneNoteApplication.SyncItem(item);
         }
-        
+
+        public static string GetPageContent(this OneNotePage page)
+        {
+            return OneNoteApplication.GetPageContent(page);
+        }
+
         /// <summary>
         /// Returns true if the item is a deleted page, deleted section, recycle bin section group, or deleted pages section.
         /// </summary>
