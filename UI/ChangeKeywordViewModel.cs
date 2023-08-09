@@ -24,22 +24,22 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         {
             errorMessage = null;
             var oldKeyword = SelectedKeyword.KeywordValue;
-            var newKeyword = NewKeyword.Trim();
-            if (string.IsNullOrWhiteSpace(newKeyword))
+            if (string.IsNullOrWhiteSpace(NewKeyword))
             {
                 errorMessage = "The new keyword cannot be empty.";
                 return false;
             }
 
+            var newKeyword = NewKeyword.Trim();
             if (oldKeyword == newKeyword)
             {
                 errorMessage = "The new keyword is the same as the old keyword.";
                 return false;
             }
+            var alreadySetKeyword = Keywords.FirstOrDefault(k => k == newKeyword);
 
-            if (Keywords.Any(k => k == newKeyword))
+            if (alreadySetKeyword != null)
             {
-                Keyword alreadySetKeyword = Keywords.Where(k => k == newKeyword).First();
                 errorMessage = $"The new keyword matches an already set one:\n"
                                 + $"\"{alreadySetKeyword.Name}\" => \"{alreadySetKeyword.KeywordValue}\"";
                 return false;
