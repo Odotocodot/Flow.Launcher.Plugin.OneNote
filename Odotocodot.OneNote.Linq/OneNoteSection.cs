@@ -50,12 +50,12 @@ namespace Odotocodot.OneNote.Linq
                         break;
                 }
             }
+            RelativePath = $"{parent.RelativePath}{OneNoteParser.RelativePathSeparator}{Name}";
             if(addChildren)
             {
                 Pages = element.Elements(OneNoteParser.GetXName<OneNotePage>())
                                .Select(e => new OneNotePage(e,this));
             }
-            RelativePath = $"{OneNoteParser.RelativePathSeparator}{parent.RelativePath}";
         }
 
         public string ID { get; init; }
@@ -64,7 +64,7 @@ namespace Odotocodot.OneNote.Linq
         public DateTime LastModified { get; init; }
         IEnumerable<IOneNoteItem> IOneNoteItem.Children => Pages;
         public IOneNoteItem Parent { get; init; }
-        public string RelativePath { get; }
+        public string RelativePath { get; init; }
         /// <summary>
         /// Full path of the section.
         /// </summary>

@@ -39,7 +39,7 @@ namespace Odotocodot.OneNote.Linq
                         break;
                 }
             }
-            RelativePath = $"{OneNoteParser.RelativePathSeparator}{parent.RelativePath}";
+            RelativePath = $"{parent.RelativePath}{OneNoteParser.RelativePathSeparator}{Name}";
         }
         public string ID { get; init; }
         public string Name { get; init; }
