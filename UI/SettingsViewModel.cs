@@ -15,22 +15,25 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         public readonly PluginInitContext context;
         //private IconLooper notebookIconLooper;
         //private IconLooper sectionIconLooper;
+
         public SettingsViewModel(PluginInitContext context, Settings settings)
         {
             Settings = settings;
             this.context = context;
             NotebookIcon = Directory.EnumerateFiles(Icons.NotebookIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook)); 
             SectionIcon = Directory.EnumerateFiles(Icons.SectionIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section));
-            Keywords = new Keyword[]{ settings.NotebookExplorerKeyword, settings.RecentPagesKeyword, settings.TitleSearchKeyword, settings.ScopedSearchKeyword };
+            Keywords = KeywordViewModel.GetKeywordModels(settings.Keywords);
         }
+
+
         public Settings Settings { get; init; }
-        public Keyword[] Keywords { get; init; }
+        public KeywordViewModel[] Keywords { get; init; }
 
-        public Keyword SelectedKeyword { get; set; }
+        public KeywordViewModel SelectedKeyword { get; set; }
 
-        public string RecycleBinSubTitle => $"When using \"{Settings.NotebookExplorerKeyword}\" show items that are in the recycle bin";
-        public string EncryptedSectionSubTitle => $"when using \"{Settings.NotebookExplorerKeyword}\" show encrypted sections, if the section has been unlocked, allow temporary access." ;
-        public string RecentPagesSubTitle => $"The initial number of recent pages to show when using \"{Settings.RecentPagesKeyword}\"";
+        public string RecycleBinSubTitle => $"When using \"{Settings.Keywords.NotebookExplorer}\" show items that are in the recycle bin";
+        public string EncryptedSectionSubTitle => $"when using \"{Settings.Keywords.NotebookExplorer}\" show encrypted sections, if the section has been unlocked, allow temporary access." ;
+        public string RecentPagesSubTitle => $"The initial number of recent pages to show when using \"{Settings.Keywords.RecentPages}\"";
 
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);

@@ -16,14 +16,14 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         }
         public Settings Settings => settingsViewModel.Settings;
         public string Tip => $"Enter the keyword you like to change \"{SelectedKeyword.Name}\" to.";
-        public Keyword[] Keywords => settingsViewModel.Keywords;
-        public Keyword SelectedKeyword { get; init; }
+        public KeywordViewModel[] Keywords => settingsViewModel.Keywords;
+        public KeywordViewModel SelectedKeyword { get; init; }
         public string NewKeyword { get => newKeyword; set => SetProperty(ref newKeyword, value); }
 
         public bool ChangeKeyword(out string errorMessage)
         {
             errorMessage = null;
-            var oldKeyword = SelectedKeyword.KeywordValue;
+            var oldKeyword = SelectedKeyword.Keyword;
             if (string.IsNullOrWhiteSpace(NewKeyword))
             {
                 errorMessage = "The new keyword cannot be empty.";
@@ -36,16 +36,16 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 errorMessage = "The new keyword is the same as the old keyword.";
                 return false;
             }
-            var alreadySetKeyword = Keywords.FirstOrDefault(k => k == newKeyword);
+            var alreadySetKeyword = Keywords.FirstOrDefault(k => k.Keyword == newKeyword);
 
             if (alreadySetKeyword != null)
             {
                 errorMessage = $"The new keyword matches an already set one:\n"
-                                + $"\"{alreadySetKeyword.Name}\" => \"{alreadySetKeyword.KeywordValue}\"";
+                                + $"\"{alreadySetKeyword.Name}\" => \"{alreadySetKeyword.Keyword}\"";
                 return false;
             }
 
-            SelectedKeyword.KeywordValue = newKeyword;
+            SelectedKeyword.Keyword = newKeyword;
             settingsViewModel.UpdateSubtitleProperties();
             context.API.SaveSettingJsonStorage<Settings>();
             return true;

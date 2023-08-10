@@ -1,4 +1,6 @@
-﻿namespace Flow.Launcher.Plugin.OneNote
+﻿using System.Text.Json.Serialization;
+
+namespace Flow.Launcher.Plugin.OneNote
 {
     public class Settings : UI.Model
     {
@@ -7,14 +9,17 @@
         private bool showRecycleBin = true;
         private bool showEncrypted = false;
         private bool createColoredIcons = true;
+  
 
-        #region Seializing Keywords
-        public Keyword NotebookExplorerKeyword { get; private set; } = new("Notebook Explorer", $"nb:{Keyword.NotebookExplorerSeparator}");
-        public Keyword RecentPagesKeyword { get; private set; } = new("Recent Pages", "rcntpgs:");
-        public Keyword TitleSearchKeyword { get; private set; } = new("Title Search", "*");
-        public Keyword ScopedSearchKeyword { get; private set; } = new("Scoped Search", ">");
+        [JsonIgnore]
+        public Keywords Keywords { get ; private set ; } = new Keywords();
+
+        #region For Saving Keywords
+
+        [JsonInclude]
+        private string RecentPagesKeyword { get; set }
+
         #endregion
-
         public bool ShowRecycleBin
         {
             get => showRecycleBin;

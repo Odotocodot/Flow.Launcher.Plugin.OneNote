@@ -222,7 +222,7 @@
                             <GridViewColumn Width="200" Header="Keyword">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding KeywordValue}" />
+                                        <TextBlock Text="{Binding Keyword}" />
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>

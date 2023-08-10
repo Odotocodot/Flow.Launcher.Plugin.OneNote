@@ -76,7 +76,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 var listView = (ListView)sender;
                 
                 var hit = listView.InputHitTest(e.GetPosition(listView));
-                if (hit is FrameworkElement fe && fe.DataContext is Keyword selectedKeyword)
+                if (hit is FrameworkElement fe && fe.DataContext is KeywordViewModel selectedKeyword)
                 {
                     listView.SelectedItem = selectedKeyword;
                     EditButton_Click(sender, e);
@@ -91,7 +91,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 var listView = (ListView)sender;
 
                 var hit = listView.InputHitTest(e.GetPosition(listView));
-                if (hit is FrameworkElement fe && fe.DataContext is Keyword selectKeyword)
+                if (hit is FrameworkElement fe && fe.DataContext is KeywordViewModel selectKeyword)
                 {
                     listView.SelectedItem = selectKeyword;
 

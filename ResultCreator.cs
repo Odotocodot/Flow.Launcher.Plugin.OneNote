@@ -53,7 +53,7 @@ namespace Flow.Launcher.Plugin.OneNote
             string titleToolTip = null;
             string subTitle = GetNicePath(item, true);
             string subTitleToolTip = null;
-            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {settings.NotebookExplorerKeyword}{GetNicePath(item, true, Keyword.NotebookExplorerSeparator)}";
+            string autoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {settings.Keywords.NotebookExplorer}{GetNicePath(item, true, Keywords.NotebookExplorerSeparator)}";
 
             switch (item)
             {
@@ -64,7 +64,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     $"Sections Groups:\t{notebook.SectionGroups.Count()}";
 
                     subTitle = string.Empty;
-                    autoCompleteText += Keyword.NotebookExplorerSeparator;
+                    autoCompleteText += Keywords.NotebookExplorerSeparator;
                     break;
                 case OneNoteSectionGroup sectionGroup:
                     subTitleToolTip = $"{subTitle}\n\n" +
@@ -72,7 +72,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     $"Sections:\t\t{sectionGroup.Sections.Count()}\n" +
                     $"Sections Groups:\t{sectionGroup.SectionGroups.Count()}";
 
-                    autoCompleteText += Keyword.NotebookExplorerSeparator;                    
+                    autoCompleteText += Keywords.NotebookExplorerSeparator;                    
                     break;
                 case OneNoteSection section:
                     if (section.Encrypted)
@@ -88,7 +88,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     $"Last Modified:\t{section.LastModified}\n"+
                     $"Pages:\t\t{section.Pages.Count()}";
 
-                    autoCompleteText += Keyword.NotebookExplorerSeparator;
+                    autoCompleteText += Keywords.NotebookExplorerSeparator;
                     break;
                 case OneNotePage page:
                     actionIsAutoComplete = false;
