@@ -100,7 +100,7 @@
                                                 Width="20"
                                                 Height="20"
                                                 Margin="0,0,5,0"
-                                                Source="{Binding NotebookIcon, UpdateSourceTrigger=PropertyChanged}" />
+                                                Source="{Binding NotebookIcon}" />
                                             <TextBlock Text="Open Notebook Icons Folder" />
                                         </StackPanel>
                                     </MenuItem.Header>
@@ -115,7 +115,7 @@
                                                 Width="20"
                                                 Height="20"
                                                 Margin="0,0,5,0"
-                                                Source="{Binding SectionIcon, UpdateSourceTrigger=PropertyChanged}" />
+                                                Source="{Binding SectionIcon}" />
                                             <TextBlock Text="Open Section Icons Folder" />
                                         </StackPanel>
                                     </MenuItem.Header>

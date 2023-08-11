@@ -14,6 +14,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             DataContext = this.viewModel = viewModel;
         }
 
+        //quick and dirty non MVVM stuffs
         private async void ClearCachedIcons(object sender, RoutedEventArgs e)
         {
             var dialog = new Modern.ContentDialog()
@@ -31,31 +32,20 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 viewModel.ClearCachedIcons();
         }
 
-        //quick and dirty non MVVM stuffs
         private void OpenNotebookIconsFolder(object sender, RoutedEventArgs e)
         {
-            SettingsViewModel.OpenNotebookIconsFolder();
+            viewModel.OpenNotebookIconsFolder();
         }
 
         private void OpenSectionIconsFolder(object sender, RoutedEventArgs e)
         {
-            SettingsViewModel.OpenSectionIconsFolder();
+            viewModel.OpenSectionIconsFolder();
         }
 
         private void StackPanel_MouseEnter(object sender, MouseEventArgs e)
         {
             viewModel.UpdateIconProperties();
         }
-
-        //private void MenuFlyout_Closed(object sender, object e)
-        //{
-        //    viewModel.ClosedFlyout();
-        //}
-
-        //private void MenuFlyout_Opened(object sender, object e)
-        //{
-        //    viewModel.OpenedFlyout();
-        //}
 
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
