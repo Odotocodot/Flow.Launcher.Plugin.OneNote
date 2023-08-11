@@ -22,18 +22,17 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             this.context = context;
             NotebookIcon = Directory.EnumerateFiles(Icons.NotebookIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook)); 
             SectionIcon = Directory.EnumerateFiles(Icons.SectionIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section));
-            Keywords = KeywordViewModel.GetKeywordModels(settings.Keywords);
+            Keywords = KeywordViewModel.GetKeywordViewModels(settings.Keywords);
         }
-
 
         public Settings Settings { get; init; }
         public KeywordViewModel[] Keywords { get; init; }
 
         public KeywordViewModel SelectedKeyword { get; set; }
 
-        public string RecycleBinSubTitle => $"When using \"{Settings.Keywords.NotebookExplorer}\" show items that are in the recycle bin";
-        public string EncryptedSectionSubTitle => $"when using \"{Settings.Keywords.NotebookExplorer}\" show encrypted sections, if the section has been unlocked, allow temporary access." ;
-        public string RecentPagesSubTitle => $"The initial number of recent pages to show when using \"{Settings.Keywords.RecentPages}\"";
+        public string RecycleBinSubTitle => $"When using \"{Keywords[0].Keyword}\" show items that are in the recycle bin";
+        public string EncryptedSectionSubTitle => $"when using \"{Keywords[0].Keyword}\" show encrypted sections, if the section has been unlocked, allow temporary access." ;
+        public string RecentPagesSubTitle => $"The initial number of recent pages to show when using \"{Keywords[1].Keyword}\"";
 
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);

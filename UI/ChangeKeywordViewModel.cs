@@ -14,7 +14,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             this.settingsViewModel = settingsViewModel;
             SelectedKeyword = settingsViewModel.SelectedKeyword;
         }
-        public Settings Settings => settingsViewModel.Settings;
         public string Tip => $"Enter the keyword you like to change \"{SelectedKeyword.Name}\" to.";
         public KeywordViewModel[] Keywords => settingsViewModel.Keywords;
         public KeywordViewModel SelectedKeyword { get; init; }
@@ -36,8 +35,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 errorMessage = "The new keyword is the same as the old keyword.";
                 return false;
             }
-            var alreadySetKeyword = Keywords.FirstOrDefault(k => k.Keyword == newKeyword);
 
+            var alreadySetKeyword = Keywords.FirstOrDefault(k => k.Keyword == newKeyword);
             if (alreadySetKeyword != null)
             {
                 errorMessage = $"The new keyword matches an already set one:\n"
