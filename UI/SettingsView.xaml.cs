@@ -17,6 +17,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         //quick and dirty non MVVM stuffs
         private async void ClearCachedIcons(object sender, RoutedEventArgs e)
         {
+            var input = (UIElement)sender;
+            input.IsEnabled = false;
             var dialog = new Modern.ContentDialog()
             {
                 Title = "Clear Cached Icons",
@@ -26,10 +28,12 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 CloseButtonText = "Cancel",
                 DefaultButton = Modern.ContentDialogButton.Close,
             };
+
             var result = await dialog.ShowAsync();
 
             if (result == Modern.ContentDialogResult.Primary)
                 viewModel.ClearCachedIcons();
+            input.IsEnabled = true;
         }
 
         private void OpenNotebookIconsFolder(object sender, RoutedEventArgs e)
