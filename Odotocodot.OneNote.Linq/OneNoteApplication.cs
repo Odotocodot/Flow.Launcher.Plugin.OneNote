@@ -10,18 +10,18 @@ namespace Odotocodot.OneNote.Linq
     public static class OneNoteApplication
     {
         private static Application oneNote;
-        private static bool hasCOMInstance = false;
-        public static bool HasCOMInstance => hasCOMInstance;
+        private static bool hasComInstance = false;
+        public static bool HasCOMInstance => hasComInstance;
         public static void Init()
         {
             int attempt = 0;
 
-            while (!hasCOMInstance)
+            while (!hasComInstance)
             {
                 try
                 {
                     oneNote = new Application();
-                    hasCOMInstance = oneNote != null && Marshal.IsComObject(oneNote);
+                    hasComInstance = oneNote != null && Marshal.IsComObject(oneNote);
                 }
                 catch (COMException ex) when (attempt++ < 3)
                 {
@@ -118,13 +118,13 @@ namespace Odotocodot.OneNote.Linq
             OneNoteParser.CreateNotebook(oneNote, notebookName, true);
         }
         
-        public static void ReleaseCOMInstance()
+        public static void ReleaseComInstance()
         {
-            if (hasCOMInstance)
+            if (hasComInstance)
             {
                 Marshal.ReleaseComObject(oneNote);
                 oneNote = null;
-                hasCOMInstance = false;
+                hasComInstance = false;
             }
         }
     }

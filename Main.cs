@@ -24,7 +24,7 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             if (context.CurrentPluginMetadata.Disabled || !e.IsVisible)
             {
-                OneNoteApplication.ReleaseCOMInstance();
+                OneNoteApplication.ReleaseComInstance();
             }
         }
         
@@ -112,7 +112,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public void Dispose()
         {
             context.API.VisibilityChanged -= OnVisibilityChanged;
-            OneNoteApplication.ReleaseCOMInstance();
+            OneNoteApplication.ReleaseComInstance();
         }
     }
 }
