@@ -1,6 +1,6 @@
 ﻿namespace Flow.Launcher.Plugin.OneNote
 {
-    public class Keywords : UI.Model
+    public class Keywords
     {
         public const string NotebookExplorerSeparator = "\\";
         public string NotebookExplorer { get; set; } = $"nb:{NotebookExplorerSeparator}";

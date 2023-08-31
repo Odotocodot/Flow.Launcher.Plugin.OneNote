@@ -4,18 +4,16 @@ namespace Flow.Launcher.Plugin.OneNote.UI
 {
     public class ChangeKeywordViewModel : Model
     {
-        private readonly SettingsViewModel settingsViewModel;
         private readonly PluginInitContext context;
+        private readonly KeywordViewModel[] keywords;
         private string newKeyword;
 
         public ChangeKeywordViewModel(SettingsViewModel settingsViewModel)
         {
             context = settingsViewModel.context;
-            this.settingsViewModel = settingsViewModel;
+            keywords = settingsViewModel.Keywords;
             SelectedKeyword = settingsViewModel.SelectedKeyword;
         }
-        public string Tip => $"Enter the keyword you like to change \"{SelectedKeyword.Name}\" to.";
-        public KeywordViewModel[] Keywords => settingsViewModel.Keywords;
         public KeywordViewModel SelectedKeyword { get; init; }
         public string NewKeyword { get => newKeyword; set => SetProperty(ref newKeyword, value); }
 
@@ -36,7 +34,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
                 return false;
             }
 
-            var alreadySetKeyword = Keywords.FirstOrDefault(k => k.Keyword == newKeyword);
+            var alreadySetKeyword = keywords.FirstOrDefault(k => k.Keyword == newKeyword);
             if (alreadySetKeyword != null)
             {
                 errorMessage = $"The new keyword matches an already set one:\n"
@@ -45,7 +43,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             }
 
             SelectedKeyword.Keyword = newKeyword;
-            settingsViewModel.UpdateSubtitleProperties();
             context.API.SaveSettingJsonStorage<Settings>();
             return true;
             

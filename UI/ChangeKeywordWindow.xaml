@@ -94,7 +94,7 @@
                     <StackPanel>
                         <TextBlock
                             FontSize="14"
-                            Text="{Binding Tip}"
+                            Text="{Binding SelectedKeyword.Name, StringFormat='Enter the keyword you like to change &quot;{0}&quot; to.'}"
                             TextAlignment="Left"
                             TextWrapping="WrapWithOverflow" />
                     </StackPanel>

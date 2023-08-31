@@ -12,8 +12,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         {
             Settings = settings;
             this.context = context;
-            NotebookIcon = Directory.EnumerateFiles(Icons.NotebookIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook)); 
-            SectionIcon = Directory.EnumerateFiles(Icons.SectionIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section));
             Keywords = KeywordViewModel.GetKeywordViewModels(settings.Keywords);
         }
 
@@ -22,10 +20,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI
 
         public KeywordViewModel SelectedKeyword { get; set; }
 
-        public string RecycleBinSubTitle => $"When using \"{Keywords[0].Keyword}\" show items that are in the recycle bin";
-        public string EncryptedSectionSubTitle => $"when using \"{Keywords[0].Keyword}\" show encrypted sections, if the section has been unlocked, allow temporary access." ;
-        public string RecentPagesSubTitle => $"The initial number of recent pages to show when using \"{Keywords[1].Keyword}\"";
-
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);
         public int CachedIconCount => Icons.CachedIconCount;
@@ -33,8 +27,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         public bool EnableClearIconButton => Icons.CachedIconCount > 0;
 #pragma warning restore CA1822 // Mark members as static
 
-        public string NotebookIcon { get; init; }
-        public string SectionIcon { get; init; }
+        public string NotebookIcon => Directory.EnumerateFiles(Icons.NotebookIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook));
+        public string SectionIcon => Directory.EnumerateFiles(Icons.SectionIconDirectory).FirstOrDefault(Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section));
         public void OpenNotebookIconsFolder() => context.API.OpenDirectory(Icons.NotebookIconDirectory);//  Process.Start(new ProcessStartInfo { FileName = $"\"{Icons.NotebookIconDirectory}\"", UseShellExecute = true });
         public void OpenSectionIconsFolder() => context.API.OpenDirectory(Icons.SectionIconDirectory);
         public void ClearCachedIcons()
@@ -80,13 +74,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             OnPropertyChanged(nameof(CachedIconsSize));
             OnPropertyChanged(nameof(CachedIconCount));
             OnPropertyChanged(nameof(EnableClearIconButton));
-        }
-
-        public void UpdateSubtitleProperties()
-        {
-            OnPropertyChanged(nameof(RecycleBinSubTitle));
-            OnPropertyChanged(nameof(EncryptedSectionSubTitle));
-            OnPropertyChanged(nameof(RecentPagesSubTitle));
         }
     }
 }

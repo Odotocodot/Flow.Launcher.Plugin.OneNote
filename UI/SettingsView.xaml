@@ -25,7 +25,7 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Show recycle bin" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding RecycleBinSubTitle}" />
+                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[0].Keyword, StringFormat='When using &quot;{0}&quot; show items that are in the recycle bin'}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Column="2"
@@ -41,7 +41,7 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Show encrypted sections" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding EncryptedSectionSubTitle}" />
+                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[0].Keyword, StringFormat='when using &quot;{0}&quot; show encrypted sections, if the section has been unlocked, allow temporary access.'}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Column="2"
@@ -92,7 +92,6 @@
                         <ui:FontIcon Glyph="&#xf12b;" />
                         <ui:FlyoutService.Flyout>
                             <ui:MenuFlyout>
-                                <!--  Closed="MenuFlyout_Closed" Opened="MenuFlyout_Opened">  -->
                                 <MenuItem Click="OpenNotebookIconsFolder">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -138,7 +137,7 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Default number of recent pages" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding RecentPagesSubTitle}" />
+                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[1].Keyword, StringFormat='The initial number of recent pages to show when using &quot;{0}&quot;'}" />
                 </StackPanel>
                 <ComboBox
                     Grid.Column="2"
