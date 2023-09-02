@@ -18,12 +18,14 @@ namespace Flow.Launcher.Plugin.OneNote.UI
         private async void ClearCachedIcons(object sender, RoutedEventArgs e)
         {
             var input = (UIElement)sender;
+            var temp = input.IsEnabled;
             input.IsEnabled = false;
+
             var dialog = new Modern.ContentDialog()
             {
                 Title = "Clear Cached Icons",
                 Content = $"Delete cached notebook and sections icons.\n" +
-                          $"This will delete {viewModel.CachedIconCount} icon{(viewModel.CachedIconCount != 1 ? "s" : string.Empty)}.",
+                          $"This will delete {viewModel.Icons.CachedIconCount} icon{(viewModel.Icons.CachedIconCount != 1 ? "s" : string.Empty)}.",
                 PrimaryButtonText = "Yes",
                 CloseButtonText = "Cancel",
                 DefaultButton = Modern.ContentDialogButton.Close,
@@ -32,8 +34,14 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             var result = await dialog.ShowAsync();
 
             if (result == Modern.ContentDialogResult.Primary)
+            {
                 viewModel.ClearCachedIcons();
-            input.IsEnabled = true;
+                input.IsEnabled = false;
+            }
+            else
+            {
+                input.IsEnabled = temp;
+            }
         }
 
         private void OpenNotebookIconsFolder(object sender, RoutedEventArgs e)
@@ -46,10 +54,10 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             viewModel.OpenSectionIconsFolder();
         }
 
-        private void StackPanel_MouseEnter(object sender, MouseEventArgs e)
-        {
-            viewModel.UpdateIconProperties();
-        }
+        //private void StackPanel_MouseEnter(object sender, MouseEventArgs e)
+        //{
+        //    viewModel.UpdateIconProperties();
+        //}
 
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {

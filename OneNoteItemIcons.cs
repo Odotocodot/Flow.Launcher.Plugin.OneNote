@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class OneNoteItemIcons
+    public class OneNoteItemIcons : BaseModel
     {
         private readonly Dictionary<Color, string> icons;
         private readonly string iconDirectory;
@@ -27,22 +27,20 @@ namespace Flow.Launcher.Plugin.OneNote
                     icons.Add(Color.FromArgb(argb), imagePath);
             }
         }
-        public int CachedIconCount => icons.Count;
+        public int IconCount => icons.Count;
 
+        public long IconsFileSize => new DirectoryInfo(iconDirectory).EnumerateFiles()
+                                                                     .Select(file => file.Length)
+                                                                     .Aggregate(0L, (a, b) => a + b);
         public void ClearCachedIcons()
         {
+            icons.Clear();
             foreach (var img in new DirectoryInfo(iconDirectory).EnumerateFiles())
             {
                 img.Delete();
             }
-            icons.Clear();
-        }
-
-        public long GetIconsFileSize()
-        {
-            return new DirectoryInfo(iconDirectory).EnumerateFiles()
-                                                   .Select(file => file.Length)
-                                                   .Aggregate(0L, (a, b) => a + b);
+            OnPropertyChanged(nameof(IconCount));
+            OnPropertyChanged(nameof(IconsFileSize));
         }
 
         public string GetIcon(Color color)
@@ -76,6 +74,9 @@ namespace Flow.Launcher.Plugin.OneNote
                 bitmap.Save(path, ImageFormat.Png);
 
                 icons.Add(color, path);
+                OnPropertyChanged(nameof(IconCount));
+                OnPropertyChanged(nameof(IconsFileSize));
+
             }
             
             return path;

@@ -112,6 +112,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public void Dispose()
         {
             context.API.VisibilityChanged -= OnVisibilityChanged;
+            Icons.Deinit();
             OneNoteApplication.ReleaseComInstance();
         }
     }

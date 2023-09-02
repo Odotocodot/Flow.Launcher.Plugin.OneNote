@@ -19,7 +19,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <StackPanel Margin="25,0,25,25" MouseEnter="StackPanel_MouseEnter">
+    <StackPanel Margin="25,0,25,25">
         <!--#region Recycle Bin-->
         <Border CornerRadius="0,0,0,0" Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
@@ -76,17 +76,27 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button
+                        Width="Auto"
                         Margin="0,4,4,4"
                         HorizontalAlignment="Center"
                         HorizontalContentAlignment="Center"
-                        Click="ClearCachedIcons"
-                        IsEnabled="{Binding EnableClearIconButton}">
+                        Click="ClearCachedIcons">
                         <Label HorizontalAlignment="Center">
-                            <TextBlock>
-                                <Run Text="Clear Cached Images: " />
-                                <Run d:Text="1000 MB" Text="{Binding CachedIconsSize, Mode=OneWay}" />
+                            <TextBlock Text="{Binding Icons.CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}">
+                                <!--<Run Text="Clear Cached Images: " />
+                                <Run d:Text="1000 MB" Text="{Binding CachedIconsSize, Mode=OneWay}" />-->
                             </TextBlock>
                         </Label>
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource SettingButton}" TargetType="Button">
+                                <Setter Property="IsEnabled" Value="True" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Icons.CachedIconCount}" Value="0">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                     </Button>
                     <Button Margin="0,4,22,4">
                         <ui:FontIcon Glyph="&#xf12b;" />

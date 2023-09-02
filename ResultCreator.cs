@@ -11,7 +11,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private const string PathSeparator = " > ";
 
-        public ResultCreator(PluginInitContext context,  Settings settings)
+        public ResultCreator(PluginInitContext context, Settings settings)
         {
             this.settings = settings;
             this.context = context;
