@@ -82,10 +82,7 @@
                         HorizontalContentAlignment="Center"
                         Click="ClearCachedIcons">
                         <Label HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding Icons.CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}">
-                                <!--<Run Text="Clear Cached Images: " />
-                                <Run d:Text="1000 MB" Text="{Binding CachedIconsSize, Mode=OneWay}" />-->
-                            </TextBlock>
+                            <TextBlock Text="{Binding Icons.CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}"/>
                         </Label>
                         <Button.Style>
                             <Style BasedOn="{StaticResource SettingButton}" TargetType="Button">

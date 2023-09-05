@@ -45,8 +45,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             SelectedKeyword.Keyword = newKeyword;
             context.API.SaveSettingJsonStorage<Settings>();
             return true;
-            
-        }                                          
+
+        }
     }
 
 }

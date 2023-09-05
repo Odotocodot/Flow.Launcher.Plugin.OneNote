@@ -54,11 +54,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             viewModel.OpenSectionIconsFolder();
         }
 
-        //private void StackPanel_MouseEnter(object sender, MouseEventArgs e)
-        //{
-        //    viewModel.UpdateIconProperties();
-        //}
-
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
             if (viewModel.SelectedKeyword == null)
@@ -73,10 +68,10 @@ namespace Flow.Launcher.Plugin.OneNote.UI
 
         private void ListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if(e.ChangedButton == MouseButton.Left)
+            if (e.ChangedButton == MouseButton.Left)
             {
                 var listView = (ListView)sender;
-                
+
                 var hit = listView.InputHitTest(e.GetPosition(listView));
                 if (hit is FrameworkElement fe && fe.DataContext is KeywordViewModel selectedKeyword)
                 {
