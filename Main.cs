@@ -1,23 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class Main : IPlugin, IContextMenu, ISettingProvider, IDisposable
+    public class Main : IAsyncPlugin, IContextMenu, ISettingProvider, IDisposable
     {
         private PluginInitContext context;
 
         private SearchManager searchManager;
         private Settings settings;
 
-        public void Init(PluginInitContext context)
+        private static SemaphoreSlim semaphore;
+        public Task InitAsync(PluginInitContext context)
         {
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
             Icons.Init(context, settings);
             searchManager = new SearchManager(context, settings, new ResultCreator(context, settings));
+            semaphore = new SemaphoreSlim(1,1);
             context.API.VisibilityChanged += OnVisibilityChanged;
+            return Task.CompletedTask;
         }
 
         public void OnVisibilityChanged(object _, VisibilityChangedEventArgs e)
@@ -27,9 +32,19 @@ namespace Flow.Launcher.Plugin.OneNote
                 OneNoteApplication.ReleaseComInstance();
             }
         }
-        
-        public List<Result> Query(Query query)
+
+        private static async Task OneNoteInitAsync(CancellationToken token = default)
         {
+            if (semaphore.CurrentCount == 0 || OneNoteApplication.HasComInstance)
+                return;
+
+            await semaphore.WaitAsync(token);
+            OneNoteApplication.Init();
+            semaphore.Release();
+        }
+        public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
+        {
+            var init = OneNoteInitAsync(token);
             if (string.IsNullOrEmpty(query.Search))
             {
                 return new List<Result>
@@ -88,7 +103,8 @@ namespace Flow.Launcher.Plugin.OneNote
                     },
                 };
             }
-            OneNoteApplication.Init();
+            
+            await init;
 
             return query.FirstSearch switch
             {
@@ -112,7 +128,8 @@ namespace Flow.Launcher.Plugin.OneNote
         public void Dispose()
         {
             context.API.VisibilityChanged -= OnVisibilityChanged;
-            Icons.Deinit();
+            semaphore.Dispose();
+            Icons.Close();
             OneNoteApplication.ReleaseComInstance();
         }
     }

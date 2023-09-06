@@ -53,7 +53,7 @@ namespace Flow.Launcher.Plugin.OneNote
             Instance.settings = settings;
         }
 
-        public static void Deinit()
+        public static void Close()
         {
             Instance.notebookIcons.PropertyChanged -= Instance.IconCountChanged;
             Instance.sectionIcons.PropertyChanged -= Instance.IconCountChanged;

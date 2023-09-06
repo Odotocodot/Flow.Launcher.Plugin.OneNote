@@ -11,7 +11,7 @@ namespace Odotocodot.OneNote.Linq
     {
         private static Application oneNote;
         private static bool hasComInstance = false;
-        public static bool HasCOMInstance => hasComInstance;
+        public static bool HasComInstance => hasComInstance;
         public static void Init()
         {
             int attempt = 0;
@@ -117,7 +117,7 @@ namespace Odotocodot.OneNote.Linq
             Init();
             OneNoteParser.CreateNotebook(oneNote, notebookName, true);
         }
-        
+
         public static void ReleaseComInstance()
         {
             if (hasComInstance)
