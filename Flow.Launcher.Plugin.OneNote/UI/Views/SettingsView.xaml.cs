@@ -2,8 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Flow.Launcher.Plugin.OneNote.UI.ViewModels;
 
-namespace Flow.Launcher.Plugin.OneNote.UI
+namespace Flow.Launcher.Plugin.OneNote.UI.Views
 {
     public partial class SettingsView : UserControl
     {

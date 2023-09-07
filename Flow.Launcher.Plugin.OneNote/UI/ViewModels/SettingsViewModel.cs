@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Flow.Launcher.Plugin.OneNote.UI
+namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
     public class SettingsViewModel : Model
     {

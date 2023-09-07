@@ -122,7 +122,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public System.Windows.Controls.Control CreateSettingPanel()
         {
-            return new UI.SettingsView(new UI.SettingsViewModel(context, settings));
+            return new UI.Views.SettingsView(new UI.ViewModels.SettingsViewModel(context, settings));
         }
 
         public void Dispose()

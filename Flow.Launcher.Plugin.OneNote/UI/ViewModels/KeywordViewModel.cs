@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Flow.Launcher.Plugin.OneNote.UI
+namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
     public partial class KeywordViewModel : BaseModel
     {
