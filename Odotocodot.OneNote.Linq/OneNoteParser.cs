@@ -1,6 +1,7 @@
 ﻿using Microsoft.Office.Interop.OneNote;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -31,7 +32,168 @@ namespace Odotocodot.OneNote.Linq
 
         internal static XName GetXName<T>() where T : IOneNoteItem => xNames.Value[typeof(T)];
 
+        private static OneNotePage ParsePage(XElement element, OneNoteSection parent)
+        {
+            var page = new OneNotePage();
+            //Technically 'faster' than the XElement.GetAttribute method
+            foreach (var attribute in element.Attributes())
+            {
+                switch (attribute.Name.LocalName)
+                {
+                    case "ID":
+                        page.ID = attribute.Value;
+                        break;
+                    case "name":
+                        page.Name = attribute.Value;
+                        break;
+                    case "dateTime":
+                        page.Created = (DateTime)attribute;
+                        break;
+                    case "lastModifiedTime":
+                        page.LastModified = (DateTime)attribute;
+                        break;
+                    case "pageLevel":
+                        page.Level = (int)attribute;
+                        break;
+                    case "isUnread":
+                        page.IsUnread = (bool)attribute;
+                        break;
+                    case "isInRecycleBin":
+                        page.IsInRecycleBin = (bool)attribute;
+                        break;
+                }
+            }
+            page.Section = parent;
+            page.RelativePath = $"{parent.RelativePath}{RelativePathSeparator}{page.Name}";
+            return page;
+        }
+        
+        private static OneNoteSection ParseSection(XElement element, IOneNoteItem parent)
+        {
+            var section = new OneNoteSection();
+            //Technically 'faster' than the XElement.GetAttribute method
+            foreach (var attribute in element.Attributes())
+            {
+                switch (attribute.Name.LocalName)
+                {
+                    case "name":
+                        section.Name = attribute.Value;
+                        break;
+                    case "ID":
+                        section.ID = attribute.Value;
+                        break;
+                    case "path":
+                        section.Path = attribute.Value;
+                        break;
+                    case "isUnread":
+                        section.IsUnread = (bool)attribute;
+                        break;
+                    case "color":
+                        section.Color = attribute.Value != "none" ? ColorTranslator.FromHtml(attribute.Value) : null;
+                        break;
+                    case "lastModifiedTime":
+                        section.LastModified = (DateTime)attribute;
+                        break;
+                    case "encrypted":
+                        section.Encrypted = (bool)attribute;
+                        break;
+                    case "locked":
+                        section.Locked = (bool)attribute;
+                        break;
+                    case "isInRecycleBin":
+                        section.IsInRecycleBin = (bool)attribute;
+                        break;
+                    case "isDeletedPages":
+                        section.IsDeletedPages = (bool)attribute;
+                        break;
+                }
+            }
+            section.Parent = parent;
+            section.RelativePath = $"{parent.RelativePath}{RelativePathSeparator}{section.Name}";
+            section.Pages = element.Elements(GetXName<OneNotePage>())
+                                   .Select(e => ParsePage(e, section));
+            return section;
+        }
+       
+        private static OneNoteSectionGroup ParseSectionGroup(XElement element, IOneNoteItem parent)
+        {
+            var sectionGroup = new OneNoteSectionGroup();
+            //Technically 'faster' than the XElement.GetAttribute method
+            foreach (var attribute in element.Attributes())
+            {
+                switch (attribute.Name.LocalName)
+                {
+                    case "name":
+                        sectionGroup.Name = attribute.Value;
+                        break;
+                    case "ID":
+                        sectionGroup.ID = attribute.Value;
+                        break;
+                    case "path":
+                        sectionGroup.Path = attribute.Value;
+                        break;
+                    case "lastModifiedTime":
+                        sectionGroup.LastModified = (DateTime)attribute;
+                        break;
+                    case "isUnread":
+                        sectionGroup.IsUnread = (bool)attribute;
+                        break;
+                    case "isRecycleBin":
+                        sectionGroup.IsRecycleBin = (bool)attribute;
+                        break;
+                }
+            }
+            sectionGroup.Parent = parent;
+            sectionGroup.RelativePath = $"{parent.RelativePath}{RelativePathSeparator}{sectionGroup.Name}";
+            sectionGroup.Sections = element.Elements(GetXName<OneNoteSection>())
+                                           .Select(e => ParseSection(e, sectionGroup));
 
+            sectionGroup.SectionGroups = element.Elements(GetXName<OneNoteSectionGroup>())
+                                                .Select(e => ParseSectionGroup(e, sectionGroup));
+            return sectionGroup;
+            
+        }
+
+        private static OneNoteNotebook ParseNotebook(XElement element)
+        {
+            var notebook = new OneNoteNotebook();
+            //Technically 'faster' than the XElement.GetAttribute method
+            foreach (var attribute in element.Attributes())
+            {
+                switch (attribute.Name.LocalName)
+                {
+                    case "name":
+                        notebook.Name = attribute.Value;
+                        break;
+                    case "nickname":
+                        notebook.NickName = attribute.Value;
+                        break;
+                    case "ID":
+                        notebook.ID = attribute.Value;
+                        break;
+                    case "path":
+                        notebook.Path = attribute.Value;
+                        break;
+                    case "lastModifiedTime":
+                        notebook.LastModified = (DateTime)attribute;
+                        break;
+                    case "color":
+                        notebook.Color = attribute.Value != "none" ? ColorTranslator.FromHtml(attribute.Value) : null;
+                        break;
+                    case "isUnread":
+                        notebook.IsUnread = (bool)attribute;
+                        break;
+                }
+            }
+
+            notebook.Sections = element.Elements(GetXName<OneNoteSection>())
+                                       .Select(e => ParseSection(e, notebook));
+
+            notebook.SectionGroups = element.Elements(GetXName<OneNoteSectionGroup>())
+                                            .Select(e => ParseSectionGroup(e, notebook));
+
+            return notebook;
+        }
         /// <summary>
         /// Hierarchy of notebooks with section groups, sections and Pages.
         /// </summary>
@@ -40,7 +202,7 @@ namespace Odotocodot.OneNote.Linq
             oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string xml);
             var rootElement = XElement.Parse(xml);
             return rootElement.Elements(GetXName<OneNoteNotebook>())
-                              .Select(element => new OneNoteNotebook(element));
+                              .Select(ParseNotebook);
         }
 
         /// <summary>
@@ -56,7 +218,7 @@ namespace Odotocodot.OneNote.Linq
             oneNote.FindPages(null, search, out string xml);
             var rootElement = XElement.Parse(xml);
             return rootElement.Elements(GetXName<OneNoteNotebook>())
-                              .Select(element => new OneNoteNotebook(element))
+                              .Select(ParseNotebook)
                               .GetPages();
         }
 
@@ -80,10 +242,10 @@ namespace Odotocodot.OneNote.Linq
 
             IOneNoteItem root = scope switch
             {
-                OneNoteNotebook => new OneNoteNotebook(rootElement),
-                OneNoteSectionGroup => new OneNoteSectionGroup(rootElement, scope.Parent),
-                OneNoteSection => new OneNoteSection(rootElement, scope.Parent),
-                OneNotePage => new OneNotePage(rootElement, (OneNoteSection)scope.Parent),
+                OneNoteNotebook => ParseNotebook(rootElement),
+                OneNoteSectionGroup => ParseSectionGroup(rootElement, scope.Parent),
+                OneNoteSection => ParseSection(rootElement, scope.Parent),
+                OneNotePage => ParsePage(rootElement, (OneNoteSection)scope.Parent),
                 _ => null,
             };
             return root.GetPages();
@@ -174,6 +336,7 @@ namespace Odotocodot.OneNote.Linq
 
                     path = title;
                     createFileType = CreateFileType.cftFolder;
+
                     break;
                 case nameof(OneNoteSection):
                     if (!IsSectionTitleValid(title))
