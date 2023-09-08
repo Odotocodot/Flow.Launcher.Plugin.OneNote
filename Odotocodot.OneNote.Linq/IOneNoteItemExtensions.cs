@@ -37,44 +37,28 @@ namespace Odotocodot.OneNote.Linq
             }
         }
 
-        public static IEnumerable<IOneNoteItem> Traverse(this IEnumerable<IOneNoteItem> items, Func<IOneNoteItem, bool> predicate)
-        {
-            return items.SelectMany(item => item.Traverse(predicate));
-        }
-        public static IEnumerable<IOneNoteItem> Traverse(this IEnumerable<IOneNoteItem> items)
-        {
-            return items.SelectMany(item => item.Traverse());
-        }
+        public static IEnumerable<IOneNoteItem> Traverse(this IEnumerable<IOneNoteItem> items, Func<IOneNoteItem, bool> predicate) 
+            => items.SelectMany(item => item.Traverse(predicate));
+        public static IEnumerable<IOneNoteItem> Traverse(this IEnumerable<IOneNoteItem> items) 
+            => items.SelectMany(item => item.Traverse());
 
-        public static void OpenInOneNote(this IOneNoteItem item)
-        {
-            OneNoteApplication.OpenInOneNote(item);
-        }
+        public static void OpenInOneNote(this IOneNoteItem item) => OneNoteApplication.OpenInOneNote(item);
 
-        public static void Sync(this IOneNoteItem item)
-        {
-            OneNoteApplication.SyncItem(item);
-        }
+        public static void Sync(this IOneNoteItem item) => OneNoteApplication.SyncItem(item);
 
-        public static string GetPageContent(this OneNotePage page)
-        {
-            return OneNoteApplication.GetPageContent(page);
-        }
+        public static string GetPageContent(this OneNotePage page) => OneNoteApplication.GetPageContent(page);
 
         /// <summary>
         /// Returns true if the item is a deleted page, deleted section, recycle bin section group, or deleted pages section.
         /// </summary>
         /// <param name="item"></param>
-        public static bool IsInRecycleBin(this IOneNoteItem item)
+        public static bool IsInRecycleBin(this IOneNoteItem item) => item switch
         {
-            return item switch
-            {
-                OneNoteSectionGroup sectionGroup =>  sectionGroup.IsRecycleBin,
-                OneNoteSection section => section.IsInRecycleBin || section.IsDeletedPages, //If IsDeletedPages is true IsInRecycleBin is always true
-                OneNotePage page => page.IsInRecycleBin,
-                _ => false,
-            };
-        }
+            OneNoteSectionGroup sectionGroup => sectionGroup.IsRecycleBin,
+            OneNoteSection section => section.IsInRecycleBin || section.IsDeletedPages, //If IsDeletedPages is true IsInRecycleBin is always true
+            OneNotePage page => page.IsInRecycleBin,
+            _ => false,
+        };
 
         /// <summary>
         /// 
@@ -95,32 +79,7 @@ namespace Odotocodot.OneNote.Linq
         /// <returns>
         /// A flattened collection of only pages.
         /// </returns>
-        public static IEnumerable<OneNotePage> GetPages(this IEnumerable<IOneNoteItem> items)
-        {
-            return items.Traverse()
-                        .OfType<OneNotePage>();
-        }
-        public static IEnumerable<OneNotePage> GetPages(this IOneNoteItem item)
-        {
-            return item.Traverse()
-                       .OfType<OneNotePage>();
-        }
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="item"></param>
-        ///// <returns>The path of the item relative to and inclusive of its notebook</returns>
-        //public static string GetRelativePath(this IOneNoteItem item, bool includeSelf = true, string separator = "\\")
-        //{
-        //    StringBuilder sb = includeSelf ? new(item.Name) : new();
-        //    while(item.Parent != null)
-        //    {
-        //        sb.Insert(0, separator);
-        //        item = item.Parent;
-        //        sb.Insert(0, item.Name);
-        //    }
-        //    return sb.ToString();
-        //}
+        public static IEnumerable<OneNotePage> GetPages(this IEnumerable<IOneNoteItem> items) => items.Traverse().OfType<OneNotePage>();
+        public static IEnumerable<OneNotePage> GetPages(this IOneNoteItem item) => item.Traverse().OfType<OneNotePage>();
     }
 }
