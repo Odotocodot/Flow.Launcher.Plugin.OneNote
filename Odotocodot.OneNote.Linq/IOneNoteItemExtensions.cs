@@ -48,10 +48,11 @@ namespace Odotocodot.OneNote.Linq
 
         public static string GetPageContent(this OneNotePage page) => OneNoteApplication.GetPageContent(page);
 
-        /// <summary>
-        /// Returns true if the item is a deleted page, deleted section, recycle bin section group, or deleted pages section.
-        /// </summary>
-        /// <param name="item"></param>
+        ///// <summary>
+        ///// Returns
+        ///// </summary>
+        ///// <param name="item"></param>
+        ///// <returns> <see langword="true"/> if the item is a deleted page <see cref="OneNotePage.IsInRecycleBin"/>, deleted section, recycle bin section group, or deleted pages section.</returns>
         public static bool IsInRecycleBin(this IOneNoteItem item) => item switch
         {
             OneNoteSectionGroup sectionGroup => sectionGroup.IsRecycleBin,
@@ -60,26 +61,22 @@ namespace Odotocodot.OneNote.Linq
             _ => false,
         };
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="notebook"></param>
-        /// <param name="sectionGroup"></param>
-        /// <returns></returns>
         public static bool GetRecycleBin(this OneNoteNotebook notebook, out OneNoteSectionGroup sectionGroup)
         {
             sectionGroup = notebook.SectionGroups.FirstOrDefault(sg => sg.IsRecycleBin);
             return sectionGroup != null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="items"></param>
-        /// <returns>
-        /// A flattened collection of only pages.
-        /// </returns>
-        public static IEnumerable<OneNotePage> GetPages(this IEnumerable<IOneNoteItem> items) => items.Traverse().OfType<OneNotePage>();
-        public static IEnumerable<OneNotePage> GetPages(this IOneNoteItem item) => item.Traverse().OfType<OneNotePage>();
+
+        ///// <param name="items">The collection of items to filter get pages from.</param>
+        ///// <returns>
+        ///// A flattened collection of only the pages nested in <paramref name="items"/>.
+        ///// </returns>
+        public static IEnumerable<OneNotePage> GetPages(this IEnumerable<IOneNoteItem> items) => (IEnumerable<OneNotePage>)items.Traverse(i => i is OneNotePage);
+        ///// <param name="item">The item to filter get pages from.</param>
+        ///// <returns>
+        ///// A flattened collection of only the pages nested in <paramref name="item"/>.
+        ///// </returns>
+        public static IEnumerable<OneNotePage> GetPages(this IOneNoteItem item) => (IEnumerable<OneNotePage>)item.Traverse(i => i is OneNotePage);
     }
 }

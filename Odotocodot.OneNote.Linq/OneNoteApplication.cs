@@ -7,6 +7,7 @@ using Microsoft.Office.Interop.OneNote;
 
 namespace Odotocodot.OneNote.Linq
 {
+    //wrapper around com object for easy release of com object
     public static class OneNoteApplication
     {
         private static Application oneNote;
