@@ -11,14 +11,17 @@ namespace Odotocodot.OneNote.Linq
     public static class OneNoteParser
     {
         private const string NamespacePrefix = "one";
-
-        public static readonly char[] InvalidNotebookChars = "\\/*?\"|<>:%#.".ToCharArray();
-        public static readonly char[] InvalidSectionChars = "\\/*?\"|<>:%#&".ToCharArray();
-        public static readonly char[] InvalidSectionGroupChars = InvalidSectionChars;
-
         public const string RelativePathSeparator = "\\";
 
-        private static readonly Lazy<Dictionary<Type, XName>> xNames = new (() =>
+        public const string InvalidNotebookCharacters = """\/*?"|<>:%#.""";
+        public const string InvalidSectionCharacters = """\/*?"|<>:%#&""";
+        public const string InvalidSectionGroupCharacters = InvalidSectionCharacters;
+
+        private static readonly Lazy<char[]> invalidNotebookCharacters = new(InvalidNotebookCharacters.ToCharArray);
+        private static readonly Lazy<char[]> invalidSectionCharacters = new(InvalidSectionCharacters.ToCharArray);
+        private static readonly Lazy<char[]> invalidSectionGroupCharacters = invalidSectionCharacters;
+
+        private static readonly Lazy<Dictionary<Type, XName>> xNames = new(() =>
         {
             var namespaceUri = "http://schemas.microsoft.com/office/onenote/2013/onenote";
             return new Dictionary<Type, XName>
@@ -67,7 +70,7 @@ namespace Odotocodot.OneNote.Linq
             page.RelativePath = $"{parent.RelativePath}{RelativePathSeparator}{page.Name}";
             return page;
         }
-        
+
         private static OneNoteSection ParseSection(XElement element, IOneNoteItem parent)
         {
             var section = new OneNoteSection();
@@ -114,7 +117,7 @@ namespace Odotocodot.OneNote.Linq
                                    .Select(e => ParsePage(e, section));
             return section;
         }
-       
+
         private static OneNoteSectionGroup ParseSectionGroup(XElement element, IOneNoteItem parent)
         {
             var sectionGroup = new OneNoteSectionGroup();
@@ -143,6 +146,7 @@ namespace Odotocodot.OneNote.Linq
                         break;
                 }
             }
+            sectionGroup.Notebook = parent.Notebook;
             sectionGroup.Parent = parent;
             sectionGroup.RelativePath = $"{parent.RelativePath}{RelativePathSeparator}{sectionGroup.Name}";
             sectionGroup.Sections = element.Elements(GetXName<OneNoteSection>())
@@ -151,7 +155,7 @@ namespace Odotocodot.OneNote.Linq
             sectionGroup.SectionGroups = element.Elements(GetXName<OneNoteSectionGroup>())
                                                 .Select(e => ParseSectionGroup(e, sectionGroup));
             return sectionGroup;
-            
+
         }
 
         private static OneNoteNotebook ParseNotebook(XElement element)
@@ -185,6 +189,7 @@ namespace Odotocodot.OneNote.Linq
                         break;
                 }
             }
+            notebook.Notebook = notebook;
 
             notebook.Sections = element.Elements(GetXName<OneNoteSection>())
                                        .Select(e => ParseSection(e, notebook));
@@ -325,14 +330,14 @@ namespace Odotocodot.OneNote.Linq
             {
                 case nameof(OneNoteNotebook):
                     if (!IsNotebookTitleValid(title))
-                        throw new ArgumentException($"Invalid notebook name. Notebook names cannot contain the symbols: \n {string.Join(' ', InvalidNotebookChars)}");
+                        throw new ArgumentException($"Invalid notebook name. Notebook names cannot contain the symbols: \n {string.Join(' ', InvalidNotebookCharacters)}");
 
                     path = Path.Combine(GetDefaultNotebookLocation(oneNote), title);
                     createFileType = CreateFileType.cftNotebook;
                     break;
                 case nameof(OneNoteSectionGroup):
                     if (!IsSectionGroupTitleValid(title))
-                        throw new ArgumentException($"Invalid section group name. Section groups names cannot contain the symbols: \n {string.Join(' ', InvalidSectionGroupChars)}");
+                        throw new ArgumentException($"Invalid section group name. Section groups names cannot contain the symbols: \n {string.Join(' ', InvalidSectionGroupCharacters)}");
 
                     path = title;
                     createFileType = CreateFileType.cftFolder;
@@ -340,13 +345,13 @@ namespace Odotocodot.OneNote.Linq
                     break;
                 case nameof(OneNoteSection):
                     if (!IsSectionTitleValid(title))
-                        throw new ArgumentException($"Invalid section name. Section names cannot contain the symbols: \n {string.Join(' ', InvalidSectionChars)}");
+                        throw new ArgumentException($"Invalid section name. Section names cannot contain the symbols: \n {string.Join(' ', InvalidSectionCharacters)}");
 
                     path = title + ".one";
                     createFileType = CreateFileType.cftSection;
                     break;
             }
-            
+
             oneNote.OpenHierarchy(path, parent?.ID, out string newItemID, createFileType);
 
             if (openImmediately)
@@ -376,15 +381,15 @@ namespace Odotocodot.OneNote.Linq
         }
         public static bool IsNotebookTitleValid(string notebookTitle)
         {
-            return notebookTitle.IndexOfAny(InvalidNotebookChars) == -1;
+            return notebookTitle.IndexOfAny(invalidNotebookCharacters.Value) == -1;
         }
         public static bool IsSectionTitleValid(string sectionTitle)
         {
-            return sectionTitle.IndexOfAny(InvalidSectionChars) == -1;
+            return sectionTitle.IndexOfAny(invalidSectionCharacters.Value) == -1;
         }
         public static bool IsSectionGroupTitleValid(string sectionGroupTitle)
         {
-            return sectionGroupTitle.IndexOfAny(InvalidSectionGroupChars) == -1;
+            return sectionGroupTitle.IndexOfAny(invalidSectionGroupCharacters.Value) == -1;
         }
 
         #endregion

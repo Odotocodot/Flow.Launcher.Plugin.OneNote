@@ -58,9 +58,9 @@ namespace Flow.Launcher.Plugin.OneNote
             switch (item)
             {
                 case OneNoteNotebook notebook:
-                    titleToolTip = $"{notebook.Name}\n\n"+
-                    $"Last Modified:\t{notebook.LastModified:F}\n"+
-                    $"Sections:\t\t{notebook.Sections.Count()}\n"+
+                    titleToolTip = $"{notebook.Name}\n\n" +
+                    $"Last Modified:\t{notebook.LastModified:F}\n" +
+                    $"Sections:\t\t{notebook.Sections.Count()}\n" +
                     $"Sections Groups:\t{notebook.SectionGroups.Count()}";
 
                     subTitle = string.Empty;
@@ -72,7 +72,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     $"Sections:\t\t{sectionGroup.Sections.Count()}\n" +
                     $"Sections Groups:\t{sectionGroup.SectionGroups.Count()}";
 
-                    autoCompleteText += Keywords.NotebookExplorerSeparator;                    
+                    autoCompleteText += Keywords.NotebookExplorerSeparator;
                     break;
                 case OneNoteSection section:
                     if (section.Encrypted)
@@ -84,17 +84,17 @@ namespace Flow.Launcher.Plugin.OneNote
                             title += "[Unlocked]";
                     }
 
-                    subTitleToolTip = $"{subTitle}\n\n"+
-                    $"Last Modified:\t{section.LastModified}\n"+
+                    subTitleToolTip = $"{subTitle}\n\n" +
+                    $"Last Modified:\t{section.LastModified}\n" +
                     $"Pages:\t\t{section.Pages.Count()}";
 
                     autoCompleteText += Keywords.NotebookExplorerSeparator;
                     break;
                 case OneNotePage page:
                     actionIsAutoComplete = false;
-                    subTitle =  subTitle.Remove(subTitle.Length - (page.Name.Length + PathSeparator.Length));
-                    subTitleToolTip = $"{subTitle}\n\n"+
-                    $"Created:\t\t{page.Created:F}\n"+
+                    subTitle = subTitle.Remove(subTitle.Length - (page.Name.Length + PathSeparator.Length));
+                    subTitleToolTip = $"{subTitle}\n\n" +
+                    $"Created:\t\t{page.Created:F}\n" +
                     $"Last Modified:\t{page.LastModified:F}";
                     break;
             }
@@ -151,11 +151,11 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = $"Create section: \"{sectionTitle}\"",
                 SubTitle = validTitle
                         ? $"Path: {GetNicePath(parent, true)} > {sectionTitle}"
-                        : $"Section names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionChars)}",
+                        : $"Section names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionCharacters)}",
                 IcoPath = Icons.NewSection,
                 Action = c =>
                 {
-                    if(!validTitle)
+                    if (!validTitle)
                         return false;
 
                     switch (parent)
@@ -169,7 +169,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         default:
                             break;
                     }
-                
+
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
                     return true;
 
@@ -186,7 +186,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = $"Create section group: \"{sectionGroupTitle}\"",
                 SubTitle = validTitle
                     ? $"Path: {GetNicePath(parent, true)} > {sectionGroupTitle}"
-                    : $"Section group names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionGroupChars)}",
+                    : $"Section group names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionGroupCharacters)}",
                 IcoPath = Icons.NewSectionGroup,
                 Action = c =>
                 {
@@ -219,13 +219,13 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = $"Create notebook: \"{notebookTitle}\"",
-                SubTitle = validTitle 
+                SubTitle = validTitle
                     ? $"Location: {OneNoteApplication.GetDefaultNotebookLocation()}"
-                    : $"Notebook names cannot contain: {string.Join(' ', OneNoteParser.InvalidNotebookChars)}",
+                    : $"Notebook names cannot contain: {string.Join(' ', OneNoteParser.InvalidNotebookCharacters)}",
                 IcoPath = Icons.NewNotebook,
                 Action = c =>
                 {
-                    if (!validTitle) 
+                    if (!validTitle)
                         return false;
 
                     OneNoteApplication.CreateNotebook(notebookTitle);
@@ -237,7 +237,7 @@ namespace Flow.Launcher.Plugin.OneNote
         }
 
         #endregion
-        
+
         public static List<Result> NoMatchesFoundResult()
         {
             return SingleResult("No matches found",
