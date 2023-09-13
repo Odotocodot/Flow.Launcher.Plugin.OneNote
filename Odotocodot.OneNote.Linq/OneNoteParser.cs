@@ -21,20 +21,11 @@ namespace Odotocodot.OneNote.Linq
         private static readonly Lazy<char[]> invalidSectionCharacters = new(InvalidSectionCharacters.ToCharArray);
         private static readonly Lazy<char[]> invalidSectionGroupCharacters = invalidSectionCharacters;
 
-        private static readonly Lazy<Dictionary<Type, XName>> xNames = new(() =>
-        {
-            var namespaceUri = "http://schemas.microsoft.com/office/onenote/2013/onenote";
-            return new Dictionary<Type, XName>
-            {
-                {typeof(OneNoteNotebook),       XName.Get("Notebook",       namespaceUri)},
-                {typeof(OneNoteSectionGroup),   XName.Get("SectionGroup",   namespaceUri)},
-                {typeof(OneNoteSection),        XName.Get("Section",        namespaceUri)},
-                {typeof(OneNotePage),           XName.Get("Page",           namespaceUri)}
-            };
-        });
-
-        internal static XName GetXName<T>() where T : IOneNoteItem => xNames.Value[typeof(T)];
-
+        private const string NamespaceUri = "http://schemas.microsoft.com/office/onenote/2013/onenote";
+        private static readonly XName NotebookXName = XName.Get("Notebook", NamespaceUri);
+        private static readonly XName SectionGroupXName = XName.Get("SectionGroup", NamespaceUri);
+        private static readonly XName SectionXName = XName.Get("Section", NamespaceUri);
+        private static readonly XName PageXName = XName.Get("Page", NamespaceUri);
         private static OneNotePage ParsePage(XElement element, OneNoteSection parent)
         {
             var page = new OneNotePage();
@@ -67,6 +58,7 @@ namespace Odotocodot.OneNote.Linq
                 }
             }
             page.Section = parent;
+            page.Notebook = parent.Notebook;
             page.RelativePath = $"{parent.RelativePath}{RelativePathSeparator}{page.Name}";
             return page;
         }
@@ -112,8 +104,9 @@ namespace Odotocodot.OneNote.Linq
                 }
             }
             section.Parent = parent;
+            section.Notebook = parent.Notebook;
             section.RelativePath = $"{parent.RelativePath}{RelativePathSeparator}{section.Name}";
-            section.Pages = element.Elements(GetXName<OneNotePage>())
+            section.Pages = element.Elements(PageXName)
                                    .Select(e => ParsePage(e, section));
             return section;
         }
@@ -149,10 +142,9 @@ namespace Odotocodot.OneNote.Linq
             sectionGroup.Notebook = parent.Notebook;
             sectionGroup.Parent = parent;
             sectionGroup.RelativePath = $"{parent.RelativePath}{RelativePathSeparator}{sectionGroup.Name}";
-            sectionGroup.Sections = element.Elements(GetXName<OneNoteSection>())
+            sectionGroup.Sections = element.Elements(SectionXName)
                                            .Select(e => ParseSection(e, sectionGroup));
-
-            sectionGroup.SectionGroups = element.Elements(GetXName<OneNoteSectionGroup>())
+            sectionGroup.SectionGroups = element.Elements(SectionGroupXName)
                                                 .Select(e => ParseSectionGroup(e, sectionGroup));
             return sectionGroup;
 
@@ -190,13 +182,10 @@ namespace Odotocodot.OneNote.Linq
                 }
             }
             notebook.Notebook = notebook;
-
-            notebook.Sections = element.Elements(GetXName<OneNoteSection>())
+            notebook.Sections = element.Elements(SectionXName)
                                        .Select(e => ParseSection(e, notebook));
-
-            notebook.SectionGroups = element.Elements(GetXName<OneNoteSectionGroup>())
+            notebook.SectionGroups = element.Elements(SectionGroupXName)
                                             .Select(e => ParseSectionGroup(e, notebook));
-
             return notebook;
         }
         /// <summary>
@@ -206,7 +195,7 @@ namespace Odotocodot.OneNote.Linq
         {
             oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string xml);
             var rootElement = XElement.Parse(xml);
-            return rootElement.Elements(GetXName<OneNoteNotebook>())
+            return rootElement.Elements(NotebookXName)
                               .Select(ParseNotebook);
         }
 
@@ -222,7 +211,7 @@ namespace Odotocodot.OneNote.Linq
 
             oneNote.FindPages(null, search, out string xml);
             var rootElement = XElement.Parse(xml);
-            return rootElement.Elements(GetXName<OneNoteNotebook>())
+            return rootElement.Elements(NotebookXName)
                               .Select(ParseNotebook)
                               .GetPages();
         }
@@ -330,14 +319,14 @@ namespace Odotocodot.OneNote.Linq
             {
                 case nameof(OneNoteNotebook):
                     if (!IsNotebookTitleValid(title))
-                        throw new ArgumentException($"Invalid notebook name. Notebook names cannot contain the symbols: \n {string.Join(' ', InvalidNotebookCharacters)}");
+                        throw new ArgumentException($"Invalid notebook name. Notebook names cannot contain the symbols: \n {string.Join(' ', InvalidNotebookCharacters.ToCharArray())}");
 
                     path = Path.Combine(GetDefaultNotebookLocation(oneNote), title);
                     createFileType = CreateFileType.cftNotebook;
                     break;
                 case nameof(OneNoteSectionGroup):
                     if (!IsSectionGroupTitleValid(title))
-                        throw new ArgumentException($"Invalid section group name. Section groups names cannot contain the symbols: \n {string.Join(' ', InvalidSectionGroupCharacters)}");
+                        throw new ArgumentException($"Invalid section group name. Section groups names cannot contain the symbols: \n {string.Join(' ', InvalidSectionGroupCharacters.ToCharArray())}");
 
                     path = title;
                     createFileType = CreateFileType.cftFolder;
@@ -345,7 +334,7 @@ namespace Odotocodot.OneNote.Linq
                     break;
                 case nameof(OneNoteSection):
                     if (!IsSectionTitleValid(title))
-                        throw new ArgumentException($"Invalid section name. Section names cannot contain the symbols: \n {string.Join(' ', InvalidSectionCharacters)}");
+                        throw new ArgumentException($"Invalid section name. Section names cannot contain the symbols: \n {string.Join(' ', InvalidSectionCharacters.ToCharArray())}");
 
                     path = title + ".one";
                     createFileType = CreateFileType.cftSection;
