@@ -19,7 +19,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private static string GetNicePath(IOneNoteItem item, bool includeSelf = true, string separator = PathSeparator)
         {
-            return item.RelativePath.Replace(OneNoteParser.RelativePathSeparator, separator);
+            return item.RelativePath.Replace(OneNoteParser.RelativePathSeparator.ToString(), separator);
         }
 
         private string GetTitle(IOneNoteItem item, List<int> highlightData)
@@ -151,7 +151,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = $"Create section: \"{sectionTitle}\"",
                 SubTitle = validTitle
                         ? $"Path: {GetNicePath(parent, true)} > {sectionTitle}"
-                        : $"Section names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionCharacters.ToCharArray())}",
+                        : $"Section names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionChars)}",
                 IcoPath = Icons.NewSection,
                 Action = c =>
                 {
@@ -186,7 +186,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = $"Create section group: \"{sectionGroupTitle}\"",
                 SubTitle = validTitle
                     ? $"Path: {GetNicePath(parent, true)} > {sectionGroupTitle}"
-                    : $"Section group names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionGroupCharacters.ToCharArray())}",
+                    : $"Section group names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionGroupChars)}",
                 IcoPath = Icons.NewSectionGroup,
                 Action = c =>
                 {
@@ -221,7 +221,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = $"Create notebook: \"{notebookTitle}\"",
                 SubTitle = validTitle
                     ? $"Location: {OneNoteApplication.GetDefaultNotebookLocation()}"
-                    : $"Notebook names cannot contain: {string.Join(' ', OneNoteParser.InvalidNotebookCharacters.ToCharArray())}",
+                    : $"Notebook names cannot contain: {string.Join(' ', OneNoteParser.InvalidNotebookChars)}",
                 IcoPath = Icons.NewNotebook,
                 Action = c =>
                 {
