@@ -42,10 +42,13 @@ namespace Odotocodot.OneNote.Linq
         public static IEnumerable<IOneNoteItem> Traverse(this IEnumerable<IOneNoteItem> items) 
             => items.SelectMany(item => item.Traverse());
 
+        /// <inheritdoc cref="OneNoteParser.OpenInOneNote(Microsoft.Office.Interop.OneNote.IApplication, IOneNoteItem)"/>
         public static void OpenInOneNote(this IOneNoteItem item) => OneNoteApplication.OpenInOneNote(item);
 
+        /// <inheritdoc cref="OneNoteParser.SyncItem(Microsoft.Office.Interop.OneNote.IApplication, IOneNoteItem)"/>
         public static void Sync(this IOneNoteItem item) => OneNoteApplication.SyncItem(item);
 
+        /// <inheritdoc cref="OneNoteParser.GetPageContent(Microsoft.Office.Interop.OneNote.IApplication, OneNotePage)"/>
         public static string GetPageContent(this OneNotePage page) => OneNoteApplication.GetPageContent(page);
 
         ///// <summary>

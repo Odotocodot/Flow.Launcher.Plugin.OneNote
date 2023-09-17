@@ -35,21 +35,25 @@ namespace Odotocodot.OneNote.Linq
                 }
             }
         }
+        /// <inheritdoc cref="OneNoteParser.GetNotebooks(IApplication)"/>
         public static IEnumerable<OneNoteNotebook> GetNotebooks()
         {
             Init();
             return OneNoteParser.GetNotebooks(oneNote);
         }
+        /// <inheritdoc cref="OneNoteParser.OpenInOneNote(IApplication, IOneNoteItem)"/>
         public static void OpenInOneNote(IOneNoteItem item)
         {
             Init();
             OneNoteParser.OpenInOneNote(oneNote, item);
         }
+        /// <inheritdoc cref="OneNoteParser.SyncItem(IApplication, IOneNoteItem)"/>
         public static void SyncItem(IOneNoteItem item)
         {
             Init();
             OneNoteParser.SyncItem(oneNote, item);
         }
+        /// <inheritdoc cref="OneNoteParser.GetPageContent(IApplication, OneNotePage)"/>
         public static string GetPageContent(OneNotePage page)
         {
             Init();
@@ -67,6 +71,7 @@ namespace Odotocodot.OneNote.Linq
             return GetNotebooks().Traverse(predicate);
         }
 
+        /// <inheritdoc cref="OneNoteParser.FindPages(IApplication, string)"/>
         public static IEnumerable<OneNotePage> FindPages(string search)
         {
             Init();
@@ -77,17 +82,22 @@ namespace Odotocodot.OneNote.Linq
             Init();
             return OneNoteParser.FindPages(oneNote, search, scope);
         }
+
+        /// <inheritdoc cref="OneNoteParser.GetDefaultNotebookLocation(IApplication)"/>
         public static string GetDefaultNotebookLocation()
         {
             Init();
             return OneNoteParser.GetDefaultNotebookLocation(oneNote);
         }
 
+        /// <inheritdoc cref="OneNoteParser.CreateQuickNote(IApplication, bool)"/>
         public static void CreateQuickNote()
         {
             Init();
             OneNoteParser.CreateQuickNote(oneNote, true);
         }
+
+        /// <inheritdoc cref="OneNoteParser.CreatePage(IApplication, OneNoteSection, string, bool)"/>
         public static void CreatePage(OneNoteSection section, string pageTitle)
         {
             Init();

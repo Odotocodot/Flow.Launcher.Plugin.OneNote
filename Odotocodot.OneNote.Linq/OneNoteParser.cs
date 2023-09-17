@@ -5,21 +5,47 @@ using System.Collections.Immutable;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Xml.Linq;
 
 namespace Odotocodot.OneNote.Linq
 {
     /// <summary>
-    /// A static helper class responsible for deserializing and parsing OneNote's xml output and exposing OneNote's API.
+    /// A static helper class responsible for deserializing and parsing OneNote's XML output and exposing <see href="https://learn.microsoft.com/en-us/office/client-developer/onenote/application-interface-onenote">OneNote's API</see>.
     /// </summary>
     public static class OneNoteParser
     {
-        private const string NamespacePrefix = "one";
+        /// <summary>
+        /// The directory separator used in <see cref="IOneNoteItem.RelativePath"/>.
+        /// </summary>
         public const char RelativePathSeparator = '\\';
 
+        /// <summary>
+        /// An array containing the characters that are not allowed in a <see cref="OneNoteNotebook">notebook</see> <see cref="OneNoteNotebook.Name">title/name</see>.<br/>
+        /// These are:&#009;<b>\ / * ? " | &lt; &gt; : % # .</b>
+        /// </summary>
+        /// <seealso cref="IsNotebookTitleValid(string)"/>
+        /// <seealso cref="InvalidSectionChars"/>
+        /// <seealso cref="InvalidSectionGroupChars"/>
         public static readonly ImmutableArray<char> InvalidNotebookChars = """\/*?"|<>:%#.""".ToImmutableArray();
+        /// <summary>
+        /// An array containing the characters that are not allowed in a <see cref="OneNoteSection">section</see> <see cref="OneNoteSection.Name">title/name</see>.<br/>
+        /// These are:&#009;<b>\ / * ? " | &lt; &gt; : % # &amp;</b>
+        /// </summary>
+        /// <seealso cref="IsSectionTitleValid(string)"/>
+        /// <seealso cref="InvalidNotebookChars"/>
+        /// <seealso cref="InvalidSectionGroupChars"/>
         public static readonly ImmutableArray<char> InvalidSectionChars = """\/*?"|<>:%#&""".ToImmutableArray();
+        /// <summary>
+        /// An array containing the characters that are not allowed in a <see cref="OneNoteSectionGroup">section group</see> <see cref="OneNoteSectionGroup.Name">title/name</see>.<br/>
+        /// These are:&#009;<b>\ / * ? " | &lt; &gt; : % # &amp;</b>
+        /// </summary>
+        /// <seealso cref="IsSectionGroupTitleValid(string)"/>
+        /// <seealso cref="InvalidNotebookChars"/>
+        /// <seealso cref="InvalidSectionChars"/>
         public static readonly ImmutableArray<char> InvalidSectionGroupChars = InvalidSectionChars;
+
+        private const string NamespacePrefix = "one";
 
         private const string NamespaceUri = "http://schemas.microsoft.com/office/onenote/2013/onenote";
         private static readonly XName NotebookXName = XName.Get("Notebook", NamespaceUri);
@@ -190,6 +216,12 @@ namespace Odotocodot.OneNote.Linq
             return notebook;
         }
 
+
+        /// <summary>
+        /// Get all notebooks down to all children.
+        /// </summary>
+        /// <param name="oneNote">The OneNote Com object to be used.</param>
+        /// <returns>The full hierarchy node structure with <see cref="IEnumerable{T}">IEnumerable</see>&lt;<see cref="OneNoteNotebook"/>&gt; as the root.</returns>
         public static IEnumerable<OneNoteNotebook> GetNotebooks(IApplication oneNote)
         {
             oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string xml);
@@ -199,11 +231,13 @@ namespace Odotocodot.OneNote.Linq
         }
 
         /// <summary>
-        /// Returns a collection of pages that match the specified query term. <br/>
-        /// <paramref name="search" /> should be exactly the same string that you would type into the search box in the OneNote UI. You can use bitwise operators, such as AND and OR, which must be all uppercase.
+        /// Get a flattened collection of <see cref="OneNotePage">pages</see> that match the <paramref name="search"/> parameter.
         /// </summary>
-        /// <param name="oneNote"></param>
-        /// <param name="search"></param>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <param name="search">The search query. This should be exactly the same string that you would type into the search box in the OneNote UI. You can use bitwise operators, such as AND and OR, which must be all uppercase.</param>
+        /// <returns>A <see cref="IEnumerable{T}">IEnumerable</see>&lt;<see cref="OneNotePage"/>&gt; that contains <see cref="OneNotePage">pages</see> that match the <paramref name="search"/> parameter.</returns>
+        /// <inheritdoc cref="ValidateSearch(string)" path="/exception"/>
+        /// <seealso cref="FindPages(IApplication, string, IOneNoteItem)"/>
         public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string search)
         {
             ValidateSearch(search);
@@ -215,14 +249,16 @@ namespace Odotocodot.OneNote.Linq
                               .GetPages();
         }
 
-        /// <inheritdoc cref="FindPages"/>
-        /// <remarks> 
-        /// Passing in <paramref name="scope"/> allows for searching within that specific OneNote item. <br/>
-        /// If <paramref name="scope" /> is <see langword="null" /> this method is equivalent to <see cref="FindPages(IApplication,string)"/>
-        /// </remarks>
-        /// <param name="oneNote"></param>
-        /// <param name="search"></param>
-        /// <param name="scope"></param>
+        /// <summary>
+        /// <inheritdoc cref="FindPages(IApplication, string)" path="/summary"/> Within the specified <paramref name="scope"/>.
+        /// </summary>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <param name="search"><inheritdoc cref="FindPages(IApplication, string)" path="/param[@name='search']"/></param>
+        /// <param name="scope">The hierarchy scope to search in.</param>
+        /// <returns><inheritdoc cref="FindPages(IApplication, string)" path="/returns"/></returns>
+        /// <seealso cref="FindPages(IApplication, string)"/>
+        /// <exception cref="ArgumentException"><inheritdoc cref="ValidateSearch(string)" path="/param[@cref='ArgumentException'"/></exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="search"/> or <paramref name="scope"/> is <see langword="null"/>.</exception>
         public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string search, IOneNoteItem scope)
         {
             ArgumentNullException.ThrowIfNull(scope, nameof(scope));
@@ -246,6 +282,12 @@ namespace Odotocodot.OneNote.Linq
 
         //TODO: Open FindByID
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="search"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="search"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="search"/> is empty or only whitespace, or if the first character of <paramref name="search"/> is NOT a letter or a digit.</exception>
         private static void ValidateSearch(string search)
         {
             ArgumentNullException.ThrowIfNull(search, nameof(search));
@@ -257,32 +299,58 @@ namespace Odotocodot.OneNote.Linq
                 throw new ArgumentException("The first character of the search must be a letter or a digit", nameof(search));
         }
 
-        public static void OpenInOneNote(IApplication oneNote, IOneNoteItem item)
-        {
-            oneNote.NavigateTo(item.ID);
-        }
-        public static void SyncItem(IApplication oneNote, IOneNoteItem item)
-        {
-            oneNote.SyncHierarchy(item.ID);
-        }
+        /// <summary>
+        /// Opens the <paramref name="item"/> in OneNote (creates a new OneNote window if one is not currently open).
+        /// </summary>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <param name="item">The OneNote hierarchy item.</param>
+        public static void OpenInOneNote(IApplication oneNote, IOneNoteItem item) => oneNote.NavigateTo(item.ID);
 
-        public static string GetPageContent(Application oneNote, OneNotePage page)
+        /// <summary>
+        /// Forces OneNote to sync the <paramref name="item"/>.
+        /// </summary>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <param name="item"><inheritdoc cref="OpenInOneNote(IApplication, IOneNoteItem)" path="/param[@name='item']"/></param>
+        public static void SyncItem(IApplication oneNote, IOneNoteItem item) => oneNote.SyncHierarchy(item.ID);
+
+        /// <summary>
+        /// Gets the content of the specified <paramref name="page"/>.
+        /// </summary>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <param name="page">The page to retrieve content from.</param>
+        /// <returns>A <see langword="string"/> in the OneNote XML format.</returns>
+        public static string GetPageContent(IApplication oneNote, OneNotePage page)
         {
             oneNote.GetPageContent(page.ID, out string xml);
             return xml;
         }
 
-        public static void DeleteItem(IApplication oneNote, IOneNoteItem item)
-        {
-            oneNote.DeleteHierarchy(item.ID);
-        }
+        /// <summary>
+        /// Deletes the hierarchy <paramref name="item"/> from the OneNote notebook hierarchy.
+        /// </summary>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <param name="item"><inheritdoc cref="OpenInOneNote(IApplication, IOneNoteItem)" path="/param[@name='item']"/></param>
+        public static void DeleteItem(IApplication oneNote, IOneNoteItem item) => oneNote.DeleteHierarchy(item.ID);
 
-        public static void CloseNotebook(IApplication oneNote, OneNoteNotebook notebook)
-        {
-            oneNote.CloseNotebook(notebook.ID);
-        }
+        /// <summary>
+        /// Closes the <paramref name="notebook"/>.
+        /// </summary>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <param name="notebook">The specified OneNote notebook.</param>
+        public static void CloseNotebook(IApplication oneNote, OneNoteNotebook notebook) => oneNote.CloseNotebook(notebook.ID);
+
+        //TODO: Rename item
 
         #region Creating New OneNote Items
+        //TODO: change to return ID
+
+        /// <summary>
+        /// Creates a <see cref="OneNotePage">page</see> located in the specified <paramref name="section"/> with a title equal to <paramref name="pageTitle"/>.
+        /// </summary>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <param name="section">The section to create the page in.</param>
+        /// <param name="pageTitle">The title of the page.</param>
+        /// <param name="openImmediately">Whether to open the newly created page in OneNote immediately.</param>
         public static void CreatePage(IApplication oneNote, OneNoteSection section, string pageTitle, bool openImmediately)
         {
             oneNote.GetHierarchy(null, HierarchyScope.hsNotebooks, out string oneNoteXMLHierarchy);
@@ -301,6 +369,11 @@ namespace Odotocodot.OneNote.Linq
                 oneNote.NavigateTo(pageID);
         }
 
+        /// <summary>
+        /// Creates a quick note page located currently set quick notes location.
+        /// </summary>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <param name="openImmediately"><inheritdoc cref="CreatePage(IApplication, OneNoteSection, string, bool)" path="/param[@name='openImmediately']"/></param>
         public static void CreateQuickNote(IApplication oneNote, bool openImmediately)
         {
             var path = GetUnfiledNotesSection(oneNote);
@@ -311,6 +384,16 @@ namespace Odotocodot.OneNote.Linq
                 oneNote.NavigateTo(pageID);
         }
 
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="oneNote"></param>
+        ///// <param name="parent"></param>
+        ///// <param name="title"></param>
+        ///// <param name="openImmediately"></param>
+        ///// <exception cref="ArgumentNullException">Thrown if <paramref name="title"/> is <see langword="null"/></exception>
+        ///// <exception cref="ArgumentException">Throw if </exception>
         private static void CreateItemBase<T>(IApplication oneNote, IOneNoteItem parent, string title, bool openImmediately) where T : IOneNoteItem
         {
             ArgumentException.ThrowIfNullOrEmpty(title, nameof(title));
@@ -370,47 +453,56 @@ namespace Odotocodot.OneNote.Linq
         {
             CreateItemBase<OneNoteNotebook>(oneNote, null, notebookName, openImmediately);
         }
-        public static bool IsNotebookTitleValid(string notebookTitle)
-        {
-            return !InvalidNotebookChars.Any(notebookTitle.Contains);
-        }
-        public static bool IsSectionTitleValid(string sectionTitle)
-        {
-            return !InvalidSectionChars.Any(sectionTitle.Contains);
-        }
-        public static bool IsSectionGroupTitleValid(string sectionGroupTitle)
-        {
-            return !InvalidSectionGroupChars.Any(sectionGroupTitle.Contains);
-        }
+
+        /// <summary>
+        /// Returns a value that indicates whether the supplied <paramref name="notebookTitle"/> is valid.
+        /// </summary>
+        /// <param name="notebookTitle"></param>
+        /// <seealso cref="InvalidNotebookChars"/>
+        public static bool IsNotebookTitleValid(string notebookTitle) => !InvalidNotebookChars.Any(notebookTitle.Contains);
+
+        /// <summary>
+        /// Returns a value that indicates whether the supplied <paramref name="sectionTitle"/> is valid.
+        /// </summary>
+        /// <param name="sectionTitle"></param>
+        /// <seealso cref="InvalidSectionChars"/>
+        public static bool IsSectionTitleValid(string sectionTitle) => !InvalidSectionChars.Any(sectionTitle.Contains);
+
+        /// <summary>
+        /// Returns a value that indicates whether the supplied <paramref name="sectionGroupTitle"/> is valid.
+        /// </summary>
+        /// <param name="sectionGroupTitle"></param>
+        /// <seealso cref="InvalidSectionGroupChars"/>
+        public static bool IsSectionGroupTitleValid(string sectionGroupTitle) => !InvalidSectionGroupChars.Any(sectionGroupTitle.Contains);
 
         #endregion
 
         #region Special Folder Locations
         /// <summary>
-        /// Returns the path to the default notebook folder location, this is where new notebooks are created and saved to.
+        /// Retrieves the path on disk to the default notebook folder location, this is where new notebooks are created and saved to.
         /// </summary>
-        /// <param name="oneNote"></param>
-        /// <returns></returns>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <returns>The path to the default notebook folder location.</returns>
         public static string GetDefaultNotebookLocation(IApplication oneNote)
         {
             oneNote.GetSpecialLocation(SpecialLocation.slDefaultNotebookFolder, out string path);
             return path;
         }
         /// <summary>
-        /// Returns the path to the back up folder location.
+        /// Retrieves the path on disk to the back up folder location.
         /// </summary>
-        /// <param name="oneNote"></param>
-        /// <returns></returns>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <returns>The path on disk to the back up folder location.</returns>
         public static string GetBackUpLocation(IApplication oneNote)
         {
             oneNote.GetSpecialLocation(SpecialLocation.slBackUpFolder, out string path);
             return path;
         }
         /// <summary>
-        /// Returns the folder path of the unfiled notes section, this is also where quick notes are created and saved to.
+        /// Retrieves the folder path on disk to the unfiled notes section, this is also where quick notes are created and saved to.
         /// </summary>
-        /// <param name="oneNote"></param>
-        /// <returns></returns>
+        /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
+        /// <returns>The folder path on disk to the unfiled notes section.</returns>
         public static string GetUnfiledNotesSection(IApplication oneNote)
         {
             oneNote.GetSpecialLocation(SpecialLocation.slUnfiledNotesSection, out string path);
