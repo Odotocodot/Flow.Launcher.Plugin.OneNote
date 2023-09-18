@@ -77,6 +77,7 @@ namespace Odotocodot.OneNote.Linq
             Init();
             return OneNoteParser.FindPages(oneNote, search);
         }
+        /// <inheritdoc cref="OneNoteParser.FindPages(IApplication, string, IOneNoteItem)"/>
         public static IEnumerable<OneNotePage> FindPages(IOneNoteItem scope, string search)
         {
             Init();
@@ -103,26 +104,32 @@ namespace Odotocodot.OneNote.Linq
             Init();
             OneNoteParser.CreatePage(oneNote, section, pageTitle, true);
         }
+        /// <inheritdoc cref="OneNoteParser.CreateSection(IApplication, OneNoteSectionGroup, string, bool)"/>
         public static void CreateSection(OneNoteSectionGroup parent, string sectionName)
         {
             Init();
             OneNoteParser.CreateSection(oneNote, parent, sectionName, true);
         }
+        /// <inheritdoc cref="OneNoteParser.CreateSection(IApplication, OneNoteNotebook, string, bool)"/>
         public static void CreateSection(OneNoteNotebook parent, string sectionName)
         {
             Init();
             OneNoteParser.CreateSection(oneNote, parent, sectionName, true);
         }
+        /// <inheritdoc cref="OneNoteParser.CreateSectionGroup(IApplication, OneNoteSectionGroup, string, bool)"/>
         public static void CreateSectionGroup(OneNoteSectionGroup parent, string sectionGroupName)
         {
             Init();
             OneNoteParser.CreateSectionGroup(oneNote, parent, sectionGroupName, true);
         }
+        /// <inheritdoc cref="OneNoteParser.CreateSectionGroup(IApplication, OneNoteNotebook, string, bool)"/>
         public static void CreateSectionGroup(OneNoteNotebook parent, string sectionGroupName)
         {
             Init();
             OneNoteParser.CreateSectionGroup(oneNote, parent, sectionGroupName, true);
         }
+
+        /// <inheritdoc cref="OneNoteParser.CreateNotebook(IApplication, string, bool)"/>
         public static void CreateNotebook(string notebookName)
         {
             Init();

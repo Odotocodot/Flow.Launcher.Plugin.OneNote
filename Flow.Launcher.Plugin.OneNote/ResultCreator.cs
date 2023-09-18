@@ -144,7 +144,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateNewSectionResult(string sectionTitle, IOneNoteItem parent)
         {
             sectionTitle = sectionTitle.Trim();
-            bool validTitle = OneNoteParser.IsSectionTitleValid(sectionTitle);
+            bool validTitle = OneNoteParser.IsSectionNameValid(sectionTitle);
 
             return new Result
             {
@@ -179,7 +179,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateNewSectionGroupResult(string sectionGroupTitle, IOneNoteItem parent)
         {
             sectionGroupTitle = sectionGroupTitle.Trim();
-            bool validTitle = OneNoteParser.IsSectionGroupTitleValid(sectionGroupTitle);
+            bool validTitle = OneNoteParser.IsSectionGroupNameValid(sectionGroupTitle);
 
             return new Result
             {
@@ -214,7 +214,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateNewNotebookResult(string notebookTitle)
         {
             notebookTitle = notebookTitle.Trim();
-            bool validTitle = OneNoteParser.IsNotebookTitleValid(notebookTitle);
+            bool validTitle = OneNoteParser.IsNotebookNameValid(notebookTitle);
 
             return new Result
             {
