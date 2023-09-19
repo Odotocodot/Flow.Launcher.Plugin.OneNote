@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -7,12 +6,32 @@ using Microsoft.Office.Interop.OneNote;
 
 namespace Odotocodot.OneNote.Linq
 {
-    //wrapper around com object for easy release of com object
+    /// <summary>
+    /// A static wrapper class around the <see cref="Application"/> class, allowing for easy acquirement and
+    /// release of a OneNote COM object, whilst avoiding duplicate instances. In addition to exposing the 
+    /// <see href="https://learn.microsoft.com/en-us/office/client-developer/onenote/application-interface-onenote">OneNote's API</see>
+    /// </summary>
+    /// <remarks>A <see cref="Application">OneNote COM object</see> is required to access any of the OneNote API.</remarks>
     public static class OneNoteApplication
     {
         private static Application oneNote;
         private static bool hasComInstance = false;
+        /// <summary>
+        /// Indicates whether the class has a usable <see cref="Application">COM instance</see>.
+        /// </summary>
+        /// <remarks>When <see langword="true"/> a OneNote process should be visible in the Task Manager.</remarks>
+        /// <seealso cref="Init"/>
+        /// <seealso cref="ReleaseComInstance"/>
         public static bool HasComInstance => hasComInstance;
+
+        /// <summary>
+        /// Initialises the static class by acquiring a <see cref="Application">OneNote COM object</see>.
+        /// </summary>
+        /// <exception cref="COMException">Thrown if an error occurred when trying to get the 
+        /// <see cref="Application">OneNote COM object</see> or the number of attempts in doing 
+        /// so exceeded the limit.</exception>
+        /// <seealso cref="HasComInstance"/>
+        /// <seealso cref="ReleaseComInstance"/>
         public static void Init()
         {
             int attempt = 0;
@@ -58,17 +77,6 @@ namespace Odotocodot.OneNote.Linq
         {
             Init();
             return OneNoteParser.GetPageContent(oneNote, page);
-        }
-
-        public static IEnumerable<IOneNoteItem> Traverse()
-        {
-            Init();
-            return GetNotebooks().Traverse();
-        }
-        public static IEnumerable<IOneNoteItem> Traverse(Func<IOneNoteItem, bool> predicate)
-        {
-            Init();
-            return GetNotebooks().Traverse(predicate);
         }
 
         /// <inheritdoc cref="OneNoteParser.FindPages(IApplication, string)"/>
@@ -136,6 +144,11 @@ namespace Odotocodot.OneNote.Linq
             OneNoteParser.CreateNotebook(oneNote, notebookName, true);
         }
 
+        /// <summary>
+        /// Releases the <see cref="Application">OneNote COM object</see> freeing memory.
+        /// </summary>
+        /// <seealso cref="Init"/>
+        /// <seealso cref="HasComInstance"/>
         public static void ReleaseComInstance()
         {
             if (hasComInstance)

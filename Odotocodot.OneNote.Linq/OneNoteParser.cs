@@ -12,6 +12,7 @@ namespace Odotocodot.OneNote.Linq
     /// <summary>
     /// A static helper class responsible for deserializing and parsing OneNote's XML output and exposing <see href="https://learn.microsoft.com/en-us/office/client-developer/onenote/application-interface-onenote">OneNote's API</see>.
     /// </summary>
+    /// <seealso cref="OneNoteApplication"/>
     public static class OneNoteParser
     {
         /// <summary>
@@ -234,7 +235,7 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
         /// <param name="search">The search query. This should be exactly the same string that you would type into the search box in the OneNote UI. You can use bitwise operators, such as AND and OR, which must be all uppercase.</param>
-        /// <returns>A <see cref="IEnumerable{T}">IEnumerable</see>&lt;<see cref="OneNotePage"/>&gt; that contains <see cref="OneNotePage">pages</see> that match the <paramref name="search"/> parameter.</returns>
+        /// <returns>An <see cref="IEnumerable{T}">IEnumerable</see>&lt;<see cref="OneNotePage"/>&gt; that contains <see cref="OneNotePage">pages</see> that match the <paramref name="search"/> parameter.</returns>
         /// <inheritdoc cref="ValidateSearch(string)" path="/exception"/>
         /// <seealso cref="FindPages(IApplication, string, IOneNoteItem)"/>
         public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string search)
@@ -425,11 +426,11 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
         /// <param name="parent">The hierarchy item to create the section in.</param>
-        /// <param name="name">The proposed name of the new section.</param>
+        /// <param name="name">The name of the new section.</param>
         /// <param name="openImmediately">Whether to open the newly created section in OneNote immediately.</param>
         /// <exception cref="ArgumentException">Thrown if the <paramref name="name"/> is not a valid section name.</exception>
         /// <seealso cref="IsSectionNameValid(string)"/>
-        public static void CreateSection(IApplication oneNote, OneNoteSectionGroup parent, string name, bool openImmediately) 
+        public static void CreateSection(IApplication oneNote, OneNoteSectionGroup parent, string name, bool openImmediately)
             => CreateItemBase<OneNoteSection>(oneNote, parent, name, openImmediately);
 
         /// <summary>
@@ -438,11 +439,11 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
         /// <param name="parent">The hierarchy item to create the section in.</param>
-        /// <param name="name">The proposed name of the new section.</param>
+        /// <param name="name">The name of the new section.</param>
         /// <param name="openImmediately">Whether to open the newly created section in OneNote immediately.</param>
         /// <exception cref="ArgumentException">Thrown if the <paramref name="name"/> is not a valid section name.</exception>
         /// <seealso cref="IsSectionNameValid(string)"/>
-        public static void CreateSection(IApplication oneNote, OneNoteNotebook parent, string name, bool openImmediately) 
+        public static void CreateSection(IApplication oneNote, OneNoteNotebook parent, string name, bool openImmediately)
             => CreateItemBase<OneNoteSection>(oneNote, parent, name, openImmediately);
 
         /// <summary>
@@ -451,11 +452,11 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
         /// <param name="parent">The hierarchy item to create the section group in.</param>
-        /// <param name="name">The proposed name of the new section group.</param>
+        /// <param name="name">The name of the new section group.</param>
         /// <param name="openImmediately">Whether to open the newly created section group in OneNote immediately.</param>
         /// <exception cref="ArgumentException">Thrown if the <paramref name="name"/> is not a valid section group name.</exception>
         /// <seealso cref="IsSectionGroupNameValid(string)"/>
-        public static void CreateSectionGroup(IApplication oneNote, OneNoteSectionGroup parent, string name, bool openImmediately) 
+        public static void CreateSectionGroup(IApplication oneNote, OneNoteSectionGroup parent, string name, bool openImmediately)
             => CreateItemBase<OneNoteSectionGroup>(oneNote, parent, name, openImmediately);
 
         /// <summary>
@@ -464,7 +465,7 @@ namespace Odotocodot.OneNote.Linq
         /// </summary>
         /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
         /// <param name="parent">The hierarchy item to create the section group in.</param>
-        /// <param name="name">The proposed name of the new section group.</param>
+        /// <param name="name">The name of the new section group.</param>
         /// <param name="openImmediately">Whether to open the newly created section group in OneNote immediately.</param>
         /// <exception cref="ArgumentException">Thrown if the <paramref name="name"/> is not a valid section group name.</exception>
         public static void CreateSectionGroup(IApplication oneNote, OneNoteNotebook parent, string name, bool openImmediately)
@@ -472,10 +473,10 @@ namespace Odotocodot.OneNote.Linq
 
 
         /// <summary>
-        /// Creates a <see cref="OneNoteNotebook">notebook</see> with a title equal to <paramref name="name"/> located in the <see cref="GetDefaultNotebookLocation(IApplication)">defualt notebook location</see>.
+        /// Creates a <see cref="OneNoteNotebook">notebook</see> with a title equal to <paramref name="name"/> located in the <see cref="GetDefaultNotebookLocation(IApplication)">default notebook location</see>.
         /// </summary>
         /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
-        /// <param name="name">The proposed name of the new notebook.</param>
+        /// <param name="name">The name of the new notebook.</param>
         /// <param name="openImmediately">Whether to open the newly created notebook in OneNote immediately.</param>
         /// <exception cref="ArgumentException">Thrown if the <paramref name="name"/> is not a valid notebook name.</exception>
         public static void CreateNotebook(IApplication oneNote, string name, bool openImmediately)
@@ -487,7 +488,7 @@ namespace Odotocodot.OneNote.Linq
         /// <param name="name"></param>
         /// <returns><see langword="true"/> if the specified <paramref name="name"/> is not null, empty, white space or contains any characters from <see cref="InvalidNotebookChars"/>; otherwise, <see langword="false"/>.</returns>
         /// <seealso cref="InvalidNotebookChars"/>
-        public static bool IsNotebookNameValid(string name) 
+        public static bool IsNotebookNameValid(string name)
             => !string.IsNullOrWhiteSpace(name) && !InvalidNotebookChars.Any(name.Contains);
 
         /// <summary>
@@ -496,7 +497,7 @@ namespace Odotocodot.OneNote.Linq
         /// <param name="name"></param>
         /// <returns><see langword="true"/> if the specified <paramref name="name"/> is not null, empty, white space or contains any characters from <see cref="InvalidSectionChars"/>; otherwise, <see langword="false"/>.</returns>
         /// <seealso cref="InvalidSectionChars"/>
-        public static bool IsSectionNameValid(string name) 
+        public static bool IsSectionNameValid(string name)
             => !string.IsNullOrWhiteSpace(name) && !InvalidSectionChars.Any(name.Contains);
 
         /// <summary>
@@ -505,7 +506,7 @@ namespace Odotocodot.OneNote.Linq
         /// <returns><see langword="true"/> if the specified <paramref name="name"/> is not null, empty, white space or contains any characters from <see cref="InvalidSectionGroupChars"/>; otherwise, <see langword="false"/>.</returns>
         /// <param name="name"></param>
         /// <seealso cref="InvalidSectionGroupChars"/>
-        public static bool IsSectionGroupNameValid(string name) 
+        public static bool IsSectionGroupNameValid(string name)
             => !string.IsNullOrWhiteSpace(name) && !InvalidSectionGroupChars.Any(name.Contains);
 
         #endregion
