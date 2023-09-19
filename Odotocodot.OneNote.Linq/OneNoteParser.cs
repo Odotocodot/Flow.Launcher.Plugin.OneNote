@@ -340,6 +340,37 @@ namespace Odotocodot.OneNote.Linq
         public static void CloseNotebook(IApplication oneNote, OneNoteNotebook notebook) => oneNote.CloseNotebook(notebook.ID);
 
         //TODO: Rename item
+        internal static void RenameItem(IApplication oneNote, IOneNoteItem item, string newName)
+        {
+            if (item.IsInRecycleBin())
+            {
+                throw new ArgumentException("Cannot rename unique items, such as recycle bin.");
+            }
+            oneNote.GetHierarchy(null, HierarchyScope.hsPages, out string xml);
+            var doc = XDocument.Parse(xml);
+            var element = doc.Descendants()
+                             .FirstOrDefault(e => (string)e.Attribute("ID") == item.ID);
+            if (element != null)
+            {
+                element.Attribute("name").SetValue(newName);
+                oneNote.UpdateHierarchy(doc.ToString());
+                switch (item)
+                {
+                    case OneNoteNotebook nb:
+                        nb.Name = newName;
+                        break;
+                    case OneNoteSectionGroup sg:
+                        sg.Name = newName;
+                        break;
+                    case OneNoteSection s:
+                        s.Name = newName;
+                        break;
+                    case OneNotePage p:
+                        p.Name = newName;
+                        break;
+                }
+            }
+        }
 
         #region Creating New OneNote Items
         //TODO: change to return ID
