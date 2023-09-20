@@ -12,7 +12,7 @@ if (!$Name) {
 
 $Choices =  @('&Yes', '&No')
 
-$Choice1 = $Host.UI.PromptForChoice('Name Check', "Is the plugin name vaild: $($Name)?", $Choices, 0)
+$Choice1 = $Host.UI.PromptForChoice('Name Check', "Is the plugin name valid: $($Name)?", $Choices, 0)
 if ($Choice1 -eq 1) {
     Write-Host "Invalid Name Cancelling Release"
     Exit
