@@ -339,7 +339,7 @@ namespace Odotocodot.OneNote.Linq
         /// <param name="notebook">The specified OneNote notebook.</param>
         public static void CloseNotebook(IApplication oneNote, OneNoteNotebook notebook) => oneNote.CloseNotebook(notebook.ID);
 
-        //TODO: Rename item
+        //TODO: Works but UpdateHierarchy takes A LONG TIME!
         internal static void RenameItem(IApplication oneNote, IOneNoteItem item, string newName)
         {
             if (item.IsInRecycleBin())
@@ -423,14 +423,14 @@ namespace Odotocodot.OneNote.Linq
             {
                 case nameof(OneNoteNotebook):
                     if (!IsNotebookNameValid(name))
-                        throw new ArgumentException($"Invalid notebook name provided: \"{name}\". Notebook names cannot empty, only white space or contain the symbols: \n {string.Join(' ', InvalidNotebookChars)}");
+                        throw new ArgumentException($"Invalid notebook name provided: \"{name}\". Notebook names cannot empty, only whitespace or contain the symbols: \n {string.Join(' ', InvalidNotebookChars)}");
 
                     path = Path.Combine(GetDefaultNotebookLocation(oneNote), name);
                     createFileType = CreateFileType.cftNotebook;
                     break;
                 case nameof(OneNoteSectionGroup):
                     if (!IsSectionGroupNameValid(name))
-                        throw new ArgumentException($"Invalid section group name provided: \"{name}\". Section group names cannot empty, only white space or contain the symbols: \n {string.Join(' ', InvalidSectionGroupChars)}");
+                        throw new ArgumentException($"Invalid section group name provided: \"{name}\". Section group names cannot empty, only whitespace or contain the symbols: \n {string.Join(' ', InvalidSectionGroupChars)}");
 
                     path = name;
                     createFileType = CreateFileType.cftFolder;
@@ -438,7 +438,7 @@ namespace Odotocodot.OneNote.Linq
                     break;
                 case nameof(OneNoteSection):
                     if (!IsSectionNameValid(name))
-                        throw new ArgumentException($"Invalid section name provided: \"{name}\". Section names cannot empty, only white space or contain the symbols: \n {string.Join(' ', InvalidSectionChars)}");
+                        throw new ArgumentException($"Invalid section name provided: \"{name}\". Section names cannot empty, only whitespace or contain the symbols: \n {string.Join(' ', InvalidSectionChars)}");
 
                     path = name + ".one";
                     createFileType = CreateFileType.cftSection;
@@ -517,7 +517,7 @@ namespace Odotocodot.OneNote.Linq
         /// Returns a value that indicates whether the supplied <paramref name="name"/> is a valid for a notebook.
         /// </summary>
         /// <param name="name"></param>
-        /// <returns><see langword="true"/> if the specified <paramref name="name"/> is not null, empty, white space or contains any characters from <see cref="InvalidNotebookChars"/>; otherwise, <see langword="false"/>.</returns>
+        /// <returns><see langword="true"/> if the specified <paramref name="name"/> is not null, empty, whitespace or contains any characters from <see cref="InvalidNotebookChars"/>; otherwise, <see langword="false"/>.</returns>
         /// <seealso cref="InvalidNotebookChars"/>
         public static bool IsNotebookNameValid(string name)
             => !string.IsNullOrWhiteSpace(name) && !InvalidNotebookChars.Any(name.Contains);
@@ -526,7 +526,7 @@ namespace Odotocodot.OneNote.Linq
         /// Returns a value that indicates whether the supplied <paramref name="name"/> is a valid for a section.
         /// </summary>
         /// <param name="name"></param>
-        /// <returns><see langword="true"/> if the specified <paramref name="name"/> is not null, empty, white space or contains any characters from <see cref="InvalidSectionChars"/>; otherwise, <see langword="false"/>.</returns>
+        /// <returns><see langword="true"/> if the specified <paramref name="name"/> is not null, empty, whitespace or contains any characters from <see cref="InvalidSectionChars"/>; otherwise, <see langword="false"/>.</returns>
         /// <seealso cref="InvalidSectionChars"/>
         public static bool IsSectionNameValid(string name)
             => !string.IsNullOrWhiteSpace(name) && !InvalidSectionChars.Any(name.Contains);
@@ -534,7 +534,7 @@ namespace Odotocodot.OneNote.Linq
         /// <summary>
         /// Returns a value that indicates whether the supplied <paramref name="name"/> is a valid for a section group.
         /// </summary>
-        /// <returns><see langword="true"/> if the specified <paramref name="name"/> is not null, empty, white space or contains any characters from <see cref="InvalidSectionGroupChars"/>; otherwise, <see langword="false"/>.</returns>
+        /// <returns><see langword="true"/> if the specified <paramref name="name"/> is not null, empty, whitespace or contains any characters from <see cref="InvalidSectionGroupChars"/>; otherwise, <see langword="false"/>.</returns>
         /// <param name="name"></param>
         /// <seealso cref="InvalidSectionGroupChars"/>
         public static bool IsSectionGroupNameValid(string name)
