@@ -115,10 +115,10 @@ namespace Odotocodot.OneNote.Linq
         /// <returns>An <see cref="IEnumerable{T}">IEnumerable</see>&lt;<see cref="OneNotePage"/>&gt; containing all the 
         /// <see cref="OneNotePage">pages</see> present in the <paramref name="source"/>.</returns>
         public static IEnumerable<OneNotePage> GetPages(this IOneNoteItem source)
-            => (IEnumerable<OneNotePage>)source.Traverse(i => i is OneNotePage);
+            => source.Traverse(i => i is OneNotePage).Cast<OneNotePage>();
 
         /// <inheritdoc cref="GetPages(IOneNoteItem)"/>
         public static IEnumerable<OneNotePage> GetPages(this IEnumerable<IOneNoteItem> source)
-            => (IEnumerable<OneNotePage>)source.Traverse(i => i is OneNotePage);
+            => source.Traverse(i => i is OneNotePage).Cast<OneNotePage>();
     }
 }
