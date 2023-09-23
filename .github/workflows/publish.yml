@@ -1,19 +1,24 @@
 name: Publish
 
 on:
-  push:
-    branches: [ master ]
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+  workflow_dispatch:
 
 jobs:
   build:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged }}  
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 6.0.x
+          dotnet-version: 7.0.x
 
       - name: get version
         id: version
@@ -26,7 +31,7 @@ jobs:
 
       - name: Build
         run: |
-          dotnet publish -c Release -r win-x64 Flow.Launcher.Plugin.OneNote.csproj
+          dotnet publish -c Release -r win-x64 --no-self-contained Flow.Launcher.Plugin.OneNote.csproj
           7z a -tzip "Flow.Launcher.Plugin.OneNote.zip" "./bin/Release/win-x64/publish/*"
 
       - name: Publish
