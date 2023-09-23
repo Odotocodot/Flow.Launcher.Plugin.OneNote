@@ -65,19 +65,16 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 var result = rc.CreateOneNoteItemResult(parent, false, score: 4000);
                 result.Title = $"Open \"{parent.Name}\" in OneNote";
+                result.SubTitle = lastSearch switch
+                {
+                    string ls when ls.StartsWith(settings.Keywords.TitleSearch)
+                        => $"Now search by title in \"{parent.Name}\"",
 
-                if (lastSearch.StartsWith(settings.Keywords.TitleSearch))
-                {
-                    result.SubTitle = $"Now search by title in \"{parent.Name}\"";
-                }
-                else if (lastSearch.StartsWith(settings.Keywords.ScopedSearch))
-                {
-                    result.SubTitle = $"Now searching all pages in \"{parent.Name}\"";
-                }
-                else
-                {
-                    result.SubTitle = $"Use \'{settings.Keywords.ScopedSearch}\' to search this item. Use \'{settings.Keywords.TitleSearch}\' to search by title in this item";
-                }
+                    string ls when ls.StartsWith(settings.Keywords.ScopedSearch)
+                        => $"Now searching all pages in \"{parent.Name}\"",
+
+                    _ => $"Use \'{settings.Keywords.ScopedSearch}\' to search this item. Use \'{settings.Keywords.TitleSearch}\' to search by title in this item",
+                };
 
                 results.Add(result);
             }
@@ -87,14 +84,13 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private List<Result> NotebookDefaultSearch(IOneNoteItem parent, IEnumerable<IOneNoteItem> collection, string lastSearch)
         {
-            List<Result> results;
             List<int> highlightData = null;
             int score = 0;
 
-            results = collection.Where(SettingsCheck)
-                                .Where(item => FuzzySearch(item.Name, lastSearch, out highlightData, out score))
-                                .Select(item => rc.CreateOneNoteItemResult(item, true, highlightData, score))
-                                .ToList();
+            var results = collection.Where(SettingsCheck)
+                                    .Where(item => FuzzySearch(item.Name, lastSearch, out highlightData, out score))
+                                    .Select(item => rc.CreateOneNoteItemResult(item, true, highlightData, score))
+                                    .ToList();
 
             AddCreateNewOneNoteItemResults(results, parent, lastSearch);
             return results;
@@ -150,8 +146,8 @@ namespace Flow.Launcher.Plugin.OneNote
             var results = new List<Result>();
 
             results = OneNoteApplication.FindPages(parent, currentSearch)
-                             .Select(pg => rc.CreatePageResult(pg, currentSearch))
-                             .ToList();
+                                        .Select(pg => rc.CreatePageResult(pg, currentSearch))
+                                        .ToList();
 
             if (!results.Any())
                 results = ResultCreator.NoMatchesFoundResult();
@@ -190,13 +186,10 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             //Check for invalid start of query i.e. symbols
             if (!char.IsLetterOrDigit(query[0]))
-            {
                 return ResultCreator.InvalidQuery();
-            }
 
             var results = OneNoteApplication.FindPages(query)
-                                 .Select(pg => rc.CreatePageResult(pg, query));
-                          
+                                            .Select(pg => rc.CreatePageResult(pg, query));
             if (results.Any())
                 return results.ToList();
 
@@ -210,19 +203,18 @@ namespace Flow.Launcher.Plugin.OneNote
 
             List<int> highlightData = null;
             int score = 0;
-            var results = new List<Result>();
 
             var currentSearch = query[settings.Keywords.TitleSearch.Length..];
 
-            results = currentCollection.Traverse(item =>
-                                        {
-                                            if (!SettingsCheck(item))
-                                                return false;
+            var results = currentCollection.Traverse(item =>
+                                            {
+                                                if (!SettingsCheck(item))
+                                                    return false;
 
-                                            return FuzzySearch(item.Name, currentSearch, out highlightData, out score);
-                                        })
-                                        .Select(item => rc.CreateOneNoteItemResult(item, false, highlightData, score))
-                                        .ToList();
+                                                return FuzzySearch(item.Name, currentSearch, out highlightData, out score);
+                                            })
+                                            .Select(item => rc.CreateOneNoteItemResult(item, false, highlightData, score))
+                                            .ToList();
 
             if (!results.Any())
                 results = ResultCreator.NoMatchesFoundResult();
