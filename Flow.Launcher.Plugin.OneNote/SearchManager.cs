@@ -182,6 +182,69 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
         #endregion
+
+        public List<Result> EmptyQuery()
+        {
+            return new List<Result>
+            {
+                new Result
+                {
+                    Title = "Search OneNote pages",
+                    SubTitle = $"Type \"{settings.Keywords.NotebookExplorer}\" or select this option to search by notebook structure ",
+                    AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {settings.Keywords.NotebookExplorer}",
+                    IcoPath = Icons.Logo,
+                    Score = 2000,
+                    Action = c =>
+                    {
+                        context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {settings.Keywords.NotebookExplorer}");
+                        return false;
+                    },
+                },
+                new Result
+                {
+                    Title = "See recent pages",
+                    SubTitle = $"Type \"{settings.Keywords.RecentPages}\" or select this option to see recently modified pages",
+                    AutoCompleteText = $"{context.CurrentPluginMetadata.ActionKeyword} {settings.Keywords.RecentPages}",
+                    IcoPath = Icons.Recent,
+                    Score = -1000,
+                    Action = c =>
+                    {
+                        context.API.ChangeQuery($"{context.CurrentPluginMetadata.ActionKeyword} {settings.Keywords.RecentPages}");
+                        return false;
+                    },
+                },
+                new Result
+                {
+                    Title = "New quick note",
+                    IcoPath = Icons.NewPage,
+                    Score = -4000,
+                    Action = c =>
+                    {
+                        OneNoteApplication.CreateQuickNote();
+                        return true;
+                    }
+                },
+                new Result
+                {
+                    Title = "Open and sync notebooks",
+                    IcoPath = Icons.Sync,
+                    Score = int.MinValue,
+                    Action = c =>
+                    {
+                        foreach (var notebook in OneNoteApplication.GetNotebooks())
+                        {
+                            notebook.Sync();
+                        }
+                        OneNoteApplication.GetNotebooks()
+                                          .GetPages()
+                                          .OrderByDescending(pg => pg.LastModified)
+                                          .First()
+                                          .OpenInOneNote();
+                        return true;
+                    }
+                },
+            };
+        }
         public List<Result> DefaultSearch(string query)
         {
             //Check for invalid start of query i.e. symbols
@@ -195,7 +258,6 @@ namespace Flow.Launcher.Plugin.OneNote
 
             return ResultCreator.NoMatchesFoundResult();
         }
-
         public List<Result> TitleSearch(string query, IEnumerable<IOneNoteItem> currentCollection, IOneNoteItem parent = null)
         {
             if (query.Length == settings.Keywords.TitleSearch.Length && parent == null)
@@ -242,7 +304,6 @@ namespace Flow.Launcher.Plugin.OneNote
                                      })
                                      .ToList();
         }
-
         public List<Result> ContextMenu(Result selectedResult)
         {
             var results = new List<Result>();
@@ -288,7 +349,6 @@ namespace Flow.Launcher.Plugin.OneNote
             score = matchResult.Score;
             return matchResult.IsSearchPrecisionScoreMet();
         }
-
         private bool SettingsCheck(IOneNoteItem item)
         {
             bool success = true;

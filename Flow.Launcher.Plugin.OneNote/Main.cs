@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Odotocodot.OneNote.Linq;
@@ -29,13 +28,13 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             if (context.CurrentPluginMetadata.Disabled || !e.IsVisible)
             {
-                OneNoteApplication.ReleaseComInstance();
+                OneNoteApplication.ReleaseComObject();
             }
         }
 
         private static async Task OneNoteInitAsync(CancellationToken token = default)
         {
-            if (semaphore.CurrentCount == 0 || OneNoteApplication.HasComInstance)
+            if (semaphore.CurrentCount == 0 || OneNoteApplication.HasComObject)
                 return;
 
             await semaphore.WaitAsync(token);
@@ -45,64 +44,9 @@ namespace Flow.Launcher.Plugin.OneNote
         public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
         {
             var init = OneNoteInitAsync(token);
+
             if (string.IsNullOrEmpty(query.Search))
-            {
-                return new List<Result>
-                {
-                    new Result
-                    {
-                        Title = "Search OneNote pages",
-                        SubTitle = $"Type \"{settings.Keywords.NotebookExplorer}\" or select this option to search by notebook structure ",
-                        AutoCompleteText = $"{query.ActionKeyword} {settings.Keywords.NotebookExplorer}",
-                        IcoPath = Icons.Logo,
-                        Score = 2000,
-                        Action = c =>
-                        {
-                            context.API.ChangeQuery($"{query.ActionKeyword} {settings.Keywords.NotebookExplorer}");
-                            return false;
-                        },
-                    },
-                    new Result
-                    {
-                        Title = "See recent pages",
-                        SubTitle = $"Type \"{settings.Keywords.RecentPages}\" or select this option to see recently modified pages",
-                        AutoCompleteText = $"{query.ActionKeyword} {settings.Keywords.RecentPages}",
-                        IcoPath = Icons.Recent,
-                        Score = -1000,
-                        Action = c =>
-                        {
-                            context.API.ChangeQuery($"{query.ActionKeyword} {settings.Keywords.RecentPages}");
-                            return false;
-                        },
-                    },
-                    new Result
-                    {
-                        Title = "New quick note",
-                        IcoPath = Icons.NewPage,
-                        Score = -4000,
-                        Action = c =>
-                        {
-                            OneNoteApplication.CreateQuickNote();
-                            return true;
-                        }
-                    },
-                    new Result
-                    {
-                        Title = "Open and sync notebooks",
-                        IcoPath = Icons.Sync,
-                        Score = int.MinValue,
-                        Action = c =>
-                        {
-                            foreach (var notebook in OneNoteApplication.GetNotebooks())
-                            {
-                                OneNoteApplication.SyncItem(notebook);
-                            }
-                            OneNoteApplication.GetNotebooks().First().OpenInOneNote();
-                            return true;
-                        }
-                    },
-                };
-            }
+                return searchManager.EmptyQuery();
             
             await init;
 
@@ -130,7 +74,7 @@ namespace Flow.Launcher.Plugin.OneNote
             context.API.VisibilityChanged -= OnVisibilityChanged;
             semaphore.Dispose();
             Icons.Close();
-            OneNoteApplication.ReleaseComInstance();
+            OneNoteApplication.ReleaseComObject();
         }
     }
 }
