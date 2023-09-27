@@ -14,16 +14,16 @@ A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-t
 ## Contents 
 - [Installation](#installation)
 - [Features](#features)
-	- [Core Features](#core-features)
-		- [Default Search](#default-search)
-		- [Notebook Explorer](#notebook-explorer)
-			- [Create New Items](#create-new-items)
-		- [Recent Pages](#recent-pages)
-	- [Extra](#extra)
-		- [Scoped Search](#scoped-search)
-		- [Title Search](#title-search)
+	- [At a glance](#at-a-glance)
+	- [Default Search](#default-search)
+	- [Notebook Explorer](#notebook-explorer)
+		- [Create New Items](#create-new-items)
+	- [Recent Pages](#recent-pages)
+	- [Scoped Search](#scoped-search)
+	- [Title Search](#title-search)
 - [Settings](#settings)
 	- [Keywords](#keywords)
+- [2.0 Changelog](#20-changelog)
 - [Acknowledgements](#acknowledgements)
 
 ## Installation
@@ -35,37 +35,74 @@ pm install OneNote
 > Requires at least Flow Launcher version 1.16.
 
 ## Features
-### Core Features 
-#### Default Search
+### At a glance
+| Keyword                      | Name                                    | Description                  |
+| ---------------------------- | --------------------------------------- | ---------------------------- |
+| `` on {your search query} `` | [Default Search](#default-search)       | Search OneNote pages         |
+| `` on nb:\ ``                | [Notebook Explorer](#notebook-explorer) | Navigate notebooks hierarchy |
+| `` on rcntpgs: ``            | [Recent Pages](#recent-pages)           | View recently modified pages |
+
+
+### Default Search
 ```
-on {your search here}
+on {your search query}
 ```
-The default mode allows you to search OneNote Pages.
-Using `AND` or `OR`
+This is allows you to search OneNote pages. The OneNote API searches both the content in a page as well as the page title.
+
+> [!NOTE]
+> You can include bitwise operators like `AND` or `OR` (they must be uppercase) in your search. E.g. `on hello there AND general kenobi`.
 
 ![default search gif](doc/) 
 
-#### Notebook Explorer
+### Notebook Explorer
 
-Transverse your OneNote Notebooks explorer style
+```
+on nb:\
+```
+Transverse your OneNote notebooks explorer style.
 
-##### Create New Items
+- Press <kbd>⏎ Enter</kbd> or <kbd>⇥ Tab</kbd> or left-click on a result to auto complete the query.
+- Press <kbd>⇧ Shift</kbd> + <kbd>⏎ Enter</kbd> or right-click on a result to open it directly in OneNote.
 
-#### Recent Pages
+see settings for options on recycle bin etc.
 
-### Extra
+![notebook explorer gif](doc/)
 
-#### Scoped Search
+> [!INFORMATION] 
+> Supports all OneNote hierarchy items i.e. notebooks, section groups, sections and pages.
 
-#### Title Search
+#### Create New Items
+
+Whilst using the notebook explorer, if you search query does not match any names of the items in the results, the plugin will give you an option to create a new item.
+
+![create new section gif](doc/)
+
+> [!INFORMATION] 
+> Supports all OneNote hierarchy items i.e. notebooks, section groups, sections and pages.
+### Recent Pages
+
+```
+on rcntpgs:
+```
+
+Displays your recently modified OneNote pages.
+
+Add a number after `` rcntpgs: `` to display that number of recent pages. E.g. the full query ``on rcntpgs:10`` will show the 10 most recently modified pages.
+
+![recent pages gif](doc/)
+### Scoped Search
+
+### Title Search
 
 
 ## Settings
 
 ### Keywords
 
+## 2.0 Changelog
+
 ## Acknowledgements
 
-- Made with [Odotocodot.OneNote.Linq](https://github.com/Odotocodot.OneNote.Linq) a library for exposing the OneNote API made by me :smiley:.
-- Inspired by the OneNote plugin for [PowerToys](https://github.com/microsoft/PowerToys/tree/main/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote)
-- Icons from [Icons8](https://icons8.com)
+- Made with [Odotocodot.OneNote.Linq](https://github.com/Odotocodot.OneNote.Linq) a library for exposing the OneNote API also made by me :smiley:.
+- Inspired by the OneNote plugin for [PowerToys](https://github.com/microsoft/PowerToys/tree/main/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote).
+- Icons from [Icons8](https://icons8.com).
