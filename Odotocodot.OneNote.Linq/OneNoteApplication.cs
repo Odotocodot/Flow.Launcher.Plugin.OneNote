@@ -64,19 +64,19 @@ namespace Odotocodot.OneNote.Linq
         public static void CreateQuickNote() => OneNoteParser.CreateQuickNote(OneNote, true);
 
         /// <inheritdoc cref="OneNoteParser.CreatePage(IApplication, OneNoteSection, string, bool)"/>
-        public static void CreatePage(OneNoteSection section, string pageTitle) => OneNoteParser.CreatePage(OneNote, section, pageTitle, true);
+        public static void CreatePage(OneNoteSection section, string name) => OneNoteParser.CreatePage(OneNote, section, name, true);
 
         /// <inheritdoc cref="OneNoteParser.CreateSection(IApplication, OneNoteSectionGroup, string, bool)"/>
-        public static void CreateSection(OneNoteSectionGroup parent, string sectionName) => OneNoteParser.CreateSection(OneNote, parent, sectionName, true);
+        public static void CreateSection(OneNoteSectionGroup parent, string name) => OneNoteParser.CreateSection(OneNote, parent, name, true);
 
         /// <inheritdoc cref="OneNoteParser.CreateSection(IApplication, OneNoteNotebook, string, bool)"/>
-        public static void CreateSection(OneNoteNotebook parent, string sectionName) => OneNoteParser.CreateSection(OneNote, parent, sectionName, true);
+        public static void CreateSection(OneNoteNotebook parent, string name) => OneNoteParser.CreateSection(OneNote, parent, name, true);
 
         /// <inheritdoc cref="OneNoteParser.CreateSectionGroup(IApplication, OneNoteSectionGroup, string, bool)"/>
-        public static void CreateSectionGroup(OneNoteSectionGroup parent, string sectionGroupName) => OneNoteParser.CreateSectionGroup(OneNote, parent, sectionGroupName, true);
+        public static void CreateSectionGroup(OneNoteSectionGroup parent, string name) => OneNoteParser.CreateSectionGroup(OneNote, parent, name, true);
 
         /// <inheritdoc cref="OneNoteParser.CreateSectionGroup(IApplication, OneNoteNotebook, string, bool)"/>
-        public static void CreateSectionGroup(OneNoteNotebook parent, string sectionGroupName) => OneNoteParser.CreateSectionGroup(OneNote, parent, sectionGroupName, true);
+        public static void CreateSectionGroup(OneNoteNotebook parent, string name) => OneNoteParser.CreateSectionGroup(OneNote, parent, name, true);
 
         /// <inheritdoc cref="OneNoteParser.CreateNotebook(IApplication, string, bool)"/>
         public static void CreateNotebook(string notebookName) => OneNoteParser.CreateNotebook(OneNote, notebookName, true);

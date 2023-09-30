@@ -24,7 +24,7 @@ A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-t
   - [Title Search](#title-search)
 - [Settings](#settings)
   - [Keywords](#keywords)
-- [Changelog](#changelog)
+- [Changelog](#200---2023-mm-dd)
 - [Acknowledgements](#acknowledgements)
 
 ## Installation
@@ -36,25 +36,25 @@ pm install OneNote
 ```
 
 > [!IMPORTANT]
-> For [version 2.0+](#changelog) requires at least Flow Launcher version 1.16.
+> For [version 2.0+](#200---2023-mm-dd) requires at Flow Launcher version 1.16+.
 
 ## Features
 
 ### At a glance
 
-| Keyword                      | Name                                    | Description                  |
-| ---------------------------- | --------------------------------------- | ---------------------------- |
-| `` on {your search query} `` | [Default Search](#default-search)       | Search OneNote pages         |
-| `` on nb:\ ``                | [Notebook Explorer](#notebook-explorer) | Navigate notebooks hierarchy |
-| `` on rcntpgs: ``            | [Recent Pages](#recent-pages)           | View recently modified pages |
+| Keyword                    | Name                                    | Description                  |
+| -------------------------- | --------------------------------------- | ---------------------------- |
+| ` on {your search query} ` | [Default Search](#default-search)       | Search OneNote pages         |
+| ` on nb:\ `                | [Notebook Explorer](#notebook-explorer) | Navigate notebooks hierarchy |
+| ` on rcntpgs: `            | [Recent Pages](#recent-pages)           | View recently modified pages |
 
 <!-- omit from toc -->
 #### Modifiers
 
 | Keyword | Name                            | Notes                                        |
 | ------- | ------------------------------- | -------------------------------------------- |
-| `` > `` | [Scoped Search](#scoped-search) | Search only within a specific hierarchy item |
-| `` * `` | [Title Search](#title-search)   | Search only the title of hierarchy items     |
+| ` > `   | [Scoped Search](#scoped-search) | Search only within a specific hierarchy item |
+| ` * `   | [Title Search](#title-search)   | Search only the title of hierarchy items     |
 
 > [!NOTE]
 > Hierarchy items are notebooks, section groups, sections and pages.
@@ -66,6 +66,8 @@ on {your search query}
 ```
 
 This is allows you to search OneNote pages using the OneNote API which searches both the content in a page as well as the page title.
+
+- Press <kbd>⏎ Enter</kbd> or left-click on a search result to open in OneNote.
 
 > [!NOTE]
 > You can include bitwise operators like `AND` or `OR` (they must be uppercase) in your search. E.g. `on hello there AND general kenobi`.
@@ -163,7 +165,7 @@ The plugin has a number of settings such as the ability items in the recycle bin
 
 <details>
   <summary>Screenshot of settings</summary>
-  <img src= "doc/settings.png" width="820" height="598" alt="settings">
+  <img src= "doc/settings.png" width="823" height="598" alt="settings">
 </details>
 
 ### Keywords
@@ -172,7 +174,7 @@ All the keywords used can be changed according to user preference.
 
 <details>
   <summary>Screenshot of keywords</summary>
-  <img src= "doc/keywords.png" alt="keywords">
+  <img src= "doc/keywords.png" width="823" height="276" alt="keywords">
 </details>
 
 <details>

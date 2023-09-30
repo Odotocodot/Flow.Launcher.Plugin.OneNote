@@ -21,7 +21,7 @@ namespace Odotocodot.OneNote.Linq
         public const char RelativePathSeparator = '\\';
 
         /// <summary>
-        /// An array containing the characters that are not allowed in a <see cref="OneNoteNotebook">notebook</see> <see cref="OneNoteNotebook.Name">name</see>.<br/>
+        /// An array containing the characters that are not allowed in a <see cref="OneNoteNotebook">notebook</see> <see cref="OneNoteNotebook.Name"> name</see>.<br/>
         /// These are:&#009;<b>\ / * ? " | &lt; &gt; : % # .</b>
         /// </summary>
         /// <seealso cref="IsNotebookNameValid(string)"/>
@@ -29,7 +29,7 @@ namespace Odotocodot.OneNote.Linq
         /// <seealso cref="InvalidSectionGroupChars"/>
         public static readonly ImmutableArray<char> InvalidNotebookChars = """\/*?"|<>:%#.""".ToImmutableArray();
         /// <summary>
-        /// An array containing the characters that are not allowed in a <see cref="OneNoteSection">section</see> <see cref="OneNoteSection.Name">name</see>.<br/>
+        /// An array containing the characters that are not allowed in a <see cref="OneNoteSection">section</see> <see cref="OneNoteSection.Name"> name</see>.<br/>
         /// These are:&#009;<b>\ / * ? " | &lt; &gt; : % # &amp;</b>
         /// </summary>
         /// <seealso cref="IsSectionNameValid(string)"/>
@@ -37,7 +37,7 @@ namespace Odotocodot.OneNote.Linq
         /// <seealso cref="InvalidSectionGroupChars"/>
         public static readonly ImmutableArray<char> InvalidSectionChars = """\/*?"|<>:%#&""".ToImmutableArray();
         /// <summary>
-        /// An array containing the characters that are not allowed in a <see cref="OneNoteSectionGroup">section group</see> <see cref="OneNoteSectionGroup.Name">name</see>.<br/>
+        /// An array containing the characters that are not allowed in a <see cref="OneNoteSectionGroup">section group</see> <see cref="OneNoteSectionGroup.Name"> name</see>.<br/>
         /// These are:&#009;<b>\ / * ? " | &lt; &gt; : % # &amp;</b>
         /// </summary>
         /// <seealso cref="IsSectionGroupNameValid(string)"/>
@@ -257,7 +257,7 @@ namespace Odotocodot.OneNote.Linq
         /// <param name="scope">The hierarchy item to search within.</param>
         /// <returns><inheritdoc cref="FindPages(IApplication, string)" path="/returns"/></returns>
         /// <seealso cref="FindPages(IApplication, string)"/>
-        /// <exception cref="ArgumentException"><inheritdoc cref="ValidateSearch(string)" path="/param[@cref='ArgumentException'"/></exception>
+        /// <exception cref="ArgumentException"><inheritdoc cref="ValidateSearch(string)" path="/exception[@cref='ArgumentException']"/></exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="search"/> or <paramref name="scope"/> is <see langword="null"/>.</exception>
         public static IEnumerable<OneNotePage> FindPages(IApplication oneNote, string search, IOneNoteItem scope)
         {
@@ -452,8 +452,7 @@ namespace Odotocodot.OneNote.Linq
         }
 
         /// <summary>
-        /// Creates a <see cref="OneNoteSection">section</see> with a title equal to <paramref name="name"/> located in the specified <paramref name="parent"/> 
-        /// <see cref="OneNoteSectionGroup">section group</see>.
+        /// Creates a <see cref="OneNoteSection">section</see> with a title equal to <paramref name="name"/> located in the specified <paramref name="parent"/> <see cref="OneNoteSectionGroup"> section group</see>.
         /// </summary>
         /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
         /// <param name="parent">The hierarchy item to create the section in.</param>
@@ -465,8 +464,7 @@ namespace Odotocodot.OneNote.Linq
             => CreateItemBase<OneNoteSection>(oneNote, parent, name, openImmediately);
 
         /// <summary>
-        /// Creates a <see cref="OneNoteSection">section</see> with a title equal to <paramref name="name"/> located in the specified <paramref name="parent"/> 
-        /// <see cref="OneNoteNotebook">notebook</see>.
+        /// Creates a <see cref="OneNoteSection">section</see> with a title equal to <paramref name="name"/> located in the specified <paramref name="parent"/> <see cref="OneNoteNotebook"> notebook</see>.
         /// </summary>
         /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
         /// <param name="parent">The hierarchy item to create the section in.</param>
@@ -478,8 +476,7 @@ namespace Odotocodot.OneNote.Linq
             => CreateItemBase<OneNoteSection>(oneNote, parent, name, openImmediately);
 
         /// <summary>
-        /// Creates a <see cref="OneNoteSectionGroup">section group</see> with a title equal to <paramref name="name"/> located in the specified <paramref name="parent"/> 
-        /// <see cref="OneNoteSectionGroup">section group</see>.
+        /// Creates a <see cref="OneNoteSectionGroup">section group</see> with a title equal to <paramref name="name"/> located in the specified <paramref name="parent"/> <see cref="OneNoteSectionGroup"> section group</see>.
         /// </summary>
         /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
         /// <param name="parent">The hierarchy item to create the section group in.</param>
@@ -491,8 +488,7 @@ namespace Odotocodot.OneNote.Linq
             => CreateItemBase<OneNoteSectionGroup>(oneNote, parent, name, openImmediately);
 
         /// <summary>
-        /// Creates a <see cref="OneNoteSectionGroup">section group</see> with a title equal to <paramref name="name"/> located in the specified <paramref name="parent"/> 
-        /// <see cref="OneNoteNotebook">notebook</see>.
+        /// Creates a <see cref="OneNoteSectionGroup">section group</see> with a title equal to <paramref name="name"/> located in the specified <paramref name="parent"/> <see cref="OneNoteNotebook"> notebook</see>.
         /// </summary>
         /// <param name="oneNote"><inheritdoc cref="GetNotebooks(IApplication)" path="/param[@name='oneNote']"/></param>
         /// <param name="parent">The hierarchy item to create the section group in.</param>
