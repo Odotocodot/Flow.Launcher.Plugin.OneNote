@@ -31,10 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Odotocodot.OneNote.Linq\Odotocodot.OneNote.Linq.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="Images\*.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
