@@ -35,4 +35,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Odotocodot.OneNote.Linq\Odotocodot.OneNote.Linq\Odotocodot.OneNote.Linq.csproj" />
+  </ItemGroup>
 </Project>
