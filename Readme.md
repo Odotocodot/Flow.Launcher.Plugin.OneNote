@@ -15,7 +15,7 @@ A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-t
 
 - [Installation](#installation)
 - [Features](#features)
-  - [At a glance](#at-a-glance)
+  - [At a Glance](#at-a-glance)
   - [Default Search](#default-search)
   - [Notebook Explorer](#notebook-explorer)
     - [Create New Items](#create-new-items)
@@ -24,7 +24,7 @@ A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-t
   - [Title Search](#title-search)
 - [Settings](#settings)
   - [Keywords](#keywords)
-- [Changelog](#200---2023-mm-dd)
+- [Changelog](#200---2023-10-05)
 - [Acknowledgements](#acknowledgements)
 
 ## Installation
@@ -36,11 +36,11 @@ pm install OneNote
 ```
 
 > [!IMPORTANT]
-> For [version 2.0+](#200---2023-mm-dd) requires at Flow Launcher version 1.16+.
+> For [version 2.0+](#200---2023-10-05) requires at Flow Launcher version 1.16+. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
 
 ## Features
 
-### At a glance
+### At a Glance
 
 | Keyword                    | Name                                    | Description                  |
 | -------------------------- | --------------------------------------- | ---------------------------- |
@@ -72,7 +72,7 @@ This is allows you to search OneNote pages using the OneNote API which searches 
 > [!NOTE]
 > You can include bitwise operators like `AND` or `OR` (they must be uppercase) in your search. E.g. `on hello there AND general kenobi`.
 
-![default search gif]()
+![default search gif](doc/default_search.gif)
 
 ### Notebook Explorer
 
@@ -80,21 +80,21 @@ This is allows you to search OneNote pages using the OneNote API which searches 
 on nb:\
 ```
 
-Transverse your OneNote notebooks explorer style.
+Traverse your OneNote notebooks explorer style.
 
 - Press <kbd>⏎ Enter</kbd> or <kbd>⇥ Tab</kbd> or left-click on a result to auto complete the query.
 - Press <kbd>⇧ Shift</kbd> + <kbd>⏎ Enter</kbd> or right-click on a result to open it directly in OneNote.
 
-![notebook explorer gif]()
+![notebook explorer gif](doc/notebook_explorer.gif)
 
 > [!NOTE]
 > Supports all OneNote hierarchy items i.e. notebooks, section groups, sections and pages.
 
 #### Create New Items
 
-Whilst using the notebook explorer, if you search query does not match any names of the items in the results, the plugin will give you an option to create a new item.
+Whilst using the notebook explorer, if your search query does not match any names of the items in the results, the plugin will give you an option to create a new item.
 
-![create new section gif]()
+![create new item gif](doc/create_new_items.gif)
 
 > [!NOTE]
 > Supports all OneNote hierarchy items i.e. notebooks, section groups, sections and pages.
@@ -109,7 +109,7 @@ Displays your recently modified OneNote pages.
 
 Add a number after `` rcntpgs: `` to display that number of recent pages. E.g. the full query ``on rcntpgs:10`` will show the 10 most recently modified pages.
 
-![recent pages gif]()
+![recent pages gif](doc/recent_pages.gif)
 
 ### Scoped Search
 
@@ -122,7 +122,7 @@ Scoped search is the same as [default search](#default-search) but restricted to
 > [!IMPORTANT]
 > Must be used with [notebook explorer](#notebook-explorer).
 
-![scoped search gif]()
+![scoped search gif](doc/scoped_search.gif)
 
 <details>
   <summary><h4>Example Queries<h4></summary>
@@ -146,7 +146,8 @@ Searches for hierarchy items based on their title alone. Unlike [scoped search](
 > [!NOTE]
 > Can be used in conjunction with [notebook explorer](#notebook-explorer).
 
-![title search gif]()
+![title search gif](doc/title_search_default.gif)
+![title search gif](doc/title_search_notebook.gif)
 
 <details>
   <summary><h4>Example Queries<h4></summary>
@@ -161,7 +162,7 @@ Searches for hierarchy items based on their title alone. Unlike [scoped search](
 
 ## Settings
 
-The plugin has a number of settings such as the ability items in the recycle bin or indicate which pages have unread changes.
+The plugin has a number of settings such as the ability to hide the recycle bin or indicate which pages have unread changes.
 
 <details>
   <summary>Screenshot of settings</summary>
@@ -181,32 +182,32 @@ All the keywords used can be changed according to user preference.
   <summary><h2 id="changelog">2.0.0 Changelog: Massive Refactor and New Features</h2></summary>
 
 <!-- omit from toc -->
-### 2.0.0 - 2023-mm-dd
+### 2.0.0 - 2023-10-05
 
 <!-- omit from toc -->
 #### Added
 
-- **[Created custom OneNote parser/library](https://github.com/Odotocodot.OneNote.Linq)** Adding the ability for several new features.
+- **[Created custom OneNote parser/library](https://github.com/Odotocodot/Odotocodot.OneNote.Linq)**, adding the ability for several new features.
 - Support for section groups when using the notebook explorer.
 - Support for displaying unread results.
 - Support for showing locked sections in results (you still can't see inside them unless they are unlocked).
 - The ability to search by only title.
 - The ability to do a scoped search (e.g. search in one section only).
 - **Settings!** You can change these options:
-  - Show unread icons
-  - Show encrypted sections
-  - Show recycle bin items
-  - Created coloured icons for notebook and sections
+  - Show unread icons.
+  - Show encrypted sections.
+  - Show recycle bin items.
+  - Created coloured icons for notebook and sections.
   - Default number of recent pages
   - **Customisable keywords!**
 
 <!-- omit from toc -->
 #### Changed
 
-- Compressed all images
-- Reduced the calls to create a OneNote COM object, this should lead to a overall smoother experience
-- Updated to .NET 7 (update Flow Launcher if an error persists)
-- Refactored most of the code.
+- Compressed images.
+- Reduced the calls to create a OneNote COM object, this should lead to a overall smoother experience.
+- Updated to .NET 7 (update Flow Launcher if an error persists).
+- Refactored majority of code and project structure.
 
 <!-- omit from toc -->
 #### Removed
@@ -217,6 +218,6 @@ All the keywords used can be changed according to user preference.
 
 ## Acknowledgements
 
-- Made with [Odotocodot.OneNote.Linq](https://github.com/Odotocodot.OneNote.Linq) a library for exposing the OneNote API also made by me :smiley:
+- Made with [Odotocodot.OneNote.Linq](https://github.com/Odotocodot/Odotocodot.OneNote.Linq) a library for exposing the OneNote API also made by me :smiley:
 - Inspired by the OneNote plugin for [PowerToys](https://github.com/microsoft/PowerToys/tree/main/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote)
 - Icons from [Icons8](https://icons8.com)
