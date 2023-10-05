@@ -7,7 +7,6 @@ namespace Flow.Launcher.Plugin.OneNote
     public class Icons : BaseModel
     {
         public const string Logo = "Images/logo.png";
-        public const string Unavailable = "Images/unavailable.png";
         public const string Sync = "Images/refresh.png";
         public const string Warning = "Images/warning.png";
         public const string Search = Logo;
@@ -19,7 +18,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public const string Section = "Images/section.png";
         public const string SectionGroup = "Images/section_group.png";
         public const string Notebook = "Images/notebook.png";
-        
+
         public const string NewPage = "Images/new_page.png";
         public const string NewSection = "Images/new_section.png";
         public const string NewSectionGroup = "Images/new_section_group.png";
@@ -82,7 +81,7 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
 
-        public void ClearCachedIcons() 
+        public void ClearCachedIcons()
         {
             notebookIcons.ClearCachedIcons();
             sectionIcons.ClearCachedIcons();
