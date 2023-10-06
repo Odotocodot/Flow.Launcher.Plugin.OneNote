@@ -24,16 +24,19 @@ jobs:
         id: version
         uses: notiz-dev/github-action-json-property@release
         with:
-          path: 'plugin.json'
+          path: 'Flow.Launcher.Plugin.OneNote/plugin.json'
           prop_path: 'Version'
 
       - run: echo ${{steps.version.outputs.prop}}
+      
+      - name: Restore dependencies
+        run: dotnet restore
 
       - name: Build
         run: |
           dotnet publish -c Release -r win-x64 --no-self-contained Flow.Launcher.Plugin.OneNote.csproj
           7z a -tzip "Flow.Launcher.Plugin.OneNote.zip" "./bin/Release/win-x64/publish/*"
-
+          
       - name: Publish
         uses: softprops/action-gh-release@v1
         with:
