@@ -187,7 +187,7 @@ All the keywords used can be changed according to user preference.
 <!-- omit from toc -->
 #### Added
 
-- **[Created custom OneNote parser/library](https://github.com/Odotocodot/Odotocodot.OneNote.Linq)**, adding the ability for several new features.
+- **[Created custom OneNote parser/library](https://github.com/Odotocodot/Linq2OneNote)**, adding the ability for several new features.
 - Support for section groups when using the notebook explorer.
 - Support for displaying unread results.
 - Support for showing locked sections in results (you still can't see inside them unless they are unlocked).
@@ -218,6 +218,6 @@ All the keywords used can be changed according to user preference.
 
 ## Acknowledgements
 
-- Made with [Odotocodot.OneNote.Linq](https://github.com/Odotocodot/Odotocodot.OneNote.Linq) a library for exposing the OneNote API also made by me :smiley:
+- Made with [Linq2OneNote](https://github.com/Odotocodot/Linq2OneNote) a library for exposing the OneNote API also made by me :smiley:
 - Inspired by the OneNote plugin for [PowerToys](https://github.com/microsoft/PowerToys/tree/main/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote)
 - Icons from [Icons8](https://icons8.com)
