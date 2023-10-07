@@ -1,5 +1,8 @@
 name: Publish
 
+permissions:
+  contents: write
+
 on:
   pull_request:
     branches:
@@ -14,13 +17,15 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 7.0.x
 
-      - name: get version
+      - name: Get version
         id: version
         uses: notiz-dev/github-action-json-property@release
         with:
@@ -34,13 +39,14 @@ jobs:
 
       - name: Build
         run: |
+          cd Flow.Launcher.Plugin.OneNote
           dotnet publish -c Release -r win-x64 --no-self-contained Flow.Launcher.Plugin.OneNote.csproj
           7z a -tzip "Flow.Launcher.Plugin.OneNote.zip" "./bin/Release/win-x64/publish/*"
           
       - name: Publish
         uses: softprops/action-gh-release@v1
         with:
-          files: "Flow.Launcher.Plugin.OneNote.zip"
+          files: "Flow.Launcher.Plugin.OneNote/Flow.Launcher.Plugin.OneNote.zip"
           tag_name: "v${{steps.version.outputs.prop}}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
