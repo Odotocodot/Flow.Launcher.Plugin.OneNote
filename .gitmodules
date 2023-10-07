@@ -1,0 +1,4 @@
+[submodule "Odotocodot.OneNote.Linq"]
+	path = Odotocodot.OneNote.Linq
+	url = https://github.com/Odotocodot/Odotocodot.OneNote.Linq
+	branch = flow-plugin
