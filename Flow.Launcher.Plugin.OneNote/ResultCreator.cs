@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Odotocodot.OneNote.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote
@@ -109,17 +110,20 @@ namespace Flow.Launcher.Plugin.OneNote
                 Score = score,
                 IcoPath = Icons.GetIcon(item),
                 ContextData = item,
-                Action = c =>
+                AsyncAction = async c =>
                 {
                     if (actionIsAutoComplete)
                     {
                         context.API.ChangeQuery(autoCompleteText);
                         return false;
                     }
-                    OneNoteApplication.SyncItem(item);
-                    OneNoteApplication.OpenInOneNote(item);
+                    await Task.Run(() =>
+                    {
+                        OneNoteApplication.SyncItem(item);
+                        OneNoteApplication.OpenInOneNote(item);
+                    });
                     return true;
-                },
+                }
             };
         }
         #endregion
