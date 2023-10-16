@@ -145,7 +145,7 @@ namespace Flow.Launcher.Plugin.OneNote
             string currentSearch = query[settings.Keywords.TitleSearch.Length..];
             var results = new List<Result>();
 
-            results = OneNoteApplication.FindPages(parent, currentSearch)
+            results = OneNoteApplication.FindPages(currentSearch, parent)
                                         .Select(pg => rc.CreatePageResult(pg, currentSearch))
                                         .ToList();
 
@@ -220,7 +220,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     Score = -4000,
                     Action = c =>
                     {
-                        OneNoteApplication.CreateQuickNote();
+                        OneNoteApplication.CreateQuickNote(true);
                         return true;
                     }
                 },

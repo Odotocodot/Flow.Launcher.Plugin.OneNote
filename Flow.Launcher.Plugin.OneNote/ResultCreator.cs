@@ -20,7 +20,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private static string GetNicePath(IOneNoteItem item, bool includeSelf = true, string separator = PathSeparator)
         {
-            return item.RelativePath.Replace(OneNoteParser.RelativePathSeparator.ToString(), separator);
+            return item.RelativePath.Replace(OneNoteApplication.RelativePathSeparator.ToString(), separator);
         }
 
         private string GetTitle(IOneNoteItem item, List<int> highlightData)
@@ -139,7 +139,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 IcoPath = Icons.NewPage,
                 Action = c =>
                 {
-                    OneNoteApplication.CreatePage(section, pageTitle);
+                    OneNoteApplication.CreatePage(section, pageTitle, true);
                     return true;
                 }
             };
@@ -148,14 +148,14 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateNewSectionResult(string sectionTitle, IOneNoteItem parent)
         {
             sectionTitle = sectionTitle.Trim();
-            bool validTitle = OneNoteParser.IsSectionNameValid(sectionTitle);
+            bool validTitle = OneNoteApplication.IsSectionNameValid(sectionTitle);
 
             return new Result
             {
                 Title = $"Create section: \"{sectionTitle}\"",
                 SubTitle = validTitle
                         ? $"Path: {GetNicePath(parent, true)} > {sectionTitle}"
-                        : $"Section names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionChars)}",
+                        : $"Section names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionChars)}",
                 IcoPath = Icons.NewSection,
                 Action = c =>
                 {
@@ -165,10 +165,10 @@ namespace Flow.Launcher.Plugin.OneNote
                     switch (parent)
                     {
                         case OneNoteNotebook notebook:
-                            OneNoteApplication.CreateSection(notebook, sectionTitle);
+                            OneNoteApplication.CreateSection(notebook, sectionTitle, true);
                             break;
                         case OneNoteSectionGroup sectionGroup:
-                            OneNoteApplication.CreateSection(sectionGroup, sectionTitle);
+                            OneNoteApplication.CreateSection(sectionGroup, sectionTitle, true);
                             break;
                         default:
                             break;
@@ -183,14 +183,14 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateNewSectionGroupResult(string sectionGroupTitle, IOneNoteItem parent)
         {
             sectionGroupTitle = sectionGroupTitle.Trim();
-            bool validTitle = OneNoteParser.IsSectionGroupNameValid(sectionGroupTitle);
+            bool validTitle = OneNoteApplication.IsSectionGroupNameValid(sectionGroupTitle);
 
             return new Result
             {
                 Title = $"Create section group: \"{sectionGroupTitle}\"",
                 SubTitle = validTitle
                     ? $"Path: {GetNicePath(parent, true)} > {sectionGroupTitle}"
-                    : $"Section group names cannot contain: {string.Join(' ', OneNoteParser.InvalidSectionGroupChars)}",
+                    : $"Section group names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionGroupChars)}",
                 IcoPath = Icons.NewSectionGroup,
                 Action = c =>
                 {
@@ -200,10 +200,10 @@ namespace Flow.Launcher.Plugin.OneNote
                     switch (parent)
                     {
                         case OneNoteNotebook notebook:
-                            OneNoteApplication.CreateSectionGroup(notebook, sectionGroupTitle);
+                            OneNoteApplication.CreateSectionGroup(notebook, sectionGroupTitle, true);
                             break;
                         case OneNoteSectionGroup sectionGroup:
-                            OneNoteApplication.CreateSectionGroup(sectionGroup, sectionGroupTitle);
+                            OneNoteApplication.CreateSectionGroup(sectionGroup, sectionGroupTitle, true);
                             break;
                         default:
                             break;
@@ -218,21 +218,21 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateNewNotebookResult(string notebookTitle)
         {
             notebookTitle = notebookTitle.Trim();
-            bool validTitle = OneNoteParser.IsNotebookNameValid(notebookTitle);
+            bool validTitle = OneNoteApplication.IsNotebookNameValid(notebookTitle);
 
             return new Result
             {
                 Title = $"Create notebook: \"{notebookTitle}\"",
                 SubTitle = validTitle
                     ? $"Location: {OneNoteApplication.GetDefaultNotebookLocation()}"
-                    : $"Notebook names cannot contain: {string.Join(' ', OneNoteParser.InvalidNotebookChars)}",
+                    : $"Notebook names cannot contain: {string.Join(' ', OneNoteApplication.InvalidNotebookChars)}",
                 IcoPath = Icons.NewNotebook,
                 Action = c =>
                 {
                     if (!validTitle)
                         return false;
 
-                    OneNoteApplication.CreateNotebook(notebookTitle);
+                    OneNoteApplication.CreateNotebook(notebookTitle, true);
 
                     context.API.ChangeQuery(context.CurrentPluginMetadata.ActionKeyword);
                     return true;

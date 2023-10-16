@@ -38,7 +38,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 return;
 
             await semaphore.WaitAsync(token);
-            OneNoteApplication.Init();
+            OneNoteApplication.InitComObject();
             semaphore.Release();
         }
         public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
