@@ -135,7 +135,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return new Result
             {
                 Title = $"Create page: \"{pageTitle}\"",
-                SubTitle = $"Path: {GetNicePath(section, true)} > {pageTitle}",
+                SubTitle = $"Path: {GetNicePath(section, true)}{PathSeparator}{pageTitle}",
                 IcoPath = Icons.NewPage,
                 Action = c =>
                 {
@@ -154,7 +154,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = $"Create section: \"{sectionTitle}\"",
                 SubTitle = validTitle
-                        ? $"Path: {GetNicePath(parent, true)} > {sectionTitle}"
+                        ? $"Path: {GetNicePath(parent, true)}{PathSeparator}{sectionTitle}"
                         : $"Section names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionChars)}",
                 IcoPath = Icons.NewSection,
                 Action = c =>
@@ -189,7 +189,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = $"Create section group: \"{sectionGroupTitle}\"",
                 SubTitle = validTitle
-                    ? $"Path: {GetNicePath(parent, true)} > {sectionGroupTitle}"
+                    ? $"Path: {GetNicePath(parent, true)}{PathSeparator}{sectionGroupTitle}"
                     : $"Section group names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionGroupChars)}",
                 IcoPath = Icons.NewSectionGroup,
                 Action = c =>
