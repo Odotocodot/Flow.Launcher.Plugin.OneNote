@@ -25,10 +25,11 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);
 #pragma warning restore CA1822 // Mark members as static
 
-        public string NotebookIcon => Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook);
-        public string SectionIcon => Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section);
-        public void OpenNotebookIconsFolder() => context.API.OpenDirectory(Icons.NotebookIconDirectory);
-        public void OpenSectionIconsFolder() => context.API.OpenDirectory(Icons.SectionIconDirectory);
+        // public string NotebookIcon => Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook);
+        // public string SectionIcon => Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section);
+        public void OpenGeneratedIconsFolder() => context.API.OpenDirectory(Icons.GeneratedImagesDirectoryInfo.FullName);
+        // public void OpenNotebookIconsFolder() => context.API.OpenDirectory(Icons.NotebookIconDirectory);
+        // public void OpenSectionIconsFolder() => context.API.OpenDirectory(Icons.SectionIconDirectory);
         public void ClearCachedIcons() => Icons.ClearCachedIcons();
     }
 }

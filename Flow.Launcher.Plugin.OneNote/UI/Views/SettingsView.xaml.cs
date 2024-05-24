@@ -45,15 +45,19 @@ namespace Flow.Launcher.Plugin.OneNote.UI.Views
             }
         }
 
-        private void OpenNotebookIconsFolder(object sender, RoutedEventArgs e)
+        private void OpenGeneratedIconsFolder(object sender, RoutedEventArgs e)
         {
-            viewModel.OpenNotebookIconsFolder();
+            viewModel.OpenGeneratedIconsFolder();
         }
-
-        private void OpenSectionIconsFolder(object sender, RoutedEventArgs e)
-        {
-            viewModel.OpenSectionIconsFolder();
-        }
+        // private void OpenNotebookIconsFolder(object sender, RoutedEventArgs e)
+        // {
+        //     viewModel.OpenNotebookIconsFolder();
+        // }
+        //
+        // private void OpenSectionIconsFolder(object sender, RoutedEventArgs e)
+        // {
+        //     viewModel.OpenSectionIconsFolder();
+        // }
 
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {

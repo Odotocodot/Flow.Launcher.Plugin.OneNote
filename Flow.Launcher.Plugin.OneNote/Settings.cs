@@ -34,5 +34,7 @@
             get => createColoredIcons;
             set => SetProperty(ref createColoredIcons, value);
         }
+
+        public PluginTheme PluginTheme { get; set; } = PluginTheme.Color;
     }
 }

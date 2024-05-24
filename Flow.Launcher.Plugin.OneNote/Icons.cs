@@ -1,37 +1,67 @@
 ﻿using Odotocodot.OneNote.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Color = System.Drawing.Color;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class Icons : BaseModel
+    public class Icons// : BaseModel
     {
+        
         public const string Logo = "Images/logo.png";
-        public const string Sync = "Images/refresh.png";
-        public const string Warning = "Images/warning.png";
-        public const string Search = Logo;
-        public const string RecycleBin = "Images/recycle_bin.png";
-        public const string Recent = "Images/recent.png";
-        public const string RecentPage = "Images/recent_page.png";
+        
+        public static string Sync => GetIconLocal("sync");
 
-        public const string Page = Logo;
-        public const string Section = "Images/section.png";
-        public const string SectionGroup = "Images/section_group.png";
-        public const string Notebook = "Images/notebook.png";
+        public static string Warning => pluginTheme == PluginTheme.Color
+                ? $"Images/warning.{GetPluginThemeString(PluginTheme.Dark)}.png"
+                : GetIconLocal("warning");
 
-        public const string NewPage = "Images/new_page.png";
-        public const string NewSection = "Images/new_section.png";
-        public const string NewSectionGroup = "Images/new_section_group.png";
-        public const string NewNotebook = "Images/new_notebook.png";
+        public static string Search => GetIconLocal("search");
+        //public static string RecycleBin => GetIconLocal("recycle_bin");
+        public static string Recent => GetIconLocal("page_recent");
+        public static string NotebookExplorer => GetIconLocal("notebook_explorer");
+        public static string QuickNote => NewPage;
+        // public const string Page = Logo;
+        // public const string Section = "Images/section.png";
+        // public const string SectionGroup = "Images/section_group.png";
+        // public const string Notebook = "Images/notebook.png";
+        public static string NewPage => GetIconLocal("page_new");
+        public static string NewSection => GetIconLocal("section_new");
+        public static string NewSectionGroup => GetIconLocal("section_group_new");
+        public static string NewNotebook => GetIconLocal("notebook_new");
 
-        private OneNoteItemIcons notebookIcons;
-        private OneNoteItemIcons sectionIcons;
+        // private OneNoteItemIcons notebookIcons;
+        // private OneNoteItemIcons sectionIcons;
         private Settings settings;
+        private static PluginTheme pluginTheme;
 
-        public int CachedIconCount => notebookIcons.IconCount + sectionIcons.IconCount;
-        public string CachedIconsFileSize => GetBytesReadable(notebookIcons.IconsFileSize + sectionIcons.IconsFileSize);
-        public static string NotebookIconDirectory { get; private set; }
-        public static string SectionIconDirectory { get; private set; }
+        private static string GetPluginThemeString(PluginTheme pluginTheme)
+        {
+            if (pluginTheme == PluginTheme.System)
+                throw new NotImplementedException(); //TODO get the system theme return either light or dark.
+            return Enum.GetName(pluginTheme).ToLower();
+        }
+
+        private static string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(pluginTheme)}.png";
+
+        // May need this? https://stackoverflow.com/questions/21867842/concurrentdictionarys-getoradd-is-not-atomic-any-alternatives-besides-locking
+        private ConcurrentDictionary<string,ImageSource> iconCache = new();
+        private string imagesDirectory;
+
+        public static DirectoryInfo GeneratedImagesDirectoryInfo { get; private set; }
+
+        //TODO: Update on use UI
+        public int CachedIconCount => iconCache.Keys.Count(k => char.IsDigit(k.Split('.')[1][1]));
+
+        //TODO: UPdate on use for UI
+        public string CachedIconsFileSize => GetCachedIconsMemorySize();//GetBytesReadable(notebookIcons.IconsFileSize + sectionIcons.IconsFileSize);
+        // public static string NotebookIconDirectory { get; private set; }
+        // public static string SectionIconDirectory { get; private set; }
 
 
         private static readonly Lazy<Icons> lazy = new();
@@ -39,58 +69,125 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public static void Init(PluginInitContext context, Settings settings)
         {
-            NotebookIconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images", "NotebookIcons");
-            SectionIconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images", "SectionIcons");
+            pluginTheme = settings.PluginTheme;
+            // NotebookIconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images", "NotebookIcons");
+            // SectionIconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images", "SectionIcons");
+            //
+            // Instance.notebookIcons = new OneNoteItemIcons(NotebookIconDirectory, Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Notebook));
+            // Instance.sectionIcons = new OneNoteItemIcons(SectionIconDirectory, Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Section));
 
-            Instance.notebookIcons = new OneNoteItemIcons(NotebookIconDirectory, Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Notebook));
-            Instance.sectionIcons = new OneNoteItemIcons(SectionIconDirectory, Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Section));
-
-
-            Instance.notebookIcons.PropertyChanged += Instance.IconCountChanged;
-            Instance.sectionIcons.PropertyChanged += Instance.IconCountChanged;
+            Instance.imagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/Images/";
+            // Instance.GeneratedImagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/Images/Generated/";
+            
+            GeneratedImagesDirectoryInfo = Directory.CreateDirectory($"{context.CurrentPluginMetadata.PluginDirectory}/Images/Generated/");
+            // Instance.notebookIcons.PropertyChanged += Instance.IconCountChanged;
+            // Instance.sectionIcons.PropertyChanged += Instance.IconCountChanged;
 
             Instance.settings = settings;
+
+            foreach (var image in GeneratedImagesDirectoryInfo.EnumerateFiles())
+            {
+                Instance.iconCache.TryAdd(image.Name, BitmapImageFromPath(image.FullName));
+            }
         }
 
         public static void Close()
         {
-            Instance.notebookIcons.PropertyChanged -= Instance.IconCountChanged;
-            Instance.sectionIcons.PropertyChanged -= Instance.IconCountChanged;
+            // Instance.notebookIcons.PropertyChanged -= Instance.IconCountChanged;
+            // Instance.sectionIcons.PropertyChanged -= Instance.IconCountChanged;
         }
-        private void IconCountChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        // private void IconCountChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        // {
+        //     OnPropertyChanged(nameof(CachedIconCount));
+        //     OnPropertyChanged(nameof(CachedIconsFileSize));
+        // }
+        private static BitmapImage BitmapImageFromPath(string path) => new BitmapImage(new Uri(path));
+
+        public static Result.IconDelegate GetIcon(string prefix, Color? color)
         {
-            OnPropertyChanged(nameof(CachedIconCount));
-            OnPropertyChanged(nameof(CachedIconsFileSize));
+            return () =>
+            {
+                bool generate = (string.CompareOrdinal(prefix, "notebook") == 0
+                                 || string.CompareOrdinal(prefix, "section") == 0)
+                                && Instance.settings.CreateColoredIcons
+                                && color.HasValue;
+
+                if (generate)
+                {
+                    return Instance.iconCache.GetOrAdd($"{prefix}.{color.Value.ToArgb()}.png", ImageSourceFactory,
+                        color.Value);
+                }
+
+                return Instance.iconCache.GetOrAdd($"{prefix}.{GetPluginThemeString(pluginTheme)}.png", key =>
+                {
+                    var path = Path.Combine(Instance.imagesDirectory, key);
+                    return BitmapImageFromPath(path);
+                });
+            };
         }
 
-        public static string GetIcon(IOneNoteItem item)
+        private static ImageSource ImageSourceFactory(string key, Color color)
         {
-            return item switch
+            var prefix = key.Split('.')[0];
+            var path = Path.Combine(Instance.imagesDirectory, $"{prefix}.dark.png");
+            var bitmap =  BitmapImageFromPath(path);
+            var newBitmap = ChangeIconColor(bitmap, color);
+                                
+            path = $"{GeneratedImagesDirectoryInfo.FullName}{key}";
+            // https://stackoverflow.com/questions/65860129/pngbitmapencoder-failling
+
+            using var fileStream = new FileStream(path, FileMode.Create);
+            var encoder = new PngBitmapEncoder(); //TODO Lazy load this and only one
+            encoder.Frames.Add(BitmapFrame.Create(newBitmap));
+            encoder.Save(fileStream);
+            return newBitmap;
+        }
+        
+        private static BitmapSource ChangeIconColor(BitmapImage bitmapImage, Color color)
+        {
+            var writeableBitmap = new WriteableBitmap(bitmapImage);
+            
+            var stride = writeableBitmap.BackBufferStride;
+            var pixelHeight = writeableBitmap.PixelHeight;
+            
+            var pixelData = new byte[stride * pixelHeight];
+            var bytesPerPixel = writeableBitmap.Format.BitsPerPixel / 8;
+            
+            writeableBitmap.CopyPixels(pixelData, stride, 0);
+            for (int j = 0; j < pixelHeight; j++)
             {
-                OneNoteNotebook notebook => Instance.settings.CreateColoredIcons && notebook.Color.HasValue
-                                                ? Instance.notebookIcons.GetIcon(notebook.Color.Value)
-                                                : Notebook,
-                OneNoteSectionGroup sectionGroup => sectionGroup.IsRecycleBin
-                                                        ? RecycleBin
-                                                        : SectionGroup,
-                OneNoteSection section => Instance.settings.CreateColoredIcons && section.Color.HasValue
-                                              ? Instance.sectionIcons.GetIcon(section.Color.Value)
-                                              : Section,
-                OneNotePage => Page,
-                _ => Warning,
-            };
+                int line = j * stride;
+                for (int i = 0; i < stride; i += bytesPerPixel)
+                {
+                    pixelData[line + i] = color.B;
+                    pixelData[line + i + 1] = color.G;
+                    pixelData[line + i + 2] = color.R;
+                }
+            }
+            writeableBitmap.WritePixels(new Int32Rect(0, 0, writeableBitmap.PixelWidth, pixelHeight),
+                pixelData, stride, 0);
+            
+            return writeableBitmap;
         }
 
         public void ClearCachedIcons()
         {
-            notebookIcons.ClearCachedIcons();
-            sectionIcons.ClearCachedIcons();
+            iconCache.Clear();
+            foreach (var file in GeneratedImagesDirectoryInfo.EnumerateFiles())
+            {
+                file.Delete();
+            }
         }
 
-        // Returns the human-readable file size for an arbitrary, 64-bit file size 
-        // The default format is "0.### XB", e.g. "4.2 KB" or "1.434 GB"
-        private static string GetBytesReadable(long i)
+
+        private string GetCachedIconsMemorySize()
         {
+            var i = GeneratedImagesDirectoryInfo.EnumerateFiles()
+                .Select(file => file.Length)
+                .Aggregate(0L, (a, b) => a + b);
+            
+            // Returns the human-readable file size for an arbitrary, 64-bit file size 
+            // The default format is "0.### XB", e.g. "4.2 KB" or "1.434 GB"
             // Get absolute value
             long absolute_i = Math.Abs(i);
             // Determine the suffix and readable value
