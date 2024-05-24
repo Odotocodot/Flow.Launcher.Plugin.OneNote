@@ -9,6 +9,7 @@ namespace Flow.Launcher.Plugin.OneNote
     {
         private PluginInitContext context;
 
+        private ResultCreator resultCreator;
         private SearchManager searchManager;
         private Settings settings;
 
@@ -18,7 +19,8 @@ namespace Flow.Launcher.Plugin.OneNote
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
             Icons.Init(context, settings);
-            searchManager = new SearchManager(context, settings, new ResultCreator(context, settings));
+            resultCreator = new ResultCreator(context, settings);
+            searchManager = new SearchManager(context, settings, resultCreator);
             semaphore = new SemaphoreSlim(1,1);
             context.API.VisibilityChanged += OnVisibilityChanged;
             return Task.CompletedTask;
@@ -46,22 +48,16 @@ namespace Flow.Launcher.Plugin.OneNote
             var init = OneNoteInitAsync(token);
 
             if (string.IsNullOrEmpty(query.Search))
-                return searchManager.EmptyQuery();
+                return resultCreator.EmptyQuery();
             
             await init;
 
-            return query.FirstSearch switch
-            {
-                string fs when fs.StartsWith(settings.Keywords.RecentPages) => searchManager.RecentPages(fs),
-                string fs when fs.StartsWith(settings.Keywords.NotebookExplorer) => searchManager.NotebookExplorer(query),
-                string fs when fs.StartsWith(settings.Keywords.TitleSearch) => searchManager.TitleSearch(string.Join(' ', query.SearchTerms), OneNoteApplication.GetNotebooks()),
-                _ => searchManager.DefaultSearch(query.Search)
-            };
+            return searchManager.Query(query);
         }
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
-            return searchManager.ContextMenu(selectedResult);
+            return resultCreator.ContextMenu(selectedResult);
         }
 
         public System.Windows.Controls.Control CreateSettingPanel()
