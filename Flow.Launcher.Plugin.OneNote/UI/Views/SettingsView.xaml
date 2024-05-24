@@ -97,40 +97,6 @@
                     </Button>
                     <Button Margin="0,4,22,4" Click="OpenGeneratedIconsFolder">
                         <ui:FontIcon Glyph="&#xf12b;" />
-                        <!-- <ui:FlyoutService.Flyout> -->
-                        <!--     <ui:MenuFlyout> -->
-                        <!--         <MenuItem Click="OpenNotebookIconsFolder"> -->
-                        <!--             <MenuItem.Header> -->
-                        <!--                 <StackPanel Orientation="Horizontal"> -->
-                        <!--                     <Image -->
-                        <!--                         Width="20" -->
-                        <!--                         Height="20" -->
-                        <!--                         Margin="0,0,5,0" -->
-                        <!--                         Source="{Binding NotebookIcon}" /> -->
-                        <!--                     <TextBlock Text="Open Notebook Icons Folder" /> -->
-                        <!--                 </StackPanel> -->
-                        <!--             </MenuItem.Header> -->
-                        <!--             <MenuItem.Icon> -->
-                        <!--                 <ui:FontIcon Glyph="&#xed25;" /> -->
-                        <!--             </MenuItem.Icon> -->
-                        <!--         </MenuItem> -->
-                        <!--         <MenuItem Click="OpenSectionIconsFolder"> -->
-                        <!--             <MenuItem.Header> -->
-                        <!--                 <StackPanel Orientation="Horizontal"> -->
-                        <!--                     <Image -->
-                        <!--                         Width="20" -->
-                        <!--                         Height="20" -->
-                        <!--                         Margin="0,0,5,0" -->
-                        <!--                         Source="{Binding SectionIcon}" /> -->
-                        <!--                     <TextBlock Text="Open Section Icons Folder" /> -->
-                        <!--                 </StackPanel> -->
-                        <!--             </MenuItem.Header> -->
-                        <!--             <MenuItem.Icon> -->
-                        <!--                 <ui:FontIcon Glyph="&#xed25;" /> -->
-                        <!--             </MenuItem.Icon> -->
-                        <!--         </MenuItem> -->
-                        <!--     </ui:MenuFlyout> -->
-                        <!-- </ui:FlyoutService.Flyout> -->
                     </Button>
                     <ui:ToggleSwitch IsOn="{Binding Settings.CreateColoredIcons}" Style="{DynamicResource SideToggleSwitch}" />
                 </StackPanel>

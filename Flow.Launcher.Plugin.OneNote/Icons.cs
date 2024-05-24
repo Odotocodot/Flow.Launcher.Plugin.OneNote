@@ -10,7 +10,7 @@ using Color = System.Drawing.Color;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class Icons// : BaseModel
+    public class Icons
     {
         
         public const string Logo = "Images/logo.png";
@@ -22,21 +22,14 @@ namespace Flow.Launcher.Plugin.OneNote
                 : GetIconLocal("warning");
 
         public static string Search => GetIconLocal("search");
-        //public static string RecycleBin => GetIconLocal("recycle_bin");
         public static string Recent => GetIconLocal("page_recent");
         public static string NotebookExplorer => GetIconLocal("notebook_explorer");
         public static string QuickNote => NewPage;
-        // public const string Page = Logo;
-        // public const string Section = "Images/section.png";
-        // public const string SectionGroup = "Images/section_group.png";
-        // public const string Notebook = "Images/notebook.png";
         public static string NewPage => GetIconLocal("page_new");
         public static string NewSection => GetIconLocal("section_new");
         public static string NewSectionGroup => GetIconLocal("section_group_new");
         public static string NewNotebook => GetIconLocal("notebook_new");
-
-        // private OneNoteItemIcons notebookIcons;
-        // private OneNoteItemIcons sectionIcons;
+        
         private Settings settings;
         private static PluginTheme pluginTheme;
 
@@ -59,29 +52,18 @@ namespace Flow.Launcher.Plugin.OneNote
         public int CachedIconCount => iconCache.Keys.Count(k => char.IsDigit(k.Split('.')[1][1]));
 
         //TODO: UPdate on use for UI
-        public string CachedIconsFileSize => GetCachedIconsMemorySize();//GetBytesReadable(notebookIcons.IconsFileSize + sectionIcons.IconsFileSize);
-        // public static string NotebookIconDirectory { get; private set; }
-        // public static string SectionIconDirectory { get; private set; }
-
-
+        public string CachedIconsFileSize => GetCachedIconsMemorySize();
+        
         private static readonly Lazy<Icons> lazy = new();
         public static Icons Instance => lazy.Value;
 
         public static void Init(PluginInitContext context, Settings settings)
         {
             pluginTheme = settings.PluginTheme;
-            // NotebookIconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images", "NotebookIcons");
-            // SectionIconDirectory = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "Images", "SectionIcons");
-            //
-            // Instance.notebookIcons = new OneNoteItemIcons(NotebookIconDirectory, Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Notebook));
-            // Instance.sectionIcons = new OneNoteItemIcons(SectionIconDirectory, Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Section));
 
             Instance.imagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/Images/";
-            // Instance.GeneratedImagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/Images/Generated/";
             
             GeneratedImagesDirectoryInfo = Directory.CreateDirectory($"{context.CurrentPluginMetadata.PluginDirectory}/Images/Generated/");
-            // Instance.notebookIcons.PropertyChanged += Instance.IconCountChanged;
-            // Instance.sectionIcons.PropertyChanged += Instance.IconCountChanged;
 
             Instance.settings = settings;
 
@@ -93,14 +75,9 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public static void Close()
         {
-            // Instance.notebookIcons.PropertyChanged -= Instance.IconCountChanged;
-            // Instance.sectionIcons.PropertyChanged -= Instance.IconCountChanged;
+            // TODO 
         }
-        // private void IconCountChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        // {
-        //     OnPropertyChanged(nameof(CachedIconCount));
-        //     OnPropertyChanged(nameof(CachedIconsFileSize));
-        // }
+
         private static BitmapImage BitmapImageFromPath(string path) => new BitmapImage(new Uri(path));
 
         public static Result.IconDelegate GetIcon(string prefix, Color? color)
