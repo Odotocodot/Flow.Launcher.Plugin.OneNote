@@ -1,6 +1,5 @@
 ﻿
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
@@ -14,6 +13,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
             this.context = context;
             Keywords = KeywordViewModel.GetKeywordViewModels(settings.Keywords);
             Icons = Icons.Instance;
+            Icons.PropertyChanged += (sender, args) => OnPropertyChanged(nameof(CanClearCachedIcons));
         }
 
         public Settings Settings { get; init; }
@@ -24,12 +24,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);
 #pragma warning restore CA1822 // Mark members as static
-
-        // public string NotebookIcon => Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook);
-        // public string SectionIcon => Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section);
         public void OpenGeneratedIconsFolder() => context.API.OpenDirectory(Icons.GeneratedImagesDirectoryInfo.FullName);
-        // public void OpenNotebookIconsFolder() => context.API.OpenDirectory(Icons.NotebookIconDirectory);
-        // public void OpenSectionIconsFolder() => context.API.OpenDirectory(Icons.SectionIconDirectory);
         public void ClearCachedIcons() => Icons.ClearCachedIcons();
+        public bool CanClearCachedIcons => Icons.CachedIconCount > 0;
     }
 }

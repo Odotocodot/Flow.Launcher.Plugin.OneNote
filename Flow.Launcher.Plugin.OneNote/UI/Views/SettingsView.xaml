@@ -80,20 +80,11 @@
                         Margin="0,4,4,4"
                         HorizontalAlignment="Center"
                         HorizontalContentAlignment="Center"
-                        Click="ClearCachedIcons">
+                        Click="ClearCachedIcons"
+                        IsEnabled="{Binding CanClearCachedIcons}">
                         <Label HorizontalAlignment="Center">
                             <TextBlock Text="{Binding Icons.CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}" />
                         </Label>
-                        <Button.Style>
-                            <Style BasedOn="{StaticResource SettingButton}" TargetType="Button">
-                                <Setter Property="IsEnabled" Value="True" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Icons.CachedIconCount}" Value="0">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
                     </Button>
                     <Button Margin="0,4,22,4" Click="OpenGeneratedIconsFolder">
                         <ui:FontIcon Glyph="&#xf12b;" />

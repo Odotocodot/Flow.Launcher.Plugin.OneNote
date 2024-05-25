@@ -1,5 +1,4 @@
-﻿using Odotocodot.OneNote.Linq;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
@@ -10,17 +9,10 @@ using Color = System.Drawing.Color;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class Icons
+    public class Icons : BaseModel
     {
-        
         public const string Logo = "Images/logo.png";
-        
         public static string Sync => GetIconLocal("sync");
-
-        public static string Warning => pluginTheme == PluginTheme.Color
-                ? $"Images/warning.{GetPluginThemeString(PluginTheme.Dark)}.png"
-                : GetIconLocal("warning");
-
         public static string Search => GetIconLocal("search");
         public static string Recent => GetIconLocal("page_recent");
         public static string NotebookExplorer => GetIconLocal("notebook_explorer");
@@ -29,29 +21,18 @@ namespace Flow.Launcher.Plugin.OneNote
         public static string NewSection => GetIconLocal("section_new");
         public static string NewSectionGroup => GetIconLocal("section_group_new");
         public static string NewNotebook => GetIconLocal("notebook_new");
+        public static string Warning => pluginTheme == PluginTheme.Color
+                ? $"Images/warning.{GetPluginThemeString(PluginTheme.Dark)}.png"
+                : GetIconLocal("warning");
         
         private Settings settings;
         private static PluginTheme pluginTheme;
-
-        private static string GetPluginThemeString(PluginTheme pluginTheme)
-        {
-            if (pluginTheme == PluginTheme.System)
-                throw new NotImplementedException(); //TODO get the system theme return either light or dark.
-            return Enum.GetName(pluginTheme).ToLower();
-        }
-
-        private static string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(pluginTheme)}.png";
-
         // May need this? https://stackoverflow.com/questions/21867842/concurrentdictionarys-getoradd-is-not-atomic-any-alternatives-besides-locking
         private ConcurrentDictionary<string,ImageSource> iconCache = new();
         private string imagesDirectory;
 
         public static DirectoryInfo GeneratedImagesDirectoryInfo { get; private set; }
-
-        //TODO: Update on use UI
         public int CachedIconCount => iconCache.Keys.Count(k => char.IsDigit(k.Split('.')[1][1]));
-
-        //TODO: UPdate on use for UI
         public string CachedIconsFileSize => GetCachedIconsMemorySize();
         
         private static readonly Lazy<Icons> lazy = new();
@@ -71,6 +52,16 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Instance.iconCache.TryAdd(image.Name, BitmapImageFromPath(image.FullName));
             }
+            Instance.context = context;
+        }
+        private PluginInitContext context;
+        private static string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(pluginTheme)}.png";
+
+        private static string GetPluginThemeString(PluginTheme pluginTheme)
+        {
+            if (pluginTheme == PluginTheme.System)
+                throw new NotImplementedException(); //TODO get the system theme return either light or dark.
+            return Enum.GetName(pluginTheme).ToLower();
         }
 
         public static void Close()
@@ -88,11 +79,14 @@ namespace Flow.Launcher.Plugin.OneNote
                                  || string.CompareOrdinal(prefix, "section") == 0)
                                 && Instance.settings.CreateColoredIcons
                                 && color.HasValue;
-
+                
                 if (generate)
                 {
-                    return Instance.iconCache.GetOrAdd($"{prefix}.{color.Value.ToArgb()}.png", ImageSourceFactory,
+                    var imageSource = Instance.iconCache.GetOrAdd($"{prefix}.{color.Value.ToArgb()}.png", ImageSourceFactory,
                         color.Value);
+                    Instance.OnPropertyChanged(nameof(CachedIconCount));
+                    Instance.OnPropertyChanged(nameof(CachedIconsFileSize));
+                    return imageSource;
                 }
 
                 return Instance.iconCache.GetOrAdd($"{prefix}.{GetPluginThemeString(pluginTheme)}.png", key =>
@@ -100,6 +94,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     var path = Path.Combine(Instance.imagesDirectory, key);
                     return BitmapImageFromPath(path);
                 });
+
             };
         }
 
@@ -117,6 +112,7 @@ namespace Flow.Launcher.Plugin.OneNote
             var encoder = new PngBitmapEncoder(); //TODO Lazy load this and only one
             encoder.Frames.Add(BitmapFrame.Create(newBitmap));
             encoder.Save(fileStream);
+            // encoder.Frames.Clear();
             return newBitmap;
         }
         
@@ -148,12 +144,24 @@ namespace Flow.Launcher.Plugin.OneNote
         }
 
         public void ClearCachedIcons()
+        
         {
             iconCache.Clear();
             foreach (var file in GeneratedImagesDirectoryInfo.EnumerateFiles())
             {
-                file.Delete();
+                try
+                {
+                    file.Delete();
+                }
+                catch (Exception e)
+                {
+                    context.API.ShowMsg("Failed to delete", $"Failed to delete {file.Name}");
+                    Instance.context.API.LogException(nameof(Icons), "Failed to delete",e);
+                }
+                
             }
+            OnPropertyChanged(nameof(CachedIconCount));
+            OnPropertyChanged(nameof(CachedIconsFileSize));
         }
 
 
