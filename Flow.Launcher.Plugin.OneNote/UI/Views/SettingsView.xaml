@@ -95,8 +95,26 @@
             </ItemsControl>
         </Border>
         <!--#endregion-->
-
-        <!--#region Recents pages-->
+        
+        <!--#region Plugin Theme-->
+        <Border Style="{DynamicResource SettingGroupBox}">
+            <ItemsControl Style="{StaticResource SettingGrid}">
+                <StackPanel Style="{StaticResource TextPanel}">
+                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Plugin theme" />
+                </StackPanel>
+                <ComboBox
+                    Grid.Column="2"
+                    Width="100"
+                    Margin="10,0,18,0"
+                    HorizontalContentAlignment="Center"
+                    ItemsSource="{Binding PluginThemes}"
+                    SelectedItem="{Binding Settings.PluginTheme}" />
+                <ui:FontIcon Glyph="&#xe790;" Style="{StaticResource Glyph}" />
+            </ItemsControl>
+        </Border>
+        <!--#endregion-->
+        
+        <!--#region Recent pages-->
         <Border Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">

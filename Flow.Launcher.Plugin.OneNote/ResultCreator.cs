@@ -72,7 +72,6 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
         
-        //TODO 
         private string GetAutoCompleteText(IOneNoteItem item) 
             => $"{ActionKeyword} {settings.Keywords.NotebookExplorer}{GetNicePath(item, Keywords.NotebookExplorerSeparator)}{Keywords.NotebookExplorerSeparator}";
 
@@ -84,6 +83,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 new Result
                 {
                     Title = "Search OneNote pages",
+                    SubTitle = "Try typing something!",
                     AutoCompleteText = ActionKeyword,
                     IcoPath = Icons.Search,
                     Score = 5000,

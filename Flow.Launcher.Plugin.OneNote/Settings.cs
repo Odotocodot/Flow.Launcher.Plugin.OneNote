@@ -7,6 +7,7 @@
         private bool showRecycleBin = true;
         private bool showEncrypted = false;
         private bool createColoredIcons = true;
+        private PluginTheme pluginTheme = PluginTheme.Color;
         public Keywords Keywords { get; init; } = new Keywords();
 
         public bool ShowRecycleBin
@@ -35,6 +36,10 @@
             set => SetProperty(ref createColoredIcons, value);
         }
 
-        public PluginTheme PluginTheme { get; set; } = PluginTheme.Color;
+        public PluginTheme PluginTheme 
+        { 
+            get => pluginTheme; 
+            set => SetProperty(ref pluginTheme, value); 
+        }
     }
 }

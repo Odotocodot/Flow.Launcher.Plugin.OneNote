@@ -21,12 +21,11 @@ namespace Flow.Launcher.Plugin.OneNote
         public static string NewSection => GetIconLocal("section_new");
         public static string NewSectionGroup => GetIconLocal("section_group_new");
         public static string NewNotebook => GetIconLocal("notebook_new");
-        public static string Warning => pluginTheme == PluginTheme.Color
+        public static string Warning => Instance.settings.PluginTheme == PluginTheme.Color
                 ? $"Images/warning.{GetPluginThemeString(PluginTheme.Dark)}.png"
                 : GetIconLocal("warning");
         
         private Settings settings;
-        private static PluginTheme pluginTheme;
         // May need this? https://stackoverflow.com/questions/21867842/concurrentdictionarys-getoradd-is-not-atomic-any-alternatives-besides-locking
         private ConcurrentDictionary<string,ImageSource> iconCache = new();
         private string imagesDirectory;
@@ -35,13 +34,13 @@ namespace Flow.Launcher.Plugin.OneNote
         public int CachedIconCount => iconCache.Keys.Count(k => char.IsDigit(k.Split('.')[1][1]));
         public string CachedIconsFileSize => GetCachedIconsMemorySize();
         
+        private PluginInitContext context;
+
         private static readonly Lazy<Icons> lazy = new();
         public static Icons Instance => lazy.Value;
 
         public static void Init(PluginInitContext context, Settings settings)
         {
-            pluginTheme = settings.PluginTheme;
-
             Instance.imagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/Images/";
             
             GeneratedImagesDirectoryInfo = Directory.CreateDirectory($"{context.CurrentPluginMetadata.PluginDirectory}/Images/Generated/");
@@ -54,8 +53,7 @@ namespace Flow.Launcher.Plugin.OneNote
             }
             Instance.context = context;
         }
-        private PluginInitContext context;
-        private static string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(pluginTheme)}.png";
+        private static string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(Instance.settings.PluginTheme)}.png";
 
         private static string GetPluginThemeString(PluginTheme pluginTheme)
         {
@@ -63,12 +61,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 throw new NotImplementedException(); //TODO get the system theme return either light or dark.
             return Enum.GetName(pluginTheme).ToLower();
         }
-
-        public static void Close()
-        {
-            // TODO 
-        }
-
         private static BitmapImage BitmapImageFromPath(string path) => new BitmapImage(new Uri(path));
 
         public static Result.IconDelegate GetIcon(string prefix, Color? color)
@@ -89,7 +81,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     return imageSource;
                 }
 
-                return Instance.iconCache.GetOrAdd($"{prefix}.{GetPluginThemeString(pluginTheme)}.png", key =>
+                return Instance.iconCache.GetOrAdd($"{prefix}.{GetPluginThemeString(Instance.settings.PluginTheme)}.png", key =>
                 {
                     var path = Path.Combine(Instance.imagesDirectory, key);
                     return BitmapImageFromPath(path);
@@ -155,8 +147,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
                 catch (Exception e)
                 {
-                    context.API.ShowMsg("Failed to delete", $"Failed to delete {file.Name}");
-                    Instance.context.API.LogException(nameof(Icons), "Failed to delete",e);
+                    // context.API.ShowMsg("Failed to delete", $"Failed to delete {file.Name}");
+                    context.API.LogException(nameof(Icons), "Failed to delete", e);
                 }
                 
             }
