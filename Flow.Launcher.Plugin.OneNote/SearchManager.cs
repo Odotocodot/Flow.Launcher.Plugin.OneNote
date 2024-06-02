@@ -51,7 +51,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return results.Any() ? results.ToList() : ResultCreator.NoMatchesFound();
         }
 
-        private List<Result> TitleSearch(string query, IOneNoteItem? parent, IEnumerable<IOneNoteItem> currentCollection)
+        private List<Result> TitleSearch(string query, IOneNoteItem parent, IEnumerable<IOneNoteItem> currentCollection)
         {
             if (query.Length == settings.Keywords.TitleSearch.Length && parent == null)
             {
@@ -69,7 +69,6 @@ namespace Flow.Launcher.Plugin.OneNote
 
             return results.Any() ? results : ResultCreator.NoMatchesFound();
         }
-
         private List<Result> RecentPages(string query)
         {
             int count = settings.DefaultRecentsCount;
@@ -120,7 +119,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 var results = new List<Result>();
 
-                string fullSearch = query.Search[(query.Search.IndexOf(Keywords.NotebookExplorer) + Keywords.NotebookExplorer.Length)..];
+                string fullSearch = query.Search[(query.Search.IndexOf(Keywords.NotebookExplorer, StringComparison.Ordinal) + Keywords.NotebookExplorer.Length)..];
 
                 IOneNoteItem parent = null;
                 IEnumerable<IOneNoteItem> collection = OneNoteApplication.GetNotebooks();
@@ -213,7 +212,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                 return results;
 
-                static Result NoItemsInCollectionResult(string title, string iconPath, string? subTitle = null)
+                static Result NoItemsInCollectionResult(string title, string iconPath, string subTitle = null)
                 {
                     return new Result
                     {

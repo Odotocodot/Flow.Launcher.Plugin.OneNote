@@ -132,17 +132,17 @@ namespace Flow.Launcher.Plugin.OneNote
                     Score = int.MinValue,
                     Action = c =>
                     {
-                        foreach (var notebook in OneNoteApplication.GetNotebooks())
+                        var notebooks = OneNoteApplication.GetNotebooks();
+                        foreach (var notebook in notebooks)
                         {
                             notebook.Sync();
                         }
 
-                        OneNoteApplication.GetNotebooks()
-                                          .GetPages()
-                                          .Where(i => !i.IsInRecycleBin)
-                                          .OrderByDescending(pg => pg.LastModified)
-                                          .First()
-                                          .OpenInOneNote();
+                        notebooks.GetPages()
+                                 .Where(i => !i.IsInRecycleBin)
+                                 .OrderByDescending(pg => pg.LastModified)
+                                 .First()
+                                 .OpenInOneNote();
                         return true;
                     },
                 },
