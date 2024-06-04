@@ -24,7 +24,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);
-        public IEnumerable<PluginTheme> PluginThemes => Enum.GetValues<PluginTheme>();
+        public IEnumerable<IconTheme> PluginThemes => Enum.GetValues<IconTheme>();
 #pragma warning restore CA1822 // Mark members as static
         public void OpenGeneratedIconsFolder() => context.API.OpenDirectory(Icons.GeneratedImagesDirectoryInfo.FullName);
         public void ClearCachedIcons() => Icons.ClearCachedIcons();

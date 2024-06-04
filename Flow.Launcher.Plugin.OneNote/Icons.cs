@@ -21,8 +21,8 @@ namespace Flow.Launcher.Plugin.OneNote
         public static string NewSection => GetIconLocal("section_new");
         public static string NewSectionGroup => GetIconLocal("section_group_new");
         public static string NewNotebook => GetIconLocal("notebook_new");
-        public static string Warning => Instance.settings.PluginTheme == PluginTheme.Color
-                ? $"Images/warning.{GetPluginThemeString(PluginTheme.Dark)}.png"
+        public static string Warning => Instance.settings.IconTheme == IconTheme.Color
+                ? $"Images/warning.{GetPluginThemeString(IconTheme.Dark)}.png"
                 : GetIconLocal("warning");
         
         private Settings settings;
@@ -53,13 +53,13 @@ namespace Flow.Launcher.Plugin.OneNote
             }
             Instance.context = context;
         }
-        private static string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(Instance.settings.PluginTheme)}.png";
+        private static string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(Instance.settings.IconTheme)}.png";
 
-        private static string GetPluginThemeString(PluginTheme pluginTheme)
+        private static string GetPluginThemeString(IconTheme iconTheme)
         {
-            if (pluginTheme == PluginTheme.System)
+            if (iconTheme == IconTheme.System)
                 throw new NotImplementedException(); //TODO get the system theme return either light or dark.
-            return Enum.GetName(pluginTheme).ToLower();
+            return Enum.GetName(iconTheme).ToLower();
         }
         private static BitmapImage BitmapImageFromPath(string path) => new BitmapImage(new Uri(path));
 
@@ -81,7 +81,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     return imageSource;
                 }
 
-                return Instance.iconCache.GetOrAdd($"{prefix}.{GetPluginThemeString(Instance.settings.PluginTheme)}.png", key =>
+                return Instance.iconCache.GetOrAdd($"{prefix}.{GetPluginThemeString(Instance.settings.IconTheme)}.png", key =>
                 {
                     var path = Path.Combine(Instance.imagesDirectory, key);
                     return BitmapImageFromPath(path);

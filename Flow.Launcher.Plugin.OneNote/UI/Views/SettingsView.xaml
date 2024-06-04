@@ -108,7 +108,7 @@
                     Margin="10,0,18,0"
                     HorizontalContentAlignment="Center"
                     ItemsSource="{Binding PluginThemes}"
-                    SelectedItem="{Binding Settings.PluginTheme}" />
+                    SelectedItem="{Binding Settings.IconTheme}" />
                 <ui:FontIcon Glyph="&#xe790;" Style="{StaticResource Glyph}" />
             </ItemsControl>
         </Border>
