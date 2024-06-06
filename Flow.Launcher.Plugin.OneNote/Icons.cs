@@ -38,7 +38,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         private static readonly Lazy<Icons> lazy = new();
         public static Icons Instance => lazy.Value;
-
+        
         public static void Init(PluginInitContext context, Settings settings)
         {
             Instance.imagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/Images/";
@@ -51,6 +51,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Instance.iconCache.TryAdd(image.Name, BitmapImageFromPath(image.FullName));
             }
+
             Instance.context = context;
         }
         private static string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(Instance.settings.IconTheme)}.png";
@@ -63,25 +64,25 @@ namespace Flow.Launcher.Plugin.OneNote
         }
         private static BitmapImage BitmapImageFromPath(string path) => new BitmapImage(new Uri(path));
 
-        public static Result.IconDelegate GetIcon(string prefix, Color? color)
+        public static Result.IconDelegate GetIcon(IconGeneratorInfo info)
         {
             return () =>
             {
-                bool generate = (string.CompareOrdinal(prefix, "notebook") == 0
-                                 || string.CompareOrdinal(prefix, "section") == 0)
+                bool generate = (string.CompareOrdinal(info.Prefix, IconGeneratorInfo.Notebook) == 0
+                                 || string.CompareOrdinal(info.Prefix, IconGeneratorInfo.Section) == 0)
                                 && Instance.settings.CreateColoredIcons
-                                && color.HasValue;
+                                && info.Color.HasValue;
                 
                 if (generate)
                 {
-                    var imageSource = Instance.iconCache.GetOrAdd($"{prefix}.{color.Value.ToArgb()}.png", ImageSourceFactory,
-                        color.Value);
+                    var imageSource = Instance.iconCache.GetOrAdd($"{info.Prefix}.{info.Color.Value.ToArgb()}.png", ImageSourceFactory,
+                        info.Color.Value);
                     Instance.OnPropertyChanged(nameof(CachedIconCount));
                     Instance.OnPropertyChanged(nameof(CachedIconsFileSize));
                     return imageSource;
                 }
 
-                return Instance.iconCache.GetOrAdd($"{prefix}.{GetPluginThemeString(Instance.settings.IconTheme)}.png", key =>
+                return Instance.iconCache.GetOrAdd($"{info.Prefix}.{GetPluginThemeString(Instance.settings.IconTheme)}.png", key =>
                 {
                     var path = Path.Combine(Instance.imagesDirectory, key);
                     return BitmapImageFromPath(path);
@@ -192,6 +193,5 @@ namespace Flow.Launcher.Plugin.OneNote
             // Return formatted number with suffix
             return readable.ToString("0.## ") + suffix;
         }
-
     }
 }

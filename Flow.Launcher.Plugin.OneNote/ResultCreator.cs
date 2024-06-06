@@ -156,9 +156,7 @@ namespace Flow.Launcher.Plugin.OneNote
             string subTitle = GetNicePath(item);
             string autoCompleteText = GetAutoCompleteText(item);
 
-            //Icon gen
-            string prefix = null;
-            System.Drawing.Color? color = null;
+            IconGeneratorInfo iconInfo;
             
             switch (item)
             {
@@ -169,8 +167,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         $"Sections Groups:\t{notebook.SectionGroups.Count()}";
 
                     subTitle = string.Empty;
-                    prefix = "notebook";
-                    color = notebook.Color;
+                    iconInfo = new IconGeneratorInfo(notebook);
                     break;
                 case OneNoteSectionGroup sectionGroup:
                     toolTip =
@@ -179,7 +176,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         $"Sections:\t\t{sectionGroup.Sections.Count()}\n" +
                         $"Sections Groups:\t{sectionGroup.SectionGroups.Count()}";
 
-                    prefix = sectionGroup.IsRecycleBin ? "recycle_bin" : "section_group";
+                    iconInfo = new IconGeneratorInfo(sectionGroup);
                     break;
                 case OneNoteSection section:
                     if (section.Encrypted)
@@ -192,8 +189,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         $"Last Modified:\t{section.LastModified}\n" +
                         $"Pages:\t\t{section.Pages.Count()}";
                     
-                    prefix = "section";
-                    color = section.Color;
+                    iconInfo = new IconGeneratorInfo(section);
                     break;
                 case OneNotePage page:
                     autoCompleteText = actionIsAutoComplete ? autoCompleteText[..^1] : string.Empty;
@@ -205,8 +201,11 @@ namespace Flow.Launcher.Plugin.OneNote
                         $"Path:\t\t {subTitle} \n" +
                         $"Created:\t\t{page.Created:F}\n" +
                         $"Last Modified:\t{page.LastModified:F}";
-                    
-                    prefix = "page";
+
+                    iconInfo = new IconGeneratorInfo(page);
+                    break;
+                default:
+                    iconInfo = default;
                     break;
             }
 
@@ -218,7 +217,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 AutoCompleteText = autoCompleteText,
                 SubTitle = subTitle,
                 Score = score,
-                Icon = Icons.GetIcon(prefix, color),
+                Icon = Icons.GetIcon(iconInfo),
                 ContextData = item,
                 Action = c =>
                 {
