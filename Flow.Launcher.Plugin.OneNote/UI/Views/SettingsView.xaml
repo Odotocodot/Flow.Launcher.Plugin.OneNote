@@ -96,11 +96,11 @@
         </Border>
         <!--#endregion-->
         
-        <!--#region Plugin Theme-->
+        <!--#region Icon Theme-->
         <Border Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
-                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Plugin theme" />
+                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Icon theme" />
                 </StackPanel>
                 <ComboBox
                     Grid.Column="2"
