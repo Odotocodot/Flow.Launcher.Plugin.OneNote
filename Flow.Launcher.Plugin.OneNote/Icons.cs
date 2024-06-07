@@ -5,11 +5,12 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Flow.Launcher.Plugin.OneNote.UI;
 using Color = System.Drawing.Color;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class Icons : BaseModel
+    public class Icons : BaseModel, IDisposable
     {
         public const string Logo = "Images/logo.png";
         public static string Sync => GetIconLocal("sync");
@@ -22,7 +23,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public static string NewSectionGroup => GetIconLocal("section_group_new");
         public static string NewNotebook => GetIconLocal("notebook_new");
         public static string Warning => Instance.settings.IconTheme == IconTheme.Color
-                ? $"Images/warning.{GetPluginThemeString(IconTheme.Dark)}.png"
+                ? $"Images/warning.{GetPluginThemeString(IconTheme.Light)}.png"
                 : GetIconLocal("warning");
         
         private Settings settings;
@@ -37,6 +38,7 @@ namespace Flow.Launcher.Plugin.OneNote
         private PluginInitContext context;
 
         private static readonly Lazy<Icons> lazy = new();
+        private WindowsThemeWatcher windowsThemeWatcher;
         public static Icons Instance => lazy.Value;
         
         public static void Init(PluginInitContext context, Settings settings)
@@ -46,6 +48,20 @@ namespace Flow.Launcher.Plugin.OneNote
             GeneratedImagesDirectoryInfo = Directory.CreateDirectory($"{context.CurrentPluginMetadata.PluginDirectory}/Images/Generated/");
 
             Instance.settings = settings;
+            settings.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName != nameof(Settings.IconTheme)) 
+                    return;
+                
+                if (settings.IconTheme == IconTheme.System)
+                {
+                    Instance.windowsThemeWatcher.StartWatching();
+                }
+                else
+                {
+                    Instance.windowsThemeWatcher.StopWatching();
+                }
+            };
 
             foreach (var image in GeneratedImagesDirectoryInfo.EnumerateFiles())
             {
@@ -53,13 +69,17 @@ namespace Flow.Launcher.Plugin.OneNote
             }
 
             Instance.context = context;
+
+            Instance.windowsThemeWatcher = new WindowsThemeWatcher();
         }
         private static string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(Instance.settings.IconTheme)}.png";
 
         private static string GetPluginThemeString(IconTheme iconTheme)
         {
             if (iconTheme == IconTheme.System)
-                throw new NotImplementedException(); //TODO get the system theme return either light or dark.
+            {
+                iconTheme = Instance.windowsThemeWatcher.CurrentWindowsTheme.ToIconTheme();
+            }
             return Enum.GetName(iconTheme).ToLower();
         }
         private static BitmapImage BitmapImageFromPath(string path) => new BitmapImage(new Uri(path));
@@ -192,6 +212,12 @@ namespace Flow.Launcher.Plugin.OneNote
             readable /= 1024;
             // Return formatted number with suffix
             return readable.ToString("0.## ") + suffix;
+        }
+
+        public void Dispose()
+        {
+            // TODO unsubscribe from settings.PropertyChanged
+            windowsThemeWatcher.Dispose();
         }
     }
 }
