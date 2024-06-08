@@ -106,14 +106,12 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             private readonly SearchManager searchManager;
             private readonly ResultCreator resultCreator;
-            //private readonly IconProvider _iconProvider;
 
             private Keywords Keywords => searchManager.settings.Keywords;
-            internal NotebookExplorer(SearchManager searchManager, ResultCreator resultCreator/*, IconProvider iconProvider*/)
+            internal NotebookExplorer(SearchManager searchManager, ResultCreator resultCreator)
             {
                 this.searchManager = searchManager;
                 this.resultCreator = resultCreator;
-                //_iconProvider = iconProvider;
             }
 
             internal List<Result> Query(Query query)

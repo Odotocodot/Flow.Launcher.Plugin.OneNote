@@ -9,13 +9,13 @@ namespace Flow.Launcher.Plugin.OneNote
     {
         private readonly PluginInitContext context;
         private readonly Settings settings;
-        private readonly Icons iconProvider;
+        private readonly IconProvider iconProvider;
 
         private const string PathSeparator = " > ";
         private const string Unread = "\u2022  ";
 
         private string ActionKeyword => context.CurrentPluginMetadata.ActionKeyword;
-        public ResultCreator(PluginInitContext context, Settings settings, Icons iconProvider)
+        public ResultCreator(PluginInitContext context, Settings settings, IconProvider iconProvider)
         {
             this.settings = settings;
             this.iconProvider = iconProvider;
@@ -430,7 +430,7 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             return SingleResult("No matches found",
                                 "Try searching something else, or syncing your notebooks.",
-                                Icons.Logo);
+                                IconProvider.Logo);
         }
         public List<Result> InvalidQuery()
         {

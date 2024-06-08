@@ -11,7 +11,7 @@ using Color = System.Drawing.Color;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class Icons : BaseModel, IDisposable
+    public class IconProvider : BaseModel, IDisposable
     {
         public const string Logo = "Images/logo.png";
         public string Sync => GetIconLocal("sync");
@@ -40,7 +40,7 @@ namespace Flow.Launcher.Plugin.OneNote
         
         private readonly WindowsThemeWatcher windowsThemeWatcher;
 
-        public Icons(PluginInitContext context, Settings settings)
+        public IconProvider(PluginInitContext context, Settings settings)
         {
             imagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/Images/";
             
@@ -175,7 +175,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 catch (Exception e)
                 {
                     // context.API.ShowMsg("Failed to delete", $"Failed to delete {file.Name}");
-                    context.API.LogException(nameof(Icons), "Failed to delete", e);
+                    context.API.LogException(nameof(IconProvider), "Failed to delete", e);
                 }
                 
             }

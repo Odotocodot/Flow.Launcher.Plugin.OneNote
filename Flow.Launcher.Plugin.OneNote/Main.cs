@@ -12,14 +12,14 @@ namespace Flow.Launcher.Plugin.OneNote
         private ResultCreator resultCreator;
         private SearchManager searchManager;
         private Settings settings;
-        private Icons iconProvider;
+        private IconProvider iconProvider;
 
         private static SemaphoreSlim semaphore;
         public Task InitAsync(PluginInitContext context)
         {
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
-            iconProvider = new Icons(context, settings);
+            iconProvider = new IconProvider(context, settings);
             resultCreator = new ResultCreator(context, settings, iconProvider);
             searchManager = new SearchManager(context, settings, resultCreator);
             semaphore = new SemaphoreSlim(1,1);

@@ -8,7 +8,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
     public class SettingsViewModel : Model
     {
         public readonly PluginInitContext context;
-        public SettingsViewModel(PluginInitContext context, Settings settings, Icons iconProvider)
+        public SettingsViewModel(PluginInitContext context, Settings settings, IconProvider iconProvider)
         {
             Settings = settings;
             this.context = context;
@@ -20,7 +20,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         public Settings Settings { get; init; }
         public KeywordViewModel[] Keywords { get; init; }
         //TODO refactor this expose the properties instead of the class
-        public Icons IconProvider { get; init; }
+        public IconProvider IconProvider { get; init; }
         public KeywordViewModel SelectedKeyword { get; set; }
 
 #pragma warning disable CA1822 // Mark members as static
