@@ -9,14 +9,16 @@ namespace Flow.Launcher.Plugin.OneNote
     {
         private readonly PluginInitContext context;
         private readonly Settings settings;
+        private readonly Icons iconProvider;
 
         private const string PathSeparator = " > ";
         private const string Unread = "\u2022  ";
 
         private string ActionKeyword => context.CurrentPluginMetadata.ActionKeyword;
-        public ResultCreator(PluginInitContext context, Settings settings)
+        public ResultCreator(PluginInitContext context, Settings settings, Icons iconProvider)
         {
             this.settings = settings;
+            this.iconProvider = iconProvider;
             this.context = context;
         }
 
@@ -85,7 +87,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     Title = "Search OneNote pages",
                     SubTitle = "Try typing something!",
                     AutoCompleteText = ActionKeyword,
-                    IcoPath = Icons.Search,
+                    IcoPath = iconProvider.Search,
                     Score = 5000,
                 },
                 new Result
@@ -93,7 +95,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     Title = "View notebook explorer",
                     SubTitle = $"Type \"{settings.Keywords.NotebookExplorer}\" or select this option to search by notebook structure ",
                     AutoCompleteText = $"{ActionKeyword} {settings.Keywords.NotebookExplorer}",
-                    IcoPath = Icons.NotebookExplorer,
+                    IcoPath = iconProvider.NotebookExplorer,
                     Score = 2000,
                     Action = _ =>
                     {
@@ -106,7 +108,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     Title = "See recent pages",
                     SubTitle = $"Type \"{settings.Keywords.RecentPages}\" or select this option to see recently modified pages",
                     AutoCompleteText = $"{ActionKeyword} {settings.Keywords.RecentPages}",
-                    IcoPath = Icons.Recent,
+                    IcoPath = iconProvider.Recent,
                     Score = -1000,
                     Action = c =>
                     {
@@ -117,7 +119,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 new Result
                 {
                     Title = "New quick note",
-                    IcoPath = Icons.QuickNote,
+                    IcoPath = iconProvider.QuickNote,
                     Score = -4000,
                     Action = c =>
                     {
@@ -128,7 +130,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 new Result
                 {
                     Title = "Open and sync notebooks",
-                    IcoPath = Icons.Sync,
+                    IcoPath = iconProvider.Sync,
                     Score = int.MinValue,
                     Action = c =>
                     {
@@ -217,7 +219,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 AutoCompleteText = autoCompleteText,
                 SubTitle = subTitle,
                 Score = score,
-                Icon = Icons.GetIcon(iconInfo),
+                Icon = iconProvider.GetIcon(iconInfo),
                 ContextData = item,
                 Action = c =>
                 {
@@ -244,7 +246,7 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             var result = CreateOneNoteItemResult(page, false, null);
             result.SubTitle = $"{GetLastEdited(DateTime.Now - page.LastModified)}\t{result.SubTitle}";
-            result.IcoPath = Icons.Recent;
+            result.IcoPath = iconProvider.Recent;
             return result;
         }
 
@@ -256,7 +258,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Title = $"Create page: \"{newPageName}\"",
                 SubTitle = $"Path: {GetNicePath(section)}{PathSeparator}{newPageName}",
                 AutoCompleteText = $"{GetAutoCompleteText}{newPageName}",
-                IcoPath = Icons.NewPage,
+                IcoPath = iconProvider.NewPage,
                 Action = c =>
                 {
                     OneNoteApplication.CreatePage(section, newPageName, true);
@@ -277,7 +279,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         ? $"Path: {GetNicePath(parent)}{PathSeparator}{newSectionName}"
                         : $"Section names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionChars)}",
                 AutoCompleteText = $"{GetAutoCompleteText}{newSectionName}",
-                IcoPath = Icons.NewSection,
+                IcoPath = iconProvider.NewSection,
                 Action = c =>
                 {
                     if (!validTitle)
@@ -313,7 +315,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     ? $"Path: {GetNicePath(parent)}{PathSeparator}{newSectionGroupName}"
                     : $"Section group names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionGroupChars)}",
                 AutoCompleteText = $"{GetAutoCompleteText}{newSectionGroupName}",
-                IcoPath = Icons.NewSectionGroup,
+                IcoPath = iconProvider.NewSectionGroup,
                 Action = c =>
                 {
                     if (!validTitle)
@@ -349,7 +351,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     ? $"Location: {OneNoteApplication.GetDefaultNotebookLocation()}"
                     : $"Notebook names cannot contain: {string.Join(' ', OneNoteApplication.InvalidNotebookChars)}",
                 AutoCompleteText = $"{GetAutoCompleteText}{newNotebookName}",
-                IcoPath = Icons.NewNotebook,
+                IcoPath = iconProvider.NewNotebook,
                 Action = c =>
                 {
                     if (!validTitle)
@@ -382,7 +384,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         Title = "Show in Notebook Explorer",
                         SubTitle = result.AutoCompleteText,
                         Score = - 1000,
-                        IcoPath = Icons.NotebookExplorer,
+                        IcoPath = iconProvider.NotebookExplorer,
                         Action = _ =>
                         {
                             context.API.ChangeQuery(result.AutoCompleteText);
@@ -393,21 +395,53 @@ namespace Flow.Launcher.Plugin.OneNote
             }
             return results;
         }
-  
-        
+        public List<Result> NoItemsInCollection(List<Result> results, IOneNoteItem parent)
+        {
+            switch (parent)
+            {
+                case OneNoteNotebook:
+                case OneNoteSectionGroup:
+                    // Can create section/section group
+                    results.Add(NoItemsInCollectionResult("section", iconProvider.NewSection, "(unencrypted) section"));
+                    results.Add(NoItemsInCollectionResult("section group", iconProvider.NewSectionGroup));
+                    break;
+                case OneNoteSection section:
+                    // Can create page
+                    if (!section.Locked)
+                    {
+                        results.Add(NoItemsInCollectionResult("page", iconProvider.NewPage));
+                    }
+                    break;
+            }
+
+            return results;
+
+            static Result NoItemsInCollectionResult(string title, string iconPath, string subTitle = null)
+            {
+                return new Result
+                {
+                    Title = $"Create {title}: \"\"",
+                    SubTitle = $"No {subTitle ?? title}s found. Type a valid title to create one",
+                    IcoPath = iconPath,
+                };
+            }
+        }
         public static List<Result> NoMatchesFound()
         {
             return SingleResult("No matches found",
                                 "Try searching something else, or syncing your notebooks.",
                                 Icons.Logo);
         }
-        public static List<Result> InvalidQuery()
+        public List<Result> InvalidQuery()
         {
             return SingleResult("Invalid query",
                                 "The first character of the search must be a letter or a digit",
-                                Icons.Warning);
+                                iconProvider.Warning);
         }
-
+        public List<Result> SearchingByTitle()
+        {
+            return SingleResult($"Now searching by title.", null, iconProvider.Search);
+        }
         public static List<Result> SingleResult(string title, string subTitle, string iconPath)
         {
             return new List<Result>
@@ -420,5 +454,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
             };
         }
+
     }
 }

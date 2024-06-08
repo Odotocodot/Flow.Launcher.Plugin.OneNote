@@ -22,7 +22,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.Views
             {
                 Title = "Clear Cached Icons",
                 Content = $"Delete cached notebook and sections icons.\n" +
-                          $"This will delete {viewModel.Icons.CachedIconCount} icon{(viewModel.Icons.CachedIconCount != 1 ? "s" : string.Empty)}.",
+                          $"This will delete {viewModel.IconProvider.CachedIconCount} icon{(viewModel.IconProvider.CachedIconCount != 1 ? "s" : string.Empty)}.",
                 PrimaryButtonText = "Yes",
                 CloseButtonText = "Cancel",
                 DefaultButton = Modern.ContentDialogButton.Close,

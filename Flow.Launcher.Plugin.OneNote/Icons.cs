@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -13,108 +14,114 @@ namespace Flow.Launcher.Plugin.OneNote
     public class Icons : BaseModel, IDisposable
     {
         public const string Logo = "Images/logo.png";
-        public static string Sync => GetIconLocal("sync");
-        public static string Search => GetIconLocal("search");
-        public static string Recent => GetIconLocal("page_recent");
-        public static string NotebookExplorer => GetIconLocal("notebook_explorer");
-        public static string QuickNote => NewPage;
-        public static string NewPage => GetIconLocal("page_new");
-        public static string NewSection => GetIconLocal("section_new");
-        public static string NewSectionGroup => GetIconLocal("section_group_new");
-        public static string NewNotebook => GetIconLocal("notebook_new");
-        public static string Warning => Instance.settings.IconTheme == IconTheme.Color
+        public string Sync => GetIconLocal("sync");
+        public string Search => GetIconLocal("search");
+        public string Recent => GetIconLocal("page_recent");
+        public string NotebookExplorer => GetIconLocal("notebook_explorer");
+        public string QuickNote => NewPage;
+        public string NewPage => GetIconLocal("page_new");
+        public string NewSection => GetIconLocal("section_new");
+        public string NewSectionGroup => GetIconLocal("section_group_new");
+        public string NewNotebook => GetIconLocal("notebook_new");
+        public string Warning => settings.IconTheme == IconTheme.Color
                 ? $"Images/warning.{GetPluginThemeString(IconTheme.Light)}.png"
                 : GetIconLocal("warning");
         
-        private Settings settings;
+        private readonly Settings settings;
         // May need this? https://stackoverflow.com/questions/21867842/concurrentdictionarys-getoradd-is-not-atomic-any-alternatives-besides-locking
-        private ConcurrentDictionary<string,ImageSource> iconCache = new();
-        private string imagesDirectory;
+        private readonly ConcurrentDictionary<string,ImageSource> iconCache = new();
+        private readonly string imagesDirectory;
 
-        public static DirectoryInfo GeneratedImagesDirectoryInfo { get; private set; }
+        public DirectoryInfo GeneratedImagesDirectoryInfo { get; private set; }
         public int CachedIconCount => iconCache.Keys.Count(k => char.IsDigit(k.Split('.')[1][1]));
         public string CachedIconsFileSize => GetCachedIconsMemorySize();
         
-        private PluginInitContext context;
-
-        private static readonly Lazy<Icons> lazy = new();
-        private WindowsThemeWatcher windowsThemeWatcher;
-        public static Icons Instance => lazy.Value;
+        private readonly PluginInitContext context;
         
-        public static void Init(PluginInitContext context, Settings settings)
+        private readonly WindowsThemeWatcher windowsThemeWatcher;
+
+        public Icons(PluginInitContext context, Settings settings)
         {
-            Instance.imagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/Images/";
+            imagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/Images/";
             
             GeneratedImagesDirectoryInfo = Directory.CreateDirectory($"{context.CurrentPluginMetadata.PluginDirectory}/Images/Generated/");
 
-            Instance.settings = settings;
-            settings.PropertyChanged += (sender, args) =>
+            this.context = context;
+            this.settings = settings;
+            
+            windowsThemeWatcher = new WindowsThemeWatcher();
+
+            if (settings.IconTheme == IconTheme.System)
             {
-                if (args.PropertyName != nameof(Settings.IconTheme)) 
-                    return;
-                
-                if (settings.IconTheme == IconTheme.System)
-                {
-                    Instance.windowsThemeWatcher.StartWatching();
-                }
-                else
-                {
-                    Instance.windowsThemeWatcher.StopWatching();
-                }
-            };
+                windowsThemeWatcher.StartWatching();
+            }
+
+            settings.PropertyChanged += OnIconThemeChanged;
 
             foreach (var image in GeneratedImagesDirectoryInfo.EnumerateFiles())
             {
-                Instance.iconCache.TryAdd(image.Name, BitmapImageFromPath(image.FullName));
+                iconCache.TryAdd(image.Name, BitmapImageFromPath(image.FullName));
             }
-
-            Instance.context = context;
-
-            Instance.windowsThemeWatcher = new WindowsThemeWatcher();
         }
-        private static string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(Instance.settings.IconTheme)}.png";
 
-        private static string GetPluginThemeString(IconTheme iconTheme)
+        private void OnIconThemeChanged(object sender, PropertyChangedEventArgs args)
+        {
+            if (args.PropertyName != nameof(Settings.IconTheme)) 
+                return;
+            
+            if (settings.IconTheme == IconTheme.System)
+            {
+                windowsThemeWatcher.StartWatching();
+            }
+            else
+            {
+                windowsThemeWatcher.StopWatching();
+            }
+        }
+
+        private string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(settings.IconTheme)}.png";
+
+        private string GetPluginThemeString(IconTheme iconTheme)
         {
             if (iconTheme == IconTheme.System)
             {
-                iconTheme = Instance.windowsThemeWatcher.CurrentWindowsTheme.ToIconTheme();
+                iconTheme = windowsThemeWatcher.CurrentWindowsTheme.ToIconTheme();
             }
             return Enum.GetName(iconTheme).ToLower();
         }
         private static BitmapImage BitmapImageFromPath(string path) => new BitmapImage(new Uri(path));
 
-        public static Result.IconDelegate GetIcon(IconGeneratorInfo info)
+        public Result.IconDelegate GetIcon(IconGeneratorInfo info)
         {
             return () =>
             {
                 bool generate = (string.CompareOrdinal(info.Prefix, IconGeneratorInfo.Notebook) == 0
                                  || string.CompareOrdinal(info.Prefix, IconGeneratorInfo.Section) == 0)
-                                && Instance.settings.CreateColoredIcons
+                                && settings.CreateColoredIcons
                                 && info.Color.HasValue;
                 
                 if (generate)
                 {
-                    var imageSource = Instance.iconCache.GetOrAdd($"{info.Prefix}.{info.Color.Value.ToArgb()}.png", ImageSourceFactory,
+                    var imageSource = iconCache.GetOrAdd($"{info.Prefix}.{info.Color.Value.ToArgb()}.png", ImageSourceFactory,
                         info.Color.Value);
-                    Instance.OnPropertyChanged(nameof(CachedIconCount));
-                    Instance.OnPropertyChanged(nameof(CachedIconsFileSize));
+                    OnPropertyChanged(nameof(CachedIconCount));
+                    OnPropertyChanged(nameof(CachedIconsFileSize));
                     return imageSource;
                 }
 
-                return Instance.iconCache.GetOrAdd($"{info.Prefix}.{GetPluginThemeString(Instance.settings.IconTheme)}.png", key =>
+                return iconCache.GetOrAdd($"{info.Prefix}.{GetPluginThemeString(settings.IconTheme)}.png", key =>
                 {
-                    var path = Path.Combine(Instance.imagesDirectory, key);
+                    var path = Path.Combine(imagesDirectory, key);
                     return BitmapImageFromPath(path);
                 });
 
             };
         }
 
-        private static ImageSource ImageSourceFactory(string key, Color color)
+        private ImageSource ImageSourceFactory(string key, Color color)
         {
             var prefix = key.Split('.')[0];
-            var path = Path.Combine(Instance.imagesDirectory, $"{prefix}.dark.png");
+            var path = Path.Combine(imagesDirectory, $"{prefix}.dark.png");
             var bitmap =  BitmapImageFromPath(path);
             var newBitmap = ChangeIconColor(bitmap, color);
                                 
@@ -157,7 +164,6 @@ namespace Flow.Launcher.Plugin.OneNote
         }
 
         public void ClearCachedIcons()
-        
         {
             iconCache.Clear();
             foreach (var file in GeneratedImagesDirectoryInfo.EnumerateFiles())
@@ -216,7 +222,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public void Dispose()
         {
-            // TODO unsubscribe from settings.PropertyChanged
+            settings.PropertyChanged -= OnIconThemeChanged;
             windowsThemeWatcher.Dispose();
         }
     }

@@ -83,7 +83,7 @@
                         Click="ClearCachedIcons"
                         IsEnabled="{Binding CanClearCachedIcons}">
                         <Label HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding Icons.CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}" />
+                            <TextBlock Text="{Binding IconProvider.CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}" />
                         </Label>
                     </Button>
                     <Button Margin="0,4,22,4" Click="OpenGeneratedIconsFolder">

@@ -42,7 +42,7 @@ namespace Flow.Launcher.Plugin.OneNote
             // Check for invalid start of query i.e. symbols
             if (!char.IsLetterOrDigit(query[0]))
             {
-                return ResultCreator.InvalidQuery();
+                return resultCreator.InvalidQuery();
             }
 
             var results = OneNoteApplication.FindPages(query)
@@ -55,7 +55,7 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             if (query.Length == settings.Keywords.TitleSearch.Length && parent == null)
             {
-                return ResultCreator.SingleResult($"Now searching by title.", null, Icons.Search);
+                return resultCreator.SearchingByTitle();
             }
 
             List<int> highlightData = null;
@@ -69,6 +69,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
             return results.Any() ? results : ResultCreator.NoMatchesFound();
         }
+
         private List<Result> RecentPages(string query)
         {
             int count = settings.DefaultRecentsCount;
@@ -188,39 +189,10 @@ namespace Flow.Launcher.Plugin.OneNote
                 List<Result> results = collection.Where(searchManager.SettingsCheck)
                                                  .Select(item => resultCreator.CreateOneNoteItemResult(item, true))
                                                  .ToList();
-                if (!results.Any())
-                {
-                    // parent can be null if the collection only contains notebooks.
-                    switch (parent)
-                    {
-                        case OneNoteNotebook:
-                        case OneNoteSectionGroup:
-                            // Can create section/section group
-                            results.Add(NoItemsInCollectionResult("section", Icons.NewSection, "(unencrypted) section"));
-                            results.Add(NoItemsInCollectionResult("section group", Icons.NewSectionGroup));
-                            break;
-                        case OneNoteSection section:
-                            // Can create page
-                            if (!section.Locked)
-                            {
-                                results.Add(NoItemsInCollectionResult("page", Icons.NewPage));
-                            }
-
-                            break;
-                    }
-                }
-
-                return results;
-
-                static Result NoItemsInCollectionResult(string title, string iconPath, string subTitle = null)
-                {
-                    return new Result
-                    {
-                        Title = $"Create {title}: \"\"",
-                        SubTitle = $"No {subTitle ?? title}s found. Type a valid title to create one",
-                        IcoPath = iconPath,
-                    };
-                }
+                if (results.Any()) 
+                    return results;
+                // parent can be null if the collection only contains notebooks.
+                return resultCreator.NoItemsInCollection(results, parent);
             }
 
             private List<Result> ScopedSearch(string query, IOneNoteItem parent)
@@ -232,7 +204,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                 if (!char.IsLetterOrDigit(query[Keywords.ScopedSearch.Length]))
                 {
-                    return ResultCreator.InvalidQuery();
+                    return resultCreator.InvalidQuery();
                 }
 
                 string currentSearch = query[Keywords.TitleSearch.Length..];

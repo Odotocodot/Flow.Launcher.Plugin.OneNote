@@ -12,14 +12,15 @@ namespace Flow.Launcher.Plugin.OneNote
         private ResultCreator resultCreator;
         private SearchManager searchManager;
         private Settings settings;
+        private Icons iconProvider;
 
         private static SemaphoreSlim semaphore;
         public Task InitAsync(PluginInitContext context)
         {
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
-            Icons.Init(context, settings);
-            resultCreator = new ResultCreator(context, settings);
+            iconProvider = new Icons(context, settings);
+            resultCreator = new ResultCreator(context, settings, iconProvider);
             searchManager = new SearchManager(context, settings, resultCreator);
             semaphore = new SemaphoreSlim(1,1);
             context.API.VisibilityChanged += OnVisibilityChanged;
@@ -62,14 +63,14 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public System.Windows.Controls.Control CreateSettingPanel()
         {
-            return new UI.Views.SettingsView(new UI.ViewModels.SettingsViewModel(context, settings));
+            return new UI.Views.SettingsView(new UI.ViewModels.SettingsViewModel(context, settings, iconProvider));
         }
 
         public void Dispose()
         {
             context.API.VisibilityChanged -= OnVisibilityChanged;
             semaphore.Dispose();
-            Icons.Instance.Dispose();
+            iconProvider.Dispose();
             OneNoteApplication.ReleaseComObject();
         }
     }
