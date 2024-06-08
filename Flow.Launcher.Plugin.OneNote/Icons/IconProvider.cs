@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using Flow.Launcher.Plugin.OneNote.UI;
 using Color = System.Drawing.Color;
 
-namespace Flow.Launcher.Plugin.OneNote
+namespace Flow.Launcher.Plugin.OneNote.Icons
 {
     public class IconProvider : BaseModel, IDisposable
     {

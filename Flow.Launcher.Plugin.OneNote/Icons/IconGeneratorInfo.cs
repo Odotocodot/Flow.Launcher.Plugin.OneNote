@@ -1,7 +1,7 @@
 using System.Drawing;
 using Odotocodot.OneNote.Linq;
 
-namespace Flow.Launcher.Plugin.OneNote
+namespace Flow.Launcher.Plugin.OneNote.Icons
 {
 	public record struct IconGeneratorInfo
 	{

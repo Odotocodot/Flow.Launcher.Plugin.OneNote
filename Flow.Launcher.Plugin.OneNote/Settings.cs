@@ -1,4 +1,6 @@
-﻿namespace Flow.Launcher.Plugin.OneNote
+﻿using Flow.Launcher.Plugin.OneNote.Icons;
+
+namespace Flow.Launcher.Plugin.OneNote
 {
     public class Settings : UI.Model
     {

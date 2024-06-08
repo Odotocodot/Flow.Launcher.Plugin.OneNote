@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using Flow.Launcher.Plugin.OneNote.Icons;
+using Flow.Launcher.Plugin.OneNote.UI.ViewModels;
+using Flow.Launcher.Plugin.OneNote.UI.Views;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
@@ -61,9 +65,9 @@ namespace Flow.Launcher.Plugin.OneNote
             return resultCreator.ContextMenu(selectedResult);
         }
 
-        public System.Windows.Controls.Control CreateSettingPanel()
+        public Control CreateSettingPanel()
         {
-            return new UI.Views.SettingsView(new UI.ViewModels.SettingsViewModel(context, settings, iconProvider));
+            return new SettingsView(new SettingsViewModel(context, settings, iconProvider));
         }
 
         public void Dispose()

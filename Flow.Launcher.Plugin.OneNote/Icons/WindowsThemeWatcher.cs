@@ -1,10 +1,10 @@
 using System;
 using System.Globalization;
+using System.Management;
 using System.Security.Principal;
 using Microsoft.Win32;
-using System.Management;
 
-namespace Flow.Launcher.Plugin.OneNote.UI
+namespace Flow.Launcher.Plugin.OneNote.Icons
 {
 	// https://stackoverflow.com/questions/59366391/is-there-any-way-to-make-a-wpf-app-respect-the-system-choice-of-dark-light-theme
 	public class WindowsThemeWatcher : IDisposable

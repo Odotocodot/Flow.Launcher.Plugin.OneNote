@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Flow.Launcher.Plugin.OneNote.Icons;
 using Odotocodot.OneNote.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote
@@ -442,7 +443,8 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             return SingleResult($"Now searching by title.", null, iconProvider.Search);
         }
-        public static List<Result> SingleResult(string title, string subTitle, string iconPath)
+
+        private static List<Result> SingleResult(string title, string subTitle, string iconPath)
         {
             return new List<Result>
             {

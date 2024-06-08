@@ -1,6 +1,7 @@
+using System;
 using Flow.Launcher.Plugin.OneNote.UI;
 
-namespace Flow.Launcher.Plugin.OneNote
+namespace Flow.Launcher.Plugin.OneNote.Icons
 {
 	public enum IconTheme
 	{
@@ -18,6 +19,7 @@ namespace Flow.Launcher.Plugin.OneNote
 			{
 				WindowsThemeWatcher.WindowsTheme.Light => IconTheme.Dark,
 				WindowsThemeWatcher.WindowsTheme.Dark => IconTheme.Light,
+				_ => throw new ArgumentOutOfRangeException(nameof(theme))
 			};
 		}
 	}

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Flow.Launcher.Plugin.OneNote.Icons;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
