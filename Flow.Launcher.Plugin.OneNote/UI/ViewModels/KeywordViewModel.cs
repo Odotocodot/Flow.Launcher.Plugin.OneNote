@@ -6,9 +6,9 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
     public partial class KeywordViewModel : BaseModel
     {
-        public object Instance { get; init; }
-        public PropertyInfo PropertyInfo { get; init; }
-        public string Name { get; init; }
+        private object Instance { get; init; }
+        private PropertyInfo PropertyInfo { get; init; }
+        public string Name { get; private init; }
 
         public string Keyword
         {
@@ -16,7 +16,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
             set
             {
                 PropertyInfo.SetValue(Instance, value, null);
-                OnPropertyChanged(nameof(Keyword));
+                OnPropertyChanged();
             }
         }
 

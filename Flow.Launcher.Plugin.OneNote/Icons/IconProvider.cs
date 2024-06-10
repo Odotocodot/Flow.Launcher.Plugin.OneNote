@@ -6,7 +6,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Flow.Launcher.Plugin.OneNote.UI;
 using Color = System.Drawing.Color;
 
 namespace Flow.Launcher.Plugin.OneNote.Icons
@@ -32,9 +31,8 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
         private readonly ConcurrentDictionary<string,ImageSource> iconCache = new();
         private readonly string imagesDirectory;
 
-        public DirectoryInfo GeneratedImagesDirectoryInfo { get; private set; }
+        public DirectoryInfo GeneratedImagesDirectoryInfo { get; }
         public int CachedIconCount => iconCache.Keys.Count(k => char.IsDigit(k.Split('.')[1][1]));
-        public string CachedIconsFileSize => GetCachedIconsMemorySize();
         
         private readonly PluginInitContext context;
         
@@ -105,7 +103,6 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
                     var imageSource = iconCache.GetOrAdd($"{info.Prefix}.{info.Color.Value.ToArgb()}.png", ImageSourceFactory,
                         info.Color.Value);
                     OnPropertyChanged(nameof(CachedIconCount));
-                    OnPropertyChanged(nameof(CachedIconsFileSize));
                     return imageSource;
                 }
 
@@ -180,11 +177,10 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
                 
             }
             OnPropertyChanged(nameof(CachedIconCount));
-            OnPropertyChanged(nameof(CachedIconsFileSize));
         }
 
 
-        private string GetCachedIconsMemorySize()
+        public string GetCachedIconsMemorySize()
         {
             var i = GeneratedImagesDirectoryInfo.EnumerateFiles()
                 .Select(file => file.Length)

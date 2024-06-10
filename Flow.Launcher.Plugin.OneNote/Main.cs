@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using Flow.Launcher.Plugin.OneNote.Icons;
-using Flow.Launcher.Plugin.OneNote.UI.ViewModels;
 using Flow.Launcher.Plugin.OneNote.UI.Views;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
@@ -67,7 +66,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public Control CreateSettingPanel()
         {
-            return new SettingsView(new SettingsViewModel(context, settings, iconProvider));
+            return new SettingsView(context, settings, iconProvider);
         }
 
         public void Dispose()

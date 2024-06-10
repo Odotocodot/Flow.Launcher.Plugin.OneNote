@@ -3,7 +3,10 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:icon="clr-namespace:Flow.Launcher.Plugin.OneNote.Icons"
+    xmlns:linq="clr-namespace:System.Linq;assembly=System.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     xmlns:vm="clr-namespace:Flow.Launcher.Plugin.OneNote.UI.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}"
@@ -17,6 +20,23 @@
                 <ui:ThemeResources />
                 <ResourceDictionary Source="/Flow.Launcher.Plugin.OneNote;component/UI/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <ObjectDataProvider
+                x:Key="IconThemeEnumDataSource"
+                MethodName="GetValues"
+                ObjectType="{x:Type sys:Enum}">
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="icon:IconTheme" />
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
+            <ObjectDataProvider
+                x:Key="DefaultRecentCountOptions"
+                MethodName="Range"
+                ObjectType="{x:Type linq:Enumerable}">
+                <ObjectDataProvider.MethodParameters>
+                    <sys:Int32>1</sys:Int32>
+                    <sys:Int32>20</sys:Int32>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
         </ResourceDictionary>
     </UserControl.Resources>
     <StackPanel Margin="25,0,25,25">
@@ -80,13 +100,12 @@
                         Margin="0,4,4,4"
                         HorizontalAlignment="Center"
                         HorizontalContentAlignment="Center"
-                        Click="ClearCachedIcons"
-                        IsEnabled="{Binding CanClearCachedIcons}">
+                        Command="{Binding ClearCachedIconsCommand}">
                         <Label HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding IconProvider.CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}" />
+                            <TextBlock Text="{Binding CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}" />
                         </Label>
                     </Button>
-                    <Button Margin="0,4,22,4" Click="OpenGeneratedIconsFolder">
+                    <Button Margin="0,4,22,4" Command="{Binding OpenGeneratedIconsFolderCommand}">
                         <ui:FontIcon Glyph="&#xf12b;" />
                     </Button>
                     <ui:ToggleSwitch IsOn="{Binding Settings.CreateColoredIcons}" Style="{DynamicResource SideToggleSwitch}" />
@@ -95,7 +114,7 @@
             </ItemsControl>
         </Border>
         <!--#endregion-->
-        
+
         <!--#region Icon Theme-->
         <Border Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
@@ -107,13 +126,13 @@
                     Width="100"
                     Margin="10,0,18,0"
                     HorizontalContentAlignment="Center"
-                    ItemsSource="{Binding PluginThemes}"
+                    ItemsSource="{Binding Source={StaticResource IconThemeEnumDataSource}}"
                     SelectedItem="{Binding Settings.IconTheme}" />
                 <ui:FontIcon Glyph="&#xe790;" Style="{StaticResource Glyph}" />
             </ItemsControl>
         </Border>
         <!--#endregion-->
-        
+
         <!--#region Recent pages-->
         <Border Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
@@ -126,7 +145,7 @@
                     Width="100"
                     Margin="10,0,18,0"
                     HorizontalContentAlignment="Center"
-                    ItemsSource="{Binding DefaultRecentCountOptions}"
+                    ItemsSource="{Binding Source={StaticResource DefaultRecentCountOptions}}"
                     SelectedItem="{Binding Settings.DefaultRecentsCount}" />
                 <ui:FontIcon Glyph="&#xe823;" Style="{StaticResource Glyph}" />
             </ItemsControl>
@@ -158,7 +177,7 @@
                             HorizontalAlignment="Right"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
-                            Click="EditButton_Click">
+                            Command="{Binding EditCommand}">
                             <Button.Style>
                                 <Style BasedOn="{StaticResource SettingButton}" TargetType="Button">
                                     <Setter Property="Visibility" Value="Hidden" />
@@ -187,23 +206,41 @@
                     BorderBrush="DarkGray"
                     BorderThickness="1"
                     ItemsSource="{Binding Keywords}"
-                    MouseDoubleClick="ListView_MouseDoubleClick"
-                    MouseUp="ListView_MouseUp"
                     SelectedItem="{Binding SelectedKeyword}"
                     Style="{StaticResource {x:Static GridView.GridViewStyleKey}}">
+                    <ListView.Resources>
+                        <MouseBinding
+                            x:Key="DoubleClickEdit"
+                            Command="{Binding EditCommand}"
+                            Gesture="LeftDoubleClick" />
+                    </ListView.Resources>
                     <ListView.View>
                         <GridView AllowsColumnReorder="False">
-                            <GridViewColumn Width=" 150" Header="Name">
+                            <GridViewColumn
+                                x:Name="NameColumn"
+                                Width=" 150"
+                                Header="Name">
                                 <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" />
+                                    <DataTemplate DataType="{x:Type vm:KeywordViewModel}">
+                                        <TextBlock Width="{Binding Width, ElementName=NameColumn}" Text="{Binding Name}">
+                                            <TextBlock.InputBindings>
+                                                <ui:StaticResource ResourceKey="DoubleClickEdit" />
+                                            </TextBlock.InputBindings>
+                                        </TextBlock>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Width="200" Header="Keyword">
+                            <GridViewColumn
+                                x:Name="KeywordColumn"
+                                Width="200"
+                                Header="Keyword">
                                 <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Keyword}" />
+                                    <DataTemplate DataType="{x:Type vm:KeywordViewModel}">
+                                        <TextBlock Width="{Binding Width, ElementName=KeywordColumn}" Text="{Binding Keyword}">
+                                            <TextBlock.InputBindings>
+                                                <ui:StaticResource ResourceKey="DoubleClickEdit" />
+                                            </TextBlock.InputBindings>
+                                        </TextBlock>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>

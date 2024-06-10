@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Windows.Input;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
@@ -6,46 +8,64 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
     {
         private readonly PluginInitContext context;
         private readonly KeywordViewModel[] keywords;
-        private string newKeyword;
+        private readonly Action closeAction;
 
-        public ChangeKeywordViewModel(SettingsViewModel settingsViewModel)
+        private string errorMessage;
+
+        public ChangeKeywordViewModel(SettingsViewModel settingsViewModel, PluginInitContext context, Action close)
         {
-            context = settingsViewModel.context;
+            this.context = context;
+            closeAction = close;
             keywords = settingsViewModel.Keywords;
             SelectedKeyword = settingsViewModel.SelectedKeyword;
+            ChangeKeywordCommand = new RelayCommand(
+                keyword => ChangeKeyword((string)keyword),
+                keyword => CanChangeKeyword((string)keyword));
+            CloseCommand = new RelayCommand( _=> closeAction?.Invoke());
         }
-        public KeywordViewModel SelectedKeyword { get; init; }
-        public string NewKeyword { get => newKeyword; set => SetProperty(ref newKeyword, value); }
+        public KeywordViewModel SelectedKeyword { get; }
 
-        public bool ChangeKeyword(out string errorMessage)
+        public ICommand CloseCommand { get; }
+
+        public ICommand ChangeKeywordCommand { get; }
+
+        public string ErrorMessage
         {
-            errorMessage = null;
-            var oldKeyword = SelectedKeyword.Keyword;
-            if (string.IsNullOrWhiteSpace(NewKeyword))
+            get => errorMessage;
+            private set => SetProperty(ref errorMessage, value);
+        }
+
+        private bool CanChangeKeyword(string newKeyword)
+        {
+            if (string.IsNullOrWhiteSpace(newKeyword))
             {
-                errorMessage = "The new keyword cannot be empty.";
+                //ErrorMessage = "The new keyword cannot be empty.";
                 return false;
             }
 
-            var newKeyword = NewKeyword.Trim();
-            if (oldKeyword == newKeyword)
+            newKeyword = newKeyword.Trim();
+            if (SelectedKeyword.Keyword == newKeyword)
             {
-                errorMessage = "The new keyword is the same as the old keyword.";
+                ErrorMessage = "The new keyword is the same as the old keyword.";
                 return false;
             }
 
             var alreadySetKeyword = keywords.FirstOrDefault(k => k.Keyword == newKeyword);
             if (alreadySetKeyword != null)
             {
-                errorMessage = $"The new keyword matches an already set one:\n"
-                                + $"\"{alreadySetKeyword.Name}\" => \"{alreadySetKeyword.Keyword}\"";
+                ErrorMessage = $"The new keyword is already set for {alreadySetKeyword.Name}.";
                 return false;
             }
 
-            SelectedKeyword.Keyword = newKeyword;
-            context.API.SaveSettingJsonStorage<Settings>();
+            ErrorMessage = null;
             return true;
+        }
 
+        private void ChangeKeyword(string newKeyword)
+        {
+            SelectedKeyword.Keyword = newKeyword.Trim();
+            context.API.SaveSettingJsonStorage<Settings>();
+            closeAction?.Invoke();
         }
     }
 
