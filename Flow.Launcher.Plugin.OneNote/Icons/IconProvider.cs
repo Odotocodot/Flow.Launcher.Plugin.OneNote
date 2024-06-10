@@ -7,24 +7,25 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Color = System.Drawing.Color;
+using IC = Flow.Launcher.Plugin.OneNote.Icons.IconConstants;
 
 namespace Flow.Launcher.Plugin.OneNote.Icons
 {
     public class IconProvider : BaseModel, IDisposable
     {
-        public const string Logo = "Images/logo.png";
-        public string Sync => GetIconLocal("sync");
-        public string Search => GetIconLocal("search");
-        public string Recent => GetIconLocal("page_recent");
-        public string NotebookExplorer => GetIconLocal("notebook_explorer");
+        public const string Logo = IC.ImagesDirectory + IC.Logo;
+        public string Sync => GetIconLocal(IC.Sync);
+        public string Search => GetIconLocal(IC.Search);
+        public string Recent => GetIconLocal(IC.Recent);
+        public string NotebookExplorer => GetIconLocal(IC.NotebookExplorer);
         public string QuickNote => NewPage;
-        public string NewPage => GetIconLocal("page_new");
-        public string NewSection => GetIconLocal("section_new");
-        public string NewSectionGroup => GetIconLocal("section_group_new");
-        public string NewNotebook => GetIconLocal("notebook_new");
+        public string NewPage => GetIconLocal(IC.NewPage);
+        public string NewSection => GetIconLocal(IC.NewSection);
+        public string NewSectionGroup => GetIconLocal(IC.NewSectionGroup);
+        public string NewNotebook => GetIconLocal(IC.NewNotebook);
         public string Warning => settings.IconTheme == IconTheme.Color
-                ? $"Images/warning.{GetPluginThemeString(IconTheme.Light)}.png"
-                : GetIconLocal("warning");
+                ? $"{IC.ImagesDirectory}{IC.Warning}.{GetIconThemeString(IconTheme.Light)}.png"
+                : GetIconLocal(IC.Warning);
         
         private readonly Settings settings;
         // May need this? https://stackoverflow.com/questions/21867842/concurrentdictionarys-getoradd-is-not-atomic-any-alternatives-besides-locking
@@ -36,18 +37,16 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
         
         private readonly PluginInitContext context;
         
-        private readonly WindowsThemeWatcher windowsThemeWatcher;
+        private readonly WindowsThemeWatcher windowsThemeWatcher = new ();
 
         public IconProvider(PluginInitContext context, Settings settings)
         {
-            imagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/Images/";
+            imagesDirectory = $"{context.CurrentPluginMetadata.PluginDirectory}/{IC.ImagesDirectory}";
             
-            GeneratedImagesDirectoryInfo = Directory.CreateDirectory($"{context.CurrentPluginMetadata.PluginDirectory}/Images/Generated/");
+            GeneratedImagesDirectoryInfo = Directory.CreateDirectory($"{context.CurrentPluginMetadata.PluginDirectory}/{IC.GeneratedImagesDirectory}");
 
             this.context = context;
             this.settings = settings;
-            
-            windowsThemeWatcher = new WindowsThemeWatcher();
 
             if (settings.IconTheme == IconTheme.System)
             {
@@ -77,9 +76,9 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
             }
         }
 
-        private string GetIconLocal(string icon) => $"Images/{icon}.{GetPluginThemeString(settings.IconTheme)}.png";
+        private string GetIconLocal(string icon) => $"Images/{icon}.{GetIconThemeString(settings.IconTheme)}.png";
 
-        private string GetPluginThemeString(IconTheme iconTheme)
+        private string GetIconThemeString(IconTheme iconTheme)
         {
             if (iconTheme == IconTheme.System)
             {
@@ -93,8 +92,8 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
         {
             return () =>
             {
-                bool generate = (string.CompareOrdinal(info.Prefix, IconGeneratorInfo.Notebook) == 0
-                                 || string.CompareOrdinal(info.Prefix, IconGeneratorInfo.Section) == 0)
+                bool generate = (string.CompareOrdinal(info.Prefix, IC.Notebook) == 0
+                                 || string.CompareOrdinal(info.Prefix, IC.Section) == 0)
                                 && settings.CreateColoredIcons
                                 && info.Color.HasValue;
                 
@@ -106,7 +105,7 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
                     return imageSource;
                 }
 
-                return iconCache.GetOrAdd($"{info.Prefix}.{GetPluginThemeString(settings.IconTheme)}.png", key =>
+                return iconCache.GetOrAdd($"{info.Prefix}.{GetIconThemeString(settings.IconTheme)}.png", key =>
                 {
                     var path = Path.Combine(imagesDirectory, key);
                     return BitmapImageFromPath(path);

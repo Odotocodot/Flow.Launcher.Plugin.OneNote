@@ -5,31 +5,26 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
 {
 	public record struct IconGeneratorInfo
 	{
-		public const string Notebook = "notebook";
-		private const string SectionGroup = "section_group";
-		private const string RecycleBin = "recycle_bin";
-		public const string Section = "section";
-		private const string Page = "page";
 		public string Prefix { get; }
 		public Color? Color { get; }
 		
 		public IconGeneratorInfo(OneNoteNotebook notebook)
 		{
-			Prefix = Notebook;
+			Prefix = IconConstants.Notebook;
 			Color = notebook.Color;
 		}
 		public IconGeneratorInfo(OneNoteSectionGroup sectionGroup)
 		{
-			Prefix = sectionGroup.IsRecycleBin ? RecycleBin : SectionGroup;
+			Prefix = sectionGroup.IsRecycleBin ? IconConstants.RecycleBin : IconConstants.SectionGroup;
 		}
 		public IconGeneratorInfo(OneNoteSection section)
 		{
-			Prefix = Section;
+			Prefix = IconConstants.Section;
 			Color = section.Color;
 		}
 		public IconGeneratorInfo(OneNotePage page)
 		{
-			Prefix = Page;
+			Prefix = IconConstants.Page;
 		}
 	}
 }
