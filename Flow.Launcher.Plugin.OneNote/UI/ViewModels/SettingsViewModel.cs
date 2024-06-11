@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Flow.Launcher.Plugin.OneNote.Icons;
+using Humanizer;
 using Modern = ModernWpf.Controls;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
@@ -45,7 +46,11 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         public Settings Settings { get; }
         public KeywordViewModel[] Keywords { get; }
         public IconThemeViewModel[] IconThemes { get; }
-        public string CachedIconsFileSize => iconProvider.GetCachedIconsMemorySize();
+        public string CachedIconsFileSize => iconProvider.GeneratedImagesDirectoryInfo.EnumerateFiles()
+			.Select(file => file.Length)
+	        .Aggregate(0L, (a, b) => a + b)
+			.Bytes()
+			.Humanize();
 
         public KeywordViewModel SelectedKeyword
         {
@@ -60,7 +65,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 	        {
 		        Title = "Clear Cached Icons",
 		        Content = $"Delete cached notebook and sections icons.\n" +
-		                  $"This will delete {iconProvider.CachedIconCount} icon{(iconProvider.CachedIconCount != 1 ? "s" : string.Empty)}.",
+		                  $"This will delete {"icon".ToQuantity(iconProvider.CachedIconCount)}.",
 		        PrimaryButtonText = "Yes",
 		        CloseButtonText = "Cancel",
 		        DefaultButton = Modern.ContentDialogButton.Close,

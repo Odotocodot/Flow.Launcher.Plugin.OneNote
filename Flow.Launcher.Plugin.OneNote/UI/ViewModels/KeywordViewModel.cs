@@ -1,10 +1,10 @@
 ﻿using System.Reflection;
 using System.Linq;
-using System.Text.RegularExpressions;
+using Humanizer;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
-    public partial class KeywordViewModel : BaseModel
+    public class KeywordViewModel : BaseModel
     {
         private object Instance { get; init; }
         private PropertyInfo PropertyInfo { get; init; }
@@ -19,8 +19,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
                 OnPropertyChanged();
             }
         }
-
-
+        
         public static KeywordViewModel[] GetKeywordViewModels(Keywords keywords)
         {
             return keywords.GetType()
@@ -29,12 +28,9 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
                            {
                                Instance = keywords,
                                PropertyInfo = p,
-                               Name = NicfyPropertyName().Replace(p.Name, " $1"),
+                               Name = p.Name.Humanize(LetterCasing.Title)
                            })
                            .ToArray();
         }
-
-        [GeneratedRegex("(\\B[A-Z])")]
-        private static partial Regex NicfyPropertyName();
     }
 }

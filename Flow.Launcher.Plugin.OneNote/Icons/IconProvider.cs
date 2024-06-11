@@ -178,43 +178,6 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
             OnPropertyChanged(nameof(CachedIconCount));
         }
 
-
-        public string GetCachedIconsMemorySize()
-        {
-            var i = GeneratedImagesDirectoryInfo.EnumerateFiles()
-                .Select(file => file.Length)
-                .Aggregate(0L, (a, b) => a + b);
-            
-            // Returns the human-readable file size for an arbitrary, 64-bit file size 
-            // The default format is "0.### XB", e.g. "4.2 KB" or "1.434 GB"
-            // Get absolute value
-            long absolute_i = Math.Abs(i);
-            // Determine the suffix and readable value
-            string suffix;
-            double readable;
-            switch (absolute_i)
-            {
-                case >= 0x40000000: // Gigabyte 
-                    suffix = "GB";
-                    readable = i >> 20;
-                    break;
-                case >= 0x100000: // Megabyte 
-                    suffix = "MB";
-                    readable = i >> 10;
-                    break;
-                case >= 0x400:
-                    suffix = "KB"; // Kilobyte 
-                    readable = i;
-                    break;
-                default:
-                    return i.ToString("0 B"); // Byte
-            }
-            // Divide by 1024 to get fractional value
-            readable /= 1024;
-            // Return formatted number with suffix
-            return readable.ToString("0.## ") + suffix;
-        }
-
         public void Dispose()
         {
             settings.PropertyChanged -= OnIconThemeChanged;

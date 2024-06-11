@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Flow.Launcher.Plugin.OneNote.Icons;
+using Humanizer;
 using Odotocodot.OneNote.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote
@@ -23,7 +23,8 @@ namespace Flow.Launcher.Plugin.OneNote
             this.context = context;
         }
 
-        private static string GetNicePath(IOneNoteItem item, string separator = PathSeparator) => item.RelativePath.Replace(OneNoteApplication.RelativePathSeparator.ToString(), separator);
+        private static string GetNicePath(IOneNoteItem item, string separator = PathSeparator) =>
+            item.RelativePath.Replace(OneNoteApplication.RelativePathSeparator.ToString(), separator);
 
         private string GetTitle(IOneNoteItem item, List<int> highlightData)
         {
@@ -42,37 +43,6 @@ namespace Flow.Launcher.Plugin.OneNote
             }
             return title;
             
-        }
-        //TODO replace with humanizer
-        private static string GetLastEdited(TimeSpan diff)
-        {
-            string lastEdited = "Last edited ";
-            if (PluralCheck(diff.TotalDays, "day", ref lastEdited)
-                || PluralCheck(diff.TotalHours, "hour", ref lastEdited)
-                || PluralCheck(diff.TotalMinutes, "min", ref lastEdited)
-                || PluralCheck(diff.TotalSeconds, "sec", ref lastEdited))
-            {
-                return lastEdited;
-            }
-            else
-            {
-                return lastEdited += "Now.";
-            }
-
-            static bool PluralCheck(double totalTime, string timeType, ref string lastEdited)
-            {
-                var roundedTime = (int)Math.Round(totalTime);
-                if (roundedTime > 0)
-                {
-                    string plural = roundedTime == 1 ? string.Empty : "s";
-                    lastEdited += $"{roundedTime} {timeType}{plural} ago.";
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
         }
         
         private string GetAutoCompleteText(IOneNoteItem item) 
@@ -246,7 +216,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateRecentPageResult(OneNotePage page)
         {
             var result = CreateOneNoteItemResult(page, false, null);
-            result.SubTitle = $"{GetLastEdited(DateTime.Now - page.LastModified)}\t{result.SubTitle}";
+            result.SubTitle = $"{page.LastModified.Humanize()}\t{result.SubTitle}";
             result.IcoPath = iconProvider.Recent;
             return result;
         }
