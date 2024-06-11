@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Flow.Launcher.Plugin.OneNote.Icons;
 using Modern = ModernWpf.Controls;
@@ -12,9 +13,10 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 
         public SettingsViewModel(PluginInitContext context, Settings settings, IconProvider iconProvider)
         {
-            Settings = settings;
-            Keywords = KeywordViewModel.GetKeywordViewModels(settings.Keywords);
             this.iconProvider = iconProvider;
+            Settings = settings;
+            Keywords = KeywordViewModel.GetKeywordViewModels(settings.Keywords); 
+            IconThemes = IconThemeViewModel.GetIconThemeViewModels(context);
             
             EditCommand = new RelayCommand(
 	            _ => new Views.ChangeKeywordWindow(this, context).ShowDialog(), //Avert your eyes! This is not MVVM!
@@ -42,6 +44,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         public ICommand ClearCachedIconsCommand { get; }
         public Settings Settings { get; }
         public KeywordViewModel[] Keywords { get; }
+        public IconThemeViewModel[] IconThemes { get; }
         public string CachedIconsFileSize => iconProvider.GetCachedIconsMemorySize();
 
         public KeywordViewModel SelectedKeyword
@@ -49,7 +52,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 	        get => selectedKeyword;
 	        set => SetProperty(ref selectedKeyword, value);
         }
-
+        
         //quick and dirty non MVVM stuffs
         private async Task ClearCachedIcons()
         {

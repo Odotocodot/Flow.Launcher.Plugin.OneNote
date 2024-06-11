@@ -3,7 +3,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:icon="clr-namespace:Flow.Launcher.Plugin.OneNote.Icons"
     xmlns:linq="clr-namespace:System.Linq;assembly=System.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
@@ -20,14 +19,6 @@
                 <ui:ThemeResources />
                 <ResourceDictionary Source="/Flow.Launcher.Plugin.OneNote;component/UI/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <ObjectDataProvider
-                x:Key="IconThemeEnumDataSource"
-                MethodName="GetValues"
-                ObjectType="{x:Type sys:Enum}">
-                <ObjectDataProvider.MethodParameters>
-                    <x:Type TypeName="icon:IconTheme" />
-                </ObjectDataProvider.MethodParameters>
-            </ObjectDataProvider>
             <ObjectDataProvider
                 x:Key="DefaultRecentCountOptions"
                 MethodName="Range"
@@ -126,8 +117,33 @@
                     Width="100"
                     Margin="10,0,18,0"
                     HorizontalContentAlignment="Center"
-                    ItemsSource="{Binding Source={StaticResource IconThemeEnumDataSource}}"
-                    SelectedItem="{Binding Settings.IconTheme}" />
+                    ItemsSource="{Binding IconThemes}"
+                    SelectedValue="{Binding Settings.IconTheme}"
+                    SelectedValuePath="IconTheme">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:IconThemeViewModel}">
+                            <StackPanel Orientation="Horizontal" ToolTip="{Binding Tooltip}">
+                                <Image
+                                    x:Name="ImageIcon"
+                                    Width="32"
+                                    UseLayoutRounding="True" 
+                                    SnapsToDevicePixels="True"
+                                    Height="32"
+                                    Source="{Binding ImageUri}" />
+                                <TextBlock
+                                    x:Name="TextBlockIconTheme"
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="{Binding IconTheme}" />
+                            </StackPanel>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ComboBoxItem}}" Value="{x:Null}">
+                                    <Setter TargetName="ImageIcon" Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
                 <ui:FontIcon Glyph="&#xe790;" Style="{StaticResource Glyph}" />
             </ItemsControl>
         </Border>

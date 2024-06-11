@@ -5,13 +5,14 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
 		public const string ImagesDirectory = "Images/";
 		public const string GeneratedImagesDirectory = $"{ImagesDirectory}Generated/";
 		
+		public const string Logo = "logo";
+		
 		public const string Notebook = "notebook";
 		public const string SectionGroup = "section_group";
 		public const string RecycleBin = "recycle_bin";
 		public const string Section = "section";
 		public const string Page = "page";
 		
-		public const string Logo = "logo";
 		public const string Sync = "sync";
 		public const string Search = "search";
 		public const string Recent = "page_recent";

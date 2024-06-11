@@ -76,7 +76,7 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
             }
         }
 
-        private string GetIconLocal(string icon) => $"Images/{icon}.{GetIconThemeString(settings.IconTheme)}.png";
+        private string GetIconLocal(string icon) => $"{IC.ImagesDirectory}{icon}.{GetIconThemeString(settings.IconTheme)}.png";
 
         private string GetIconThemeString(IconTheme iconTheme)
         {
