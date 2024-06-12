@@ -73,7 +73,6 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             context.API.VisibilityChanged -= OnVisibilityChanged;
             semaphore.Dispose();
-            iconProvider.Dispose();
             OneNoteApplication.ReleaseComObject();
         }
     }

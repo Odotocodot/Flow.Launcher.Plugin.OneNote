@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -11,7 +10,7 @@ using IC = Flow.Launcher.Plugin.OneNote.Icons.IconConstants;
 
 namespace Flow.Launcher.Plugin.OneNote.Icons
 {
-    public class IconProvider : BaseModel, IDisposable
+    public class IconProvider : BaseModel
     {
         public const string Logo = IC.ImagesDirectory + IC.Logo;
         public string Sync => GetIconLocal(IC.Sync);
@@ -36,8 +35,6 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
         public int CachedIconCount => iconCache.Keys.Count(k => char.IsDigit(k.Split('.')[1][1]));
         
         private readonly PluginInitContext context;
-        
-        private readonly WindowsThemeWatcher windowsThemeWatcher = new ();
 
         public IconProvider(PluginInitContext context, Settings settings)
         {
@@ -48,44 +45,35 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
             this.context = context;
             this.settings = settings;
 
-            if (settings.IconTheme == IconTheme.System)
-            {
-                windowsThemeWatcher.StartWatching();
-            }
-
-            settings.PropertyChanged += OnIconThemeChanged;
-
             foreach (var image in GeneratedImagesDirectoryInfo.EnumerateFiles())
             {
                 iconCache.TryAdd(image.Name, BitmapImageFromPath(image.FullName));
             }
         }
-
-        private void OnIconThemeChanged(object sender, PropertyChangedEventArgs args)
-        {
-            if (args.PropertyName != nameof(Settings.IconTheme)) 
-                return;
-            
-            if (settings.IconTheme == IconTheme.System)
-            {
-                windowsThemeWatcher.StartWatching();
-            }
-            else
-            {
-                windowsThemeWatcher.StopWatching();
-            }
-        }
-
+        
         private string GetIconLocal(string icon) => $"{IC.ImagesDirectory}{icon}.{GetIconThemeString(settings.IconTheme)}.png";
 
         private string GetIconThemeString(IconTheme iconTheme)
         {
             if (iconTheme == IconTheme.System)
             {
-                iconTheme = windowsThemeWatcher.CurrentWindowsTheme.ToIconTheme();
+                iconTheme = FlowLauncherThemeToIconTheme();
             }
             return Enum.GetName(iconTheme).ToLower();
         }
+        
+        private static IconTheme FlowLauncherThemeToIconTheme()
+        {
+            var color05B = (SolidColorBrush)Application.Current.TryFindResource("Color05B"); //Alt key "SystemControlPageTextBaseHighBrush"
+            if (color05B == null)
+                return IconTheme.Light;
+
+            var color = color05B.Color;
+            return 5 * color.G + 2 * color.R + color.B > 8 * 128 //Is the color light?
+                ? IconTheme.Light 
+                : IconTheme.Dark;
+        }
+        
         private static BitmapImage BitmapImageFromPath(string path) => new BitmapImage(new Uri(path));
 
         public Result.IconDelegate GetIcon(IconGeneratorInfo info)
@@ -176,12 +164,6 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
                 
             }
             OnPropertyChanged(nameof(CachedIconCount));
-        }
-
-        public void Dispose()
-        {
-            settings.PropertyChanged -= OnIconThemeChanged;
-            windowsThemeWatcher.Dispose();
         }
     }
 }
