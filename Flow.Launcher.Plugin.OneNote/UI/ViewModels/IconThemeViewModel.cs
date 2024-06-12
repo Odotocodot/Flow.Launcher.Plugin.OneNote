@@ -9,26 +9,29 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 		private IconThemeViewModel(IconTheme iconTheme, PluginInitContext context)
 		{
 			IconTheme = iconTheme;
-			string iconThemeString;
 			if (iconTheme == IconTheme.System)
 			{
-				//TODO: Implement this
-				iconThemeString = Enum.GetName(IconTheme.Light).ToLower();
-				//ThemeManager.Current.ActualApplicationTheme
-				Tooltip = "Match the system theme";
+				Name = "FL Default";
+				ImageUri = GetUri(IconTheme.Light.ToString(), context);
+				ImageUri2 = GetUri(IconTheme.Dark.ToString(), context);
+				Tooltip = "Matches Flow Launcher's app theme";
 			}
 			else
 			{
-				iconThemeString = Enum.GetName(iconTheme).ToLower();
+				Name = Enum.GetName(iconTheme);
+				ImageUri = GetUri(Name, context);
 			}
-			ImageUri = new Uri(
-				$"{context.CurrentPluginMetadata.PluginDirectory}/{IconConstants.ImagesDirectory}{IconConstants.Notebook}.{iconThemeString}.png");
 		}
 
+		private static Uri GetUri(string theme, PluginInitContext context) =>
+			new($"{context.CurrentPluginMetadata.PluginDirectory}/{IconConstants.ImagesDirectory}{IconConstants.Notebook}.{theme.ToLower()}.png");
+
+		public string Name { get; }
 		public IconTheme IconTheme { get; }
 		public Uri ImageUri { get; }
+		public Uri ImageUri2 { get; }
 		public string Tooltip { get; }
-
+		
 		public static IconThemeViewModel[] GetIconThemeViewModels(PluginInitContext context) => 
 			Enum.GetValues<IconTheme>().Select(iconTheme => new IconThemeViewModel(iconTheme, context)).ToArray();
 	}

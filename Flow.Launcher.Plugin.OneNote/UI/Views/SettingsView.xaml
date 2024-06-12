@@ -110,11 +110,11 @@
         <Border Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
-                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Icon theme" />
+                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Icon color theme" />
                 </StackPanel>
                 <ComboBox
                     Grid.Column="2"
-                    Width="100"
+                    Width="130"
                     Margin="10,0,18,0"
                     HorizontalContentAlignment="Center"
                     ItemsSource="{Binding IconThemes}"
@@ -123,22 +123,32 @@
                     <ComboBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:IconThemeViewModel}">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding Tooltip}">
-                                <Image
-                                    x:Name="ImageIcon"
-                                    Width="32"
-                                    UseLayoutRounding="True" 
-                                    SnapsToDevicePixels="True"
-                                    Height="32"
-                                    Source="{Binding ImageUri}" />
+                                <Grid x:Name="GridImages">
+                                    <Image
+                                        Width="32"
+                                        UseLayoutRounding="True" 
+                                        SnapsToDevicePixels="True"
+                                        Height="32"
+                                        Source="{Binding ImageUri}" />
+                                    <Image
+                                        Width="32"
+                                        UseLayoutRounding="True"
+                                        SnapsToDevicePixels="True"
+                                        Height="32"
+                                        Source="{Binding ImageUri2}">
+                                        <Image.Clip>
+                                            <RectangleGeometry Rect="14,0,18,32"></RectangleGeometry>
+                                        </Image.Clip>
+                                    </Image>
+                                </Grid>
                                 <TextBlock
-                                    x:Name="TextBlockIconTheme"
                                     Margin="8,0,0,0"
                                     VerticalAlignment="Center"
-                                    Text="{Binding IconTheme}" />
+                                    Text="{Binding Name}" />
                             </StackPanel>
                             <DataTemplate.Triggers>
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ComboBoxItem}}" Value="{x:Null}">
-                                    <Setter TargetName="ImageIcon" Property="Visibility" Value="Collapsed" />
+                                    <Setter TargetName="GridImages" Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>
@@ -158,7 +168,7 @@
                 </StackPanel>
                 <ComboBox
                     Grid.Column="2"
-                    Width="100"
+                    Width="130"
                     Margin="10,0,18,0"
                     HorizontalContentAlignment="Center"
                     ItemsSource="{Binding Source={StaticResource DefaultRecentCountOptions}}"
