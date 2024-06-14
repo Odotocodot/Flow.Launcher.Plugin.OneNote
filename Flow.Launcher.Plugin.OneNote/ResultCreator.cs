@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Controls;
 using Flow.Launcher.Plugin.OneNote.Icons;
+using Flow.Launcher.Plugin.OneNote.UI.Views;
 using Humanizer;
 using Odotocodot.OneNote.Linq;
 
@@ -92,6 +95,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     Title = "New quick note",
                     IcoPath = iconProvider.QuickNote,
                     Score = -4000,
+                    PreviewPanel = new Lazy<UserControl>(() => new NewOneNotePagePreviewPanel(context, null, null)),
                     Action = c =>
                     {
                         OneNoteApplication.CreateQuickNote(true);
@@ -228,6 +232,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 SubTitle = $"Path: {GetNicePath(section)}{PathSeparator}{newPageName}",
                 AutoCompleteText = $"{GetAutoCompleteText}{newPageName}",
                 IcoPath = iconProvider.NewPage,
+                PreviewPanel = new Lazy<UserControl>(() => new NewOneNotePagePreviewPanel(context, section, newPageName)),
                 Action = c =>
                 {
                     OneNoteApplication.CreatePage(section, newPageName, true);
@@ -380,20 +385,21 @@ namespace Flow.Launcher.Plugin.OneNote
                     // Can create page
                     if (!section.Locked)
                     {
-                        results.Add(NoItemsInCollectionResult("page", iconProvider.NewPage));
+                        results.Add(NoItemsInCollectionResult("page", iconProvider.NewPage, section: section));
                     }
                     break;
             }
 
             return results;
 
-            static Result NoItemsInCollectionResult(string title, string iconPath, string subTitle = null)
+            Result NoItemsInCollectionResult(string title, string iconPath, string subTitle = null, OneNoteSection section = null)
             {
                 return new Result
                 {
                     Title = $"Create {title}: \"\"",
                     SubTitle = $"No {subTitle ?? title}s found. Type a valid title to create one",
                     IcoPath = iconPath,
+                    PreviewPanel = section != null ? new Lazy<UserControl>(() => new NewOneNotePagePreviewPanel(context, section, null)) : null ,
                 };
             }
         }
