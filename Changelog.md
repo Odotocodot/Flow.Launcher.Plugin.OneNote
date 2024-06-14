@@ -1,24 +1,15 @@
-### Unreleased
-
-- [x] Add Icon Themes ( change the smelly OneNoteItemIcons class)
-  - This involves doing up the icons.GetIcon method.
-  - Needs a setting for icons 
-  - Colored Icons takes precedence over the light and dark icons.
-  - will need to check powerytoys for getting the imageSource/Bitmap source thing.
-- [x] Fix clearing cached icons button
-- [x] Implement PluginTheme setting
-- [ ] Maybe use AsParallel for getting recent items [link](https://devblogs.microsoft.com/pfxteam/plinq-ordering/)
-- [ ] Make static icon class non static icon provider
-- [ ] refactor settings
-- [ ] Add stuff to new page with title and discription see iseue.
+### 2.1.0 - 2024-6-14
 #### Added
 - New and improved icons.
-- New setting for plugin theme: system, light, dark and color.
+- New preview panel for creating pages (Closes [#20](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/20))
+- New setting for icon theme: system, light, dark and color.
 
 #### Changed
 - Refactored icon generation.
+- Refactored settings view.
 
 #### Removed
+
 
 
 

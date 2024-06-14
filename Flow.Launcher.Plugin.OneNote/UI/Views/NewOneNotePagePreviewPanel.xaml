@@ -18,6 +18,9 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Command="{Binding CreateCommand}" Gesture="CTRL+S" />
+    </UserControl.InputBindings>
     <DockPanel Margin="10,5,5,5" LastChildFill="True">
         <DockPanel>
             <Grid
@@ -44,10 +47,10 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <TextBox
-                    Grid.Row="0"
                     x:Name="TextBoxPageTitle"
+                    Grid.Row="0"
                     ui:ControlHelper.PlaceholderText="Page Title"
-                    Text="{Binding PageTitle}" />
+                    Text="{Binding PageTitle, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBox
                     Grid.Row="2"
                     ui:ControlHelper.PlaceholderText="Page Content"
@@ -56,8 +59,8 @@
                     AcceptsReturn="True"
                     HorizontalScrollBarVisibility="Auto"
                     MinLines="3"
-                    Text="{Binding PageContent}"
-                    TextWrapping="NoWrap"
+                    Text="{Binding PageContent, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap"
                     VerticalScrollBarVisibility="Auto" />
                 <WrapPanel
                     Grid.Row="4"
@@ -67,17 +70,17 @@
                         Width="70"
                         Height="{Binding ElementName=ButtonCreateAndOpen, Path=ActualHeight}"
                         Margin="4,0,25,0"
-                        ToolTip="Creates a page in OneNote"
                         Command="{Binding CreateCommand}"
                         Content="Create"
-                        Style="{DynamicResource SettingButton}" />
+                        Style="{DynamicResource SettingButton}"
+                        ToolTip="Creates a page in OneNote (CTRL+S)" />
                     <Button
                         x:Name="ButtonCreateAndOpen"
                         Width="70"
                         Margin="25,0,4,0"
-                        ToolTip="Creates a page in OneNote and opens it"
                         Command="{Binding CreateAndOpenCommand}"
-                        Style="{DynamicResource SettingButton}">
+                        Style="{DynamicResource SettingButton}"
+                        ToolTip="Creates a page in OneNote and opens it">
                         <TextBlock TextAlignment="Center">
                             Create<LineBreak />
                             &amp; Open</TextBlock>

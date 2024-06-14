@@ -10,8 +10,8 @@ public partial class NewOneNotePagePreviewPanel : UserControl
 {
 	public NewOneNotePagePreviewPanel(PluginInitContext context, OneNoteSection section, string pageTitle)
 	{
-		InitializeComponent();
 		DataContext = new NewOneNotePageViewModel(context, section, pageTitle);
+		InitializeComponent();
 	}
 	private void NewOneNotePagePreviewPanel_OnLoaded(object sender, RoutedEventArgs e)
 	{
@@ -25,12 +25,12 @@ public partial class NewOneNotePagePreviewPanel : UserControl
 		
 		if (e.Source is not (TextBox or Button)) 
 			return;
-
+		
 		var focusNavigationDirection = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)
 			? FocusNavigationDirection.Previous
 			: FocusNavigationDirection.Next;
 		((UIElement)Keyboard.FocusedElement)?.MoveFocus(new TraversalRequest(focusNavigationDirection));
-
+		
 		e.Handled = true;
 	}
 }

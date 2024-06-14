@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Input;
+using Flow.Launcher.Plugin.OneNote.Icons;
 using Odotocodot.OneNote.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
@@ -29,10 +30,17 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			pageContentXml = pageContentXml.Insert(pageContentXml.IndexOf("</one:Page>", StringComparison.Ordinal), xmlWrap);
 			OneNoteApplication.UpdatePageContent(pageContentXml);
 			Main.ForceReQuery();
-			if (!openImmediately) 
-				return;
-			page.OpenInOneNote();
-			context.API.HideMainWindow();
+			if (openImmediately)
+			{
+				page.OpenInOneNote();
+				context.API.HideMainWindow();
+			}
+			else
+			{
+				context.API.ShowMsg("Page Created in OneNote", 
+					$"Title: {PageTitle}", 
+					$"{context.CurrentPluginMetadata.PluginDirectory}/{IconProvider.Logo}");
+			}
 		}
 		public string PageTitle
 		{
