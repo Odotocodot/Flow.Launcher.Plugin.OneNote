@@ -126,18 +126,18 @@
                                 <Grid x:Name="GridImages">
                                     <Image
                                         Width="32"
-                                        UseLayoutRounding="True" 
-                                        SnapsToDevicePixels="True"
                                         Height="32"
-                                        Source="{Binding ImageUri}" />
+                                        SnapsToDevicePixels="True"
+                                        Source="{Binding ImageUri}"
+                                        UseLayoutRounding="True" />
                                     <Image
                                         Width="32"
-                                        UseLayoutRounding="True"
-                                        SnapsToDevicePixels="True"
                                         Height="32"
-                                        Source="{Binding ImageUri2}">
+                                        SnapsToDevicePixels="True"
+                                        Source="{Binding ImageUri2}"
+                                        UseLayoutRounding="True">
                                         <Image.Clip>
-                                            <RectangleGeometry Rect="14,0,18,32"></RectangleGeometry>
+                                            <RectangleGeometry Rect="14,0,18,32" />
                                         </Image.Clip>
                                     </Image>
                                 </Grid>

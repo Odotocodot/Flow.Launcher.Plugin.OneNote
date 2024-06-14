@@ -208,10 +208,8 @@ namespace Flow.Launcher.Plugin.OneNote
         }
         
         
-        public Result CreatePageResult(OneNotePage page, string query)
-        {
-            return CreateOneNoteItemResult(page, false, string.IsNullOrWhiteSpace(query) ? null : context.API.FuzzySearch(query, page.Name).MatchData);
-        }
+        public Result CreatePageResult(OneNotePage page, string query) 
+            => CreateOneNoteItemResult(page, false, string.IsNullOrWhiteSpace(query) ? null : context.API.FuzzySearch(query, page.Name).MatchData);
 
         public Result CreateRecentPageResult(OneNotePage page)
         {
@@ -233,6 +231,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Action = c =>
                 {
                     OneNoteApplication.CreatePage(section, newPageName, true);
+                    Main.ForceReQuery();
                     return true;
                 },
             };
@@ -268,7 +267,7 @@ namespace Flow.Launcher.Plugin.OneNote
                             break;
                     }
 
-                    context.API.ChangeQuery(ActionKeyword, true);
+                    Main.ForceReQuery();
                     return true;
                 },
             };
@@ -304,7 +303,7 @@ namespace Flow.Launcher.Plugin.OneNote
                             break;
                     }
 
-                    context.API.ChangeQuery(ActionKeyword, true);
+                    Main.ForceReQuery();
                     return true;
                 },
             };
@@ -331,7 +330,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     }
 
                     OneNoteApplication.CreateNotebook(newNotebookName, true);
-                    context.API.ChangeQuery(ActionKeyword, true);
+                    Main.ForceReQuery();
                     return true;
                 },
             };
@@ -368,6 +367,7 @@ namespace Flow.Launcher.Plugin.OneNote
         }
         public List<Result> NoItemsInCollection(List<Result> results, IOneNoteItem parent)
         {
+            // parent can be null if the collection only contains notebooks.
             switch (parent)
             {
                 case OneNoteNotebook:

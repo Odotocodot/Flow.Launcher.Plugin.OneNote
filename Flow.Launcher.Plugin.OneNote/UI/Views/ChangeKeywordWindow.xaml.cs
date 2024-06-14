@@ -10,10 +10,5 @@ namespace Flow.Launcher.Plugin.OneNote.UI.Views
             InitializeComponent();
             DataContext = new ChangeKeywordViewModel(viewModel, context, Close);
         }
-
-        private void WindowLoaded(object sender, RoutedEventArgs e)
-        {
-            TextBox_NewKeyword.Focus();
-        }
     }
 }

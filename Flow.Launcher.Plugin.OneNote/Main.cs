@@ -18,6 +18,9 @@ namespace Flow.Launcher.Plugin.OneNote
         private IconProvider iconProvider;
 
         private static SemaphoreSlim semaphore;
+        private static Main instance;
+        
+        private Query currentQuery;
         public Task InitAsync(PluginInitContext context)
         {
             this.context = context;
@@ -27,6 +30,7 @@ namespace Flow.Launcher.Plugin.OneNote
             searchManager = new SearchManager(context, settings, resultCreator);
             semaphore = new SemaphoreSlim(1,1);
             context.API.VisibilityChanged += OnVisibilityChanged;
+            instance = this;
             return Task.CompletedTask;
         }
 
@@ -49,6 +53,7 @@ namespace Flow.Launcher.Plugin.OneNote
         }
         public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
         {
+            currentQuery = query;
             var init = OneNoteInitAsync(token);
 
             if (string.IsNullOrEmpty(query.Search))
@@ -57,6 +62,11 @@ namespace Flow.Launcher.Plugin.OneNote
             await init;
 
             return searchManager.Query(query);
+        }
+
+        public static void ForceReQuery()
+        {
+            instance.context.API.ChangeQuery(instance.currentQuery.RawQuery, true);
         }
 
         public List<Result> LoadContextMenus(Result selectedResult)

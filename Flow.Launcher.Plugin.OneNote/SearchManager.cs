@@ -189,7 +189,6 @@ namespace Flow.Launcher.Plugin.OneNote
                                                  .ToList();
                 if (results.Any()) 
                     return results;
-                // parent can be null if the collection only contains notebooks.
                 return resultCreator.NoItemsInCollection(results, parent);
             }
 

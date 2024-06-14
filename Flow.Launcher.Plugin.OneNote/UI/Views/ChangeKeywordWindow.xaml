@@ -10,7 +10,7 @@
     d:DataContext="{d:DesignInstance Type=vm:ChangeKeywordViewModel}"
     Background="{DynamicResource PopuBGColor}"
     Foreground="{DynamicResource PopupTextColor}"
-    Loaded="WindowLoaded"
+    FocusManager.FocusedElement="{Binding ElementName=TextBox_NewKeyword}"
     ResizeMode="NoResize"
     SizeToContent="Height"
     WindowStartupLocation="CenterScreen"

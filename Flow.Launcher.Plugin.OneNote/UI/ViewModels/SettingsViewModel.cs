@@ -38,6 +38,13 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 		            CommandManager.InvalidateRequerySuggested();
 	            }
             };
+            settings.PropertyChanged += (_, args) =>
+			{
+	            if (args.PropertyName == nameof(Settings.IconTheme))
+	            {
+		            Main.ForceReQuery();
+	            }
+			};
             SelectedKeyword = Keywords[0];
         }
         public ICommand EditCommand { get; }
