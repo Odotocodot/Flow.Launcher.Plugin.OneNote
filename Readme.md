@@ -24,7 +24,7 @@ A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-t
   - [Title Search](#title-search)
 - [Settings](#settings)
   - [Keywords](#keywords)
-- [Changelog](#200---2023-10-05)
+- [Changelog](#changelog)
 - [Acknowledgements](#acknowledgements)
 
 ## Installation
@@ -36,7 +36,7 @@ pm install OneNote
 ```
 
 > [!IMPORTANT]
-> For [version 2.0+](#200---2023-10-05) requires at Flow Launcher version 1.16+. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
+> For [version 2.0+](#changelog) requires at Flow Launcher version 1.16+. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
 
 ## Features
 
@@ -178,43 +178,9 @@ All the keywords used can be changed according to user preference.
   <img src= "doc/keywords.png" width="823" height="276" alt="keywords">
 </details>
 
-<details>
-  <summary><h2 id="changelog">2.0.0 Changelog: Massive Refactor and New Features</h2></summary>
+## Changelog
 
-<!-- omit from toc -->
-### 2.0.0 - 2023-10-05
-
-<!-- omit from toc -->
-#### Added
-
-- **[Created custom OneNote parser/library](https://github.com/Odotocodot/Linq2OneNote)**, adding the ability for several new features.
-- Support for section groups when using the notebook explorer.
-- Support for displaying unread results.
-- Support for showing locked sections in results (you still can't see inside them unless they are unlocked).
-- The ability to search by only title.
-- The ability to do a scoped search (e.g. search in one section only).
-- **Settings!** You can change these options:
-  - Show unread icons.
-  - Show encrypted sections.
-  - Show recycle bin items.
-  - Created coloured icons for notebook and sections.
-  - Default number of recent pages
-  - **Customisable keywords!**
-
-<!-- omit from toc -->
-#### Changed
-
-- Compressed images.
-- Reduced the calls to create a OneNote COM object, this should lead to a overall smoother experience.
-- Updated to .NET 7 (update Flow Launcher if an error persists).
-- Refactored majority of code and project structure.
-
-<!-- omit from toc -->
-#### Removed
-
-- [Scipbe.Common.Office.OneNote](https://github.com/scipbe/ScipBe-Common-Office) package reference.
-
-</details>
+See [here](Changelog.md) for the full list of changes.
 
 ## Acknowledgements
 
