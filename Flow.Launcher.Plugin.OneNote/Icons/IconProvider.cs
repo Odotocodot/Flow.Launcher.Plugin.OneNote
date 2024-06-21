@@ -47,7 +47,9 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
 
             foreach (var image in GeneratedImagesDirectoryInfo.EnumerateFiles())
             {
-                iconCache.TryAdd(image.Name, BitmapImageFromPath(image.FullName));
+                var imageSource = BitmapImageFromPath(image.FullName);
+                imageSource.Freeze();
+                iconCache.TryAdd(image.Name, imageSource);
             }
         }
         
@@ -143,6 +145,7 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
             }
             writeableBitmap.WritePixels(new Int32Rect(0, 0, writeableBitmap.PixelWidth, pixelHeight),
                 pixelData, stride, 0);
+            writeableBitmap.Freeze();
             
             return writeableBitmap;
         }
