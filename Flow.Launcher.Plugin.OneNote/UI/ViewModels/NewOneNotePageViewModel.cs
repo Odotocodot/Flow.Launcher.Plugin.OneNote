@@ -34,6 +34,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			{
 				page.OpenInOneNote();
 				context.API.HideMainWindow();
+				WindowHelper.FocusOneNote();
 			}
 			else
 			{

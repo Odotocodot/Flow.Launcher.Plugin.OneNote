@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using Flow.Launcher.Plugin.OneNote.Icons;
 using Flow.Launcher.Plugin.OneNote.UI.Views;
@@ -99,6 +100,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     Action = c =>
                     {
                         OneNoteApplication.CreateQuickNote(true);
+                        WindowHelper.FocusOneNote();
                         return true;
                     },
                 },
@@ -120,6 +122,8 @@ namespace Flow.Launcher.Plugin.OneNote
                                  .OrderByDescending(pg => pg.LastModified)
                                  .First()
                                  .OpenInOneNote();
+                        
+                        WindowHelper.FocusOneNote();
                         return true;
                     },
                 },
@@ -196,7 +200,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 Score = score,
                 Icon = iconProvider.GetIcon(iconInfo),
                 ContextData = item,
-                Action = c =>
+                AsyncAction = async _ =>
                 {
                     if (actionIsAutoComplete)
                     {
@@ -204,8 +208,12 @@ namespace Flow.Launcher.Plugin.OneNote
                         return false;
                     }
 
-                    item.Sync();
-                    item.OpenInOneNote();
+                    await Task.Run(() =>
+                    {
+                        item.Sync();
+                        item.OpenInOneNote();
+                    });
+                    WindowHelper.FocusOneNote();
                     return true;
                 },
             };
@@ -237,6 +245,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 {
                     OneNoteApplication.CreatePage(section, newPageName, true);
                     Main.ForceReQuery();
+                    WindowHelper.FocusOneNote();
                     return true;
                 },
             };
@@ -273,6 +282,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     }
 
                     Main.ForceReQuery();
+                    WindowHelper.FocusOneNote();
                     return true;
                 },
             };
@@ -309,6 +319,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     }
 
                     Main.ForceReQuery();
+                    WindowHelper.FocusOneNote();
                     return true;
                 },
             };
@@ -336,6 +347,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     OneNoteApplication.CreateNotebook(newNotebookName, true);
                     Main.ForceReQuery();
+                    WindowHelper.FocusOneNote();
                     return true;
                 },
             };
