@@ -85,7 +85,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     AutoCompleteText = $"{ActionKeyword} {settings.Keywords.RecentPages}",
                     IcoPath = iconProvider.Recent,
                     Score = -1000,
-                    Action = c =>
+                    Action = _ =>
                     {
                         context.API.ChangeQuery($"{ActionKeyword} {settings.Keywords.RecentPages}", true);
                         return false;
@@ -96,8 +96,8 @@ namespace Flow.Launcher.Plugin.OneNote
                     Title = "New quick note",
                     IcoPath = iconProvider.QuickNote,
                     Score = -4000,
-                    PreviewPanel = new Lazy<UserControl>(() => new NewOneNotePagePreviewPanel(context, null, null)),
-                    Action = c =>
+                    PreviewPanel = GetNewPagePreviewPanel(null, null),
+                    Action = _ =>
                     {
                         OneNoteApplication.CreateQuickNote(true);
                         WindowHelper.FocusOneNote();
@@ -109,7 +109,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     Title = "Open and sync notebooks",
                     IcoPath = iconProvider.Sync,
                     Score = int.MinValue,
-                    Action = c =>
+                    Action = _ =>
                     {
                         var notebooks = OneNoteApplication.GetNotebooks();
                         foreach (var notebook in notebooks)
@@ -240,8 +240,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 SubTitle = $"Path: {GetNicePath(section)}{PathSeparator}{newPageName}",
                 AutoCompleteText = $"{GetAutoCompleteText}{newPageName}",
                 IcoPath = iconProvider.NewPage,
-                PreviewPanel = new Lazy<UserControl>(() => new NewOneNotePagePreviewPanel(context, section, newPageName)),
-                Action = c =>
+                PreviewPanel = GetNewPagePreviewPanel(section, newPageName),
+                Action = _ =>
                 {
                     OneNoteApplication.CreatePage(section, newPageName, true);
                     Main.ForceReQuery();
@@ -264,7 +264,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         : $"Section names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionChars)}",
                 AutoCompleteText = $"{GetAutoCompleteText}{newSectionName}",
                 IcoPath = iconProvider.NewSection,
-                Action = c =>
+                Action = _ =>
                 {
                     if (!validTitle)
                     {
@@ -301,7 +301,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     : $"Section group names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionGroupChars)}",
                 AutoCompleteText = $"{GetAutoCompleteText}{newSectionGroupName}",
                 IcoPath = iconProvider.NewSectionGroup,
-                Action = c =>
+                Action = _ =>
                 {
                     if (!validTitle)
                     {
@@ -338,7 +338,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     : $"Notebook names cannot contain: {string.Join(' ', OneNoteApplication.InvalidNotebookChars)}",
                 AutoCompleteText = $"{GetAutoCompleteText}{newNotebookName}",
                 IcoPath = iconProvider.NewNotebook,
-                Action = c =>
+                Action = _ =>
                 {
                     if (!validTitle)
                     {
@@ -411,10 +411,14 @@ namespace Flow.Launcher.Plugin.OneNote
                     Title = $"Create {title}: \"\"",
                     SubTitle = $"No {subTitle ?? title}s found. Type a valid title to create one",
                     IcoPath = iconPath,
-                    PreviewPanel = section != null ? new Lazy<UserControl>(() => new NewOneNotePagePreviewPanel(context, section, null)) : null ,
+                    PreviewPanel = section != null ? GetNewPagePreviewPanel(section, null) : null ,
                 };
             }
         }
+
+        private Lazy<UserControl> GetNewPagePreviewPanel(OneNoteSection section, string pageTitle) =>
+            new(() => new NewOneNotePagePreviewPanel(context, section, pageTitle));
+
         public static List<Result> NoMatchesFound()
         {
             return SingleResult("No matches found",
