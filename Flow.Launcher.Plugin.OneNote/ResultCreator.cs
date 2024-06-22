@@ -238,7 +238,7 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 Title = $"Create page: \"{newPageName}\"",
                 SubTitle = $"Path: {GetNicePath(section)}{PathSeparator}{newPageName}",
-                AutoCompleteText = $"{GetAutoCompleteText}{newPageName}",
+                AutoCompleteText = $"{GetAutoCompleteText(section)}{newPageName}",
                 IcoPath = iconProvider.NewPage,
                 PreviewPanel = GetNewPagePreviewPanel(section, newPageName),
                 Action = _ =>
@@ -262,7 +262,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 SubTitle = validTitle
                         ? $"Path: {GetNicePath(parent)}{PathSeparator}{newSectionName}"
                         : $"Section names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionChars)}",
-                AutoCompleteText = $"{GetAutoCompleteText}{newSectionName}",
+                AutoCompleteText = $"{GetAutoCompleteText(parent)}{newSectionName}",
                 IcoPath = iconProvider.NewSection,
                 Action = _ =>
                 {
@@ -299,7 +299,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 SubTitle = validTitle
                     ? $"Path: {GetNicePath(parent)}{PathSeparator}{newSectionGroupName}"
                     : $"Section group names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionGroupChars)}",
-                AutoCompleteText = $"{GetAutoCompleteText}{newSectionGroupName}",
+                AutoCompleteText = $"{GetAutoCompleteText(parent)}{newSectionGroupName}",
                 IcoPath = iconProvider.NewSectionGroup,
                 Action = _ =>
                 {
@@ -336,7 +336,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 SubTitle = validTitle
                     ? $"Location: {OneNoteApplication.GetDefaultNotebookLocation()}"
                     : $"Notebook names cannot contain: {string.Join(' ', OneNoteApplication.InvalidNotebookChars)}",
-                AutoCompleteText = $"{GetAutoCompleteText}{newNotebookName}",
+                AutoCompleteText = $"{ActionKeyword} {settings.Keywords.NotebookExplorer}{newNotebookName}",
                 IcoPath = iconProvider.NewNotebook,
                 Action = _ =>
                 {
