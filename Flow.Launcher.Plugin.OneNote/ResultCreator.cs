@@ -17,7 +17,8 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly IconProvider iconProvider;
 
         private const string PathSeparator = " > ";
-        private const string Unread = "\u2022  ";
+        private const string BulletPoint = "\u2022  ";
+        private const string TrianglePoint = "\u2023  ";
 
         private string ActionKeyword => context.CurrentPluginMetadata.ActionKeyword;
         public ResultCreator(PluginInitContext context, Settings settings, IconProvider iconProvider)
@@ -36,14 +37,14 @@ namespace Flow.Launcher.Plugin.OneNote
             if (!item.IsUnread || !settings.ShowUnread) 
                 return title;
             
-            title = title.Insert(0, Unread);
+            title = title.Insert(0, BulletPoint);
 
             if (highlightData == null)
                 return title;
             
             for (int i = 0; i < highlightData.Count; i++)
             {
-                highlightData[i] += Unread.Length;
+                highlightData[i] += BulletPoint.Length;
             }
             return title;
             
@@ -143,19 +144,30 @@ namespace Flow.Launcher.Plugin.OneNote
             {
                 case OneNoteNotebook notebook:
                     toolTip =
-                        $"Last Modified:\t{notebook.LastModified:F}\n" +
-                        $"Sections:\t\t{notebook.Sections.Count()}\n" +
-                        $"Sections Groups:\t{notebook.SectionGroups.Count()}";
+                        $"""
+                         Last Modified:
+                         {TrianglePoint}{notebook.LastModified:F}
+
+                         Contains:
+                         {TrianglePoint}{"section group".ToQuantity(notebook.SectionGroups.Count())}
+                         {TrianglePoint}{"section".ToQuantity(notebook.Sections.Count())}
+                         {TrianglePoint}{"page".ToQuantity(notebook.GetPages().Count())}
+                         """;
 
                     subTitle = string.Empty;
                     iconInfo = new IconGeneratorInfo(notebook);
                     break;
                 case OneNoteSectionGroup sectionGroup:
                     toolTip =
-                        $"Path:\t\t{subTitle}\n" +
-                        $"Last Modified:\t{sectionGroup.LastModified:F}\n" +
-                        $"Sections:\t\t{sectionGroup.Sections.Count()}\n" +
-                        $"Sections Groups:\t{sectionGroup.SectionGroups.Count()}";
+                        $"""
+                         Last Modified:
+                         {TrianglePoint}{sectionGroup.LastModified:F}
+                         
+                         Contains:
+                         {TrianglePoint}{"section group".ToQuantity(sectionGroup.SectionGroups.Count())}
+                         {TrianglePoint}{"section".ToQuantity(sectionGroup.Sections.Count())}
+                         {TrianglePoint}{"page".ToQuantity(sectionGroup.GetPages().Count())}
+                         """;
 
                     iconInfo = new IconGeneratorInfo(sectionGroup);
                     break;
@@ -166,9 +178,13 @@ namespace Flow.Launcher.Plugin.OneNote
                     }
 
                     toolTip =
-                        $"Path:\t\t{subTitle}\n" +
-                        $"Last Modified:\t{section.LastModified}\n" +
-                        $"Pages:\t\t{section.Pages.Count()}";
+                        $"""
+                         Last Modified:
+                         {TrianglePoint}{section.LastModified:F}
+                         
+                         Contains:
+                         {TrianglePoint}{"page".ToQuantity(section.GetPages().Count())}
+                         """;
                     
                     iconInfo = new IconGeneratorInfo(section);
                     break;
@@ -179,7 +195,6 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     subTitle = subTitle[..^(page.Name.Length + PathSeparator.Length)];
                     toolTip =
-                        $"Path:\t\t {subTitle} \n" +
                         $"Created:\t\t{page.Created:F}\n" +
                         $"Last Modified:\t{page.LastModified:F}";
 
@@ -382,6 +397,7 @@ namespace Flow.Launcher.Plugin.OneNote
             }
             return results;
         }
+        
         public List<Result> NoItemsInCollection(List<Result> results, IOneNoteItem parent)
         {
             // parent can be null if the collection only contains notebooks.
