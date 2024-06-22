@@ -12,22 +12,21 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
 {
     public class IconProvider : BaseModel
     {
-        public const string Logo = IC.ImagesDirectory + IC.Logo;
-        public string Sync => GetIconLocal(IC.Sync);
-        public string Search => GetIconLocal(IC.Search);
-        public string Recent => GetIconLocal(IC.Recent);
-        public string NotebookExplorer => GetIconLocal(IC.NotebookExplorer);
+        public const string Logo = IC.ImagesDirectory + IC.Logo + ".png";
+        public string Sync => GetIconPath(IC.Sync);
+        public string Search => GetIconPath(IC.Search);
+        public string Recent => GetIconPath(IC.Recent);
+        public string NotebookExplorer => GetIconPath(IC.NotebookExplorer);
         public string QuickNote => NewPage;
-        public string NewPage => GetIconLocal(IC.NewPage);
-        public string NewSection => GetIconLocal(IC.NewSection);
-        public string NewSectionGroup => GetIconLocal(IC.NewSectionGroup);
-        public string NewNotebook => GetIconLocal(IC.NewNotebook);
+        public string NewPage => GetIconPath(IC.NewPage);
+        public string NewSection => GetIconPath(IC.NewSection);
+        public string NewSectionGroup => GetIconPath(IC.NewSectionGroup);
+        public string NewNotebook => GetIconPath(IC.NewNotebook);
         public string Warning => settings.IconTheme == IconTheme.Color
-                ? $"{IC.ImagesDirectory}{IC.Warning}.{GetIconThemeString(IconTheme.Light)}.png"
-                : GetIconLocal(IC.Warning);
+                ? $"{IC.ImagesDirectory}{IC.Warning}.{GetIconThemeString(IconTheme.Dark)}.png"
+                : GetIconPath(IC.Warning);
         
         private readonly Settings settings;
-        // May need this? https://stackoverflow.com/questions/21867842/concurrentdictionarys-getoradd-is-not-atomic-any-alternatives-besides-locking
         private readonly ConcurrentDictionary<string,ImageSource> iconCache = new();
         private readonly string imagesDirectory;
 
@@ -53,9 +52,9 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
             }
         }
         
-        private string GetIconLocal(string icon) => $"{IC.ImagesDirectory}{icon}.{GetIconThemeString(settings.IconTheme)}.png";
+        private string GetIconPath(string icon) => $"{IC.ImagesDirectory}{icon}.{GetIconThemeString(settings.IconTheme)}.png";
 
-        private string GetIconThemeString(IconTheme iconTheme)
+        private static string GetIconThemeString(IconTheme iconTheme)
         {
             if (iconTheme == IconTheme.System)
             {
@@ -77,31 +76,31 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
         }
         
         private static BitmapImage BitmapImageFromPath(string path) => new BitmapImage(new Uri(path));
-
+        
         public Result.IconDelegate GetIcon(IconGeneratorInfo info)
-        {
-            return () =>
-            {
-                bool generate = (string.CompareOrdinal(info.Prefix, IC.Notebook) == 0
-                                 || string.CompareOrdinal(info.Prefix, IC.Section) == 0)
-                                && settings.CreateColoredIcons
-                                && info.Color.HasValue;
-                
-                if (generate)
-                {
-                    var imageSource = iconCache.GetOrAdd($"{info.Prefix}.{info.Color.Value.ToArgb()}.png", ImageSourceFactory,
-                        info.Color.Value);
-                    OnPropertyChanged(nameof(CachedIconCount));
-                    return imageSource;
-                }
+        { 
+            bool generate = (string.CompareOrdinal(info.Prefix, IC.Notebook) == 0 
+                             || string.CompareOrdinal(info.Prefix, IC.Section) == 0)
+                            && settings.CreateColoredIcons 
+                            && info.Color.HasValue;
 
+            return generate ? GetIconGenerated : GetIconStatic;
+
+            ImageSource GetIconGenerated()
+            {
+                var imageSource = iconCache.GetOrAdd($"{info.Prefix}.{info.Color!.Value.ToArgb()}.png", ImageSourceFactory, info.Color.Value);
+                OnPropertyChanged(nameof(CachedIconCount));
+                return imageSource;
+            }
+            
+            ImageSource GetIconStatic()
+            {
                 return iconCache.GetOrAdd($"{info.Prefix}.{GetIconThemeString(settings.IconTheme)}.png", key =>
                 {
                     var path = Path.Combine(imagesDirectory, key);
                     return BitmapImageFromPath(path);
                 });
-
-            };
+            }
         }
 
         private ImageSource ImageSourceFactory(string key, Color color)
@@ -112,13 +111,11 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
             var newBitmap = ChangeIconColor(bitmap, color);
                                 
             path = $"{GeneratedImagesDirectoryInfo.FullName}{key}";
-            // https://stackoverflow.com/questions/65860129/pngbitmapencoder-failling
 
             using var fileStream = new FileStream(path, FileMode.Create);
-            var encoder = new PngBitmapEncoder(); //TODO Lazy load this and only one
+            var encoder = new PngBitmapEncoder(); 
             encoder.Frames.Add(BitmapFrame.Create(newBitmap));
             encoder.Save(fileStream);
-            // encoder.Frames.Clear();
             return newBitmap;
         }
         
