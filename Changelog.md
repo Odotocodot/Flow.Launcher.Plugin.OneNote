@@ -1,32 +1,39 @@
 # Changelog
 
-### 2.1.0 - 2024-6-14
+## 2.1.0 - 2024-6-14
 
-#### Added
+### Added
 
 - New and improved icons.
 - New preview panel for creating pages ([#20](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/20))
 - New setting for icon theme: FL Default (matches Flow Launcher's theme), light, dark and color.
+- Opening an hierarchy item from the plugin now always brings OneNote to the front.
+- New Hotkey (<kbd>CTRL+Enter<kbd>) to create new items without opening them in OneNote.
 
-#### Changed
+### Changed
 
 - Refactored icon generation.
 - Refactored settings view.
 - Changed Linq2OneNote library reference from submodule to NuGet package.
+- Updated tooltips for notebooks, section groups, sections and pages.
 
-### 2.0.1 - 2023-10-0
+### Fixes
 
-#### Added
+- Fixed incorrect autocomplete text for creating new items.
 
-- OneNote is now opened asynchronously to prevent blocking UI ([[#15](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/15)])
+## 2.0.1 - 2023-10-09
 
-### 2.0.0 - 2023-10-05
+### Added
 
-#### **Breaking Changes**
- 
+- OneNote is now opened asynchronously to prevent blocking UI ([#15](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/15))
+
+## 2.0.0 - 2023-10-05
+
+### **Breaking Changes**
+
 - Now requires Flow Launcher version 1.16 or later.
 
-#### Added
+### Added
 
 - **[Created custom OneNote parser/library](https://github.com/Odotocodot/Linq2OneNote)**, adding the ability for several new features.
 - Support for section groups when using the notebook explorer.
@@ -49,42 +56,42 @@
 - Updated to .NET 7 (update Flow Launcher if an error persists).
 - Refactored the majority of code and project structure.
 
-#### Removed
+### Removed
 
 - [Scipbe.Common.Office.OneNote](https://github.com/scipbe/ScipBe-Common-Office) package reference.
 
-### 1.1.1 - 2023-03-05
+## 1.1.1 - 2023-03-05
 
-#### Fixes
+### Fixes
 
 - Fixed crash on search ([#7](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/7))
 
-### 1.1.0 - 2023-03-04
+## 1.1.0 - 2023-03-04
 
-#### Added
+### Added
 
 - Added the ability to create notebooks, sections and pages.
 
-#### Changes
+### Changes
 
 - Improved the readme
 
-#### Fixes
+### Fixes
 
 - Fixed typos
 
-### 1.0.2 - 2023-02-28
+## 1.0.2 - 2023-02-28
 
-#### Fixes
+### Fixes
 
 - Fixed crash due to encrypted sections ([#3](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/3), [#4](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/4))
 
-### 1.0.1 - 2023-01-15
+## 1.0.1 - 2023-01-15
 
-#### Fixes
+### Fixes
 
 - Fixed crash on invalid search ([#1](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/1))
 
-### 1.0.0 - 2022-12-16
+## 1.0.0 - 2022-12-16
 
 Initial Release
