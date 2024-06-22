@@ -15,18 +15,25 @@ namespace Flow.Launcher.Plugin.OneNote.UI.Views
 		}
 		private void NewOneNotePagePreviewPanel_OnLoaded(object sender, RoutedEventArgs e)
 		{
-			TextBoxPageTitle.Focus();
-		}
+			FocusTextBox();
+        }
 	
 		private void NewOneNotePagePreviewPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
 			if((bool)e.NewValue)
-			{
-				TextBoxPageTitle.Focus();
-			}
-		}
+            {
+                FocusTextBox();
+            }
+        }
 
-		private void OnKeyDown(object sender, KeyEventArgs e)
+        private void FocusTextBox()
+        {
+            TextBoxPageTitle.Focus();
+            Keyboard.Focus(TextBoxPageTitle);
+            TextBoxPageTitle.CaretIndex = TextBoxPageTitle.Text.Length;
+        }
+
+        private void OnKeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.Key != Key.Tab) 
 				return;

@@ -9,7 +9,6 @@
     d:DataContext="{d:DesignInstance Type=vm:NewOneNotePageViewModel}"
     d:DesignHeight="300"
     d:DesignWidth="300"
-    PreviewKeyDown="OnKeyDown"
     IsVisibleChanged="NewOneNotePagePreviewPanel_IsVisibleChanged"
     Loaded="NewOneNotePagePreviewPanel_OnLoaded"
     mc:Ignorable="d">
@@ -41,7 +40,7 @@
                         HorizontalAlignment="Right"
                         Source="{Binding NewPageUri}" />-->
             </Grid>
-            <Grid>
+            <Grid PreviewKeyDown="OnKeyDown">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="5" />
@@ -53,6 +52,7 @@
                     x:Name="TextBoxPageTitle"
                     Grid.Row="0"
                     ui:ControlHelper.PlaceholderText="Page Title"
+                    Loaded="NewOneNotePagePreviewPanel_OnLoaded"
                     Text="{Binding PageTitle, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBox
                     Grid.Row="2"
