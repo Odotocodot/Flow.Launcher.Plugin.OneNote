@@ -9,6 +9,8 @@
     d:DataContext="{d:DesignInstance Type=vm:NewOneNotePageViewModel}"
     d:DesignHeight="300"
     d:DesignWidth="300"
+    PreviewKeyDown="OnKeyDown"
+    IsVisibleChanged="NewOneNotePagePreviewPanel_IsVisibleChanged"
     Loaded="NewOneNotePagePreviewPanel_OnLoaded"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -20,6 +22,7 @@
     </UserControl.Resources>
     <UserControl.InputBindings>
         <KeyBinding Command="{Binding CreateCommand}" Gesture="CTRL+S" />
+        <KeyBinding Command="{Binding CreateAndOpenCommand}" Gesture="CTRL+O" />
     </UserControl.InputBindings>
     <DockPanel Margin="10,5,5,5" LastChildFill="True">
         <DockPanel>
@@ -38,7 +41,7 @@
                         HorizontalAlignment="Right"
                         Source="{Binding NewPageUri}" />-->
             </Grid>
-            <Grid PreviewKeyDown="OnKeyDown">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="5" />
@@ -73,17 +76,15 @@
                         Command="{Binding CreateCommand}"
                         Content="Create"
                         Style="{DynamicResource SettingButton}"
-                        ToolTip="Creates a page in OneNote (CTRL+S)" />
+                        ToolTip="Creates a page in OneNote&#x0a;(CTRL+S)" />
                     <Button
                         x:Name="ButtonCreateAndOpen"
                         Width="70"
                         Margin="25,0,4,0"
                         Command="{Binding CreateAndOpenCommand}"
                         Style="{DynamicResource SettingButton}"
-                        ToolTip="Creates a page in OneNote and opens it">
-                        <TextBlock TextAlignment="Center">
-                            Create<LineBreak />
-                            &amp; Open</TextBlock>
+                        ToolTip="Creates a page in OneNote and opens it&#x0a;(CTRL+O)">
+                        <TextBlock Text="Create&#x0a;&amp; Open" TextAlignment="Center" />
                     </Button>
                 </WrapPanel>
             </Grid>

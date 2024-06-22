@@ -47,7 +47,6 @@ namespace Flow.Launcher.Plugin.OneNote
                 highlightData[i] += BulletPoint.Length;
             }
             return title;
-            
         }
         
         private string GetAutoCompleteText(IOneNoteItem item) 
@@ -234,7 +233,6 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
         
-        
         public Result CreatePageResult(OneNotePage page, string query) 
             => CreateOneNoteItemResult(page, false, string.IsNullOrWhiteSpace(query) ? null : context.API.FuzzySearch(query, page.Name).MatchData);
 
@@ -256,12 +254,17 @@ namespace Flow.Launcher.Plugin.OneNote
                 AutoCompleteText = $"{GetAutoCompleteText(section)}{newPageName}",
                 IcoPath = iconProvider.NewPage,
                 PreviewPanel = GetNewPagePreviewPanel(section, newPageName),
-                Action = _ =>
+                Action = c =>
                 {
-                    OneNoteApplication.CreatePage(section, newPageName, true);
+                    bool showOneNote = !c.SpecialKeyState.CtrlPressed;
+                    
+                    OneNoteApplication.CreatePage(section, newPageName, showOneNote);
                     Main.ForceReQuery();
-                    WindowHelper.FocusOneNote();
-                    return true;
+                    
+                    if(showOneNote)
+                        WindowHelper.FocusOneNote();
+                    
+                    return showOneNote;
                 },
             };
         }
@@ -279,26 +282,30 @@ namespace Flow.Launcher.Plugin.OneNote
                         : $"Section names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionChars)}",
                 AutoCompleteText = $"{GetAutoCompleteText(parent)}{newSectionName}",
                 IcoPath = iconProvider.NewSection,
-                Action = _ =>
+                Action = c =>
                 {
                     if (!validTitle)
                     {
                         return false;
                     }
 
+                    bool showOneNote = !c.SpecialKeyState.CtrlPressed;
+                    
                     switch (parent)
                     {
                         case OneNoteNotebook notebook:
-                            OneNoteApplication.CreateSection(notebook, newSectionName, true);
+                            OneNoteApplication.CreateSection(notebook, newSectionName, showOneNote);
                             break;
                         case OneNoteSectionGroup sectionGroup:
-                            OneNoteApplication.CreateSection(sectionGroup, newSectionName, true);
+                            OneNoteApplication.CreateSection(sectionGroup, newSectionName, showOneNote);
                             break;
                     }
-
+                    
                     Main.ForceReQuery();
-                    WindowHelper.FocusOneNote();
-                    return true;
+                    if(showOneNote)
+                        WindowHelper.FocusOneNote();
+                    
+                    return showOneNote;
                 },
             };
         }
@@ -316,26 +323,30 @@ namespace Flow.Launcher.Plugin.OneNote
                     : $"Section group names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionGroupChars)}",
                 AutoCompleteText = $"{GetAutoCompleteText(parent)}{newSectionGroupName}",
                 IcoPath = iconProvider.NewSectionGroup,
-                Action = _ =>
+                Action = c =>
                 {
                     if (!validTitle)
                     {
                         return false;
                     }
 
+                    bool showOneNote = !c.SpecialKeyState.CtrlPressed;
+                    
                     switch (parent)
                     {
                         case OneNoteNotebook notebook:
-                            OneNoteApplication.CreateSectionGroup(notebook, newSectionGroupName, true);
+                            OneNoteApplication.CreateSectionGroup(notebook, newSectionGroupName, showOneNote);
                             break;
                         case OneNoteSectionGroup sectionGroup:
-                            OneNoteApplication.CreateSectionGroup(sectionGroup, newSectionGroupName, true);
+                            OneNoteApplication.CreateSectionGroup(sectionGroup, newSectionGroupName, showOneNote);
                             break;
                     }
 
                     Main.ForceReQuery();
-                    WindowHelper.FocusOneNote();
-                    return true;
+                    if(showOneNote)
+                        WindowHelper.FocusOneNote();
+                    
+                    return showOneNote;
                 },
             };
         }
@@ -353,17 +364,22 @@ namespace Flow.Launcher.Plugin.OneNote
                     : $"Notebook names cannot contain: {string.Join(' ', OneNoteApplication.InvalidNotebookChars)}",
                 AutoCompleteText = $"{ActionKeyword} {settings.Keywords.NotebookExplorer}{newNotebookName}",
                 IcoPath = iconProvider.NewNotebook,
-                Action = _ =>
+                Action = c =>
                 {
                     if (!validTitle)
                     {
                         return false;
                     }
-
-                    OneNoteApplication.CreateNotebook(newNotebookName, true);
+                    
+                    bool showOneNote = !c.SpecialKeyState.CtrlPressed;
+                    
+                    OneNoteApplication.CreateNotebook(newNotebookName, showOneNote);
                     Main.ForceReQuery();
-                    WindowHelper.FocusOneNote();
-                    return true;
+                    
+                    if (showOneNote)
+                        WindowHelper.FocusOneNote();
+
+                    return showOneNote;
                 },
             };
         }

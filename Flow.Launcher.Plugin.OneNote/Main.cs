@@ -64,10 +64,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return searchManager.Query(query);
         }
 
-        public static void ForceReQuery()
-        {
-            instance.context.API.ChangeQuery(instance.currentQuery.RawQuery, true);
-        }
+        public static void ForceReQuery() => instance.context.API.ChangeQuery(instance.currentQuery.RawQuery, true);
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
