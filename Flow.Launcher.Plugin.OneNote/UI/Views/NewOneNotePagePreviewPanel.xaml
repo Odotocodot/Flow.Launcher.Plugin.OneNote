@@ -40,7 +40,7 @@
                         HorizontalAlignment="Right"
                         Source="{Binding NewPageUri}" />-->
             </Grid>
-            <Grid PreviewKeyDown="OnKeyDown">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="5" />
