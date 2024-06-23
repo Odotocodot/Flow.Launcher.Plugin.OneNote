@@ -99,22 +99,29 @@ Traverse your OneNote notebooks explorer style.
 #### Create New Items
 
 Whilst using the notebook explorer, if your search query does not match any names of the items in the results, the plugin will give you an option to create a new item.
-TODO CTRL MODIFIIER KEY
+
+Pressing <kbd>Ctrl</kbd> + <kbd>⏎ Enter</kbd> on a selection will create the item but not open OneNote for quick creation.
 
 ![create new item gif](doc/create_new_items.gif)
 
 > [!NOTE]
-> Supports all OneNote hierarchy items i.e. notebooks, section groups, sections and pages.
+> Supports creation of all OneNote hierarchy items i.e. notebooks, section groups, sections and pages.
 
 ##### Create Pages
 
-Allows for quick page creation with content! No longer do you need to open OneNote to add text to a page.
-TODO Finish this section
-HotKeys
-  CTRL+S
-  TAB or Control TAB
-  Shift TAB or COntrol SHift TAB
-  Ctrl+O
+A preview panel (Default shortcut: <kbd>F1</kbd>) allows for quick page creation with text content. No longer do you need to open OneNote to add text to a page!
+
+This preview panel is available on all *create a page* results in the plugin and has the shortcuts listed below:
+
+| Shortcut                                                | Preview Panel Action                                      |
+| ------------------------------------------------------- | --------------------------------------------------------- |
+| <kbd>Ctrl</kbd> + <kbd>S</kbd>                          | Creates the page in OneNote but **does not open OneNote** |
+| <kbd>Ctrl</kbd> + <kbd>O</kbd>                          | Creates the page in OneNote and opens it                  |
+| <kbd>Ctrl</kbd> + <kbd>⇥ Tab</kbd>                      | Traverse to next textbox/button                           |
+| <kbd>Ctrl</kbd> + <kbd>⇧ Shift</kbd> + <kbd>⇥ Tab</kbd> | Traverse to previous textbox/button                       |
+
+> [!NOTE]
+> The traversal shortcuts work for Flow Launcher as a whole for navigating results.
 
 ![create new quick note gif](doc/create_quick_note.gif)
 
