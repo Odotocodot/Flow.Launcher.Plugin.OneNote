@@ -8,7 +8,7 @@
 - New preview panel for creating pages ([#20](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/20))
 - New setting for icon theme: FL Default (matches Flow Launcher's theme), light, dark and color.
 - Opening an hierarchy item from the plugin now always brings OneNote to the front.
-- New Hotkey (<kbd>CTRL+Enter<kbd>) to create new items without opening them in OneNote.
+- New Hotkey (<kbd>Ctrl</kbd> + <kbd>⏎ Enter</kbd>) to create new items without opening them in OneNote.
 
 ### Changed
 
@@ -49,7 +49,7 @@
   - Default number of recent pages
   - **Customisable keywords!**
 
-#### Changed
+### Changed
 
 - Compressed images.
 - Reduced the calls to create a OneNote COM object, this should lead to an overall smoother experience.
