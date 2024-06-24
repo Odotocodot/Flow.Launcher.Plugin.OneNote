@@ -16,6 +16,7 @@ A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-t
 - [Installation](#installation)
 - [Features](#features)
   - [At a Glance](#at-a-glance)
+  - [New with Version 2.1.0](#new-with-version-210)
   - [Default Search](#default-search)
   - [Notebook Explorer](#notebook-explorer)
     - [Create New Items](#create-new-items)
@@ -24,7 +25,7 @@ A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-t
   - [Title Search](#title-search)
 - [Settings](#settings)
   - [Keywords](#keywords)
-- [Changelog](#200---2023-10-05)
+- [Changelog](#changelog)
 - [Acknowledgements](#acknowledgements)
 
 ## Installation
@@ -36,7 +37,7 @@ pm install OneNote
 ```
 
 > [!IMPORTANT]
-> For [version 2.0+](#200---2023-10-05) requires at Flow Launcher version 1.16+. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
+> For [version 2.0+](#changelog) requires at Flow Launcher version 1.16+. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
 
 ## Features
 
@@ -59,13 +60,18 @@ pm install OneNote
 > [!NOTE]
 > Hierarchy items are notebooks, section groups, sections and pages.
 
+### New with Version 2.1.0
+
+- :star: [New page preview panel](#create-pages) :star: for quickly creating pages with text!
+- Added icons for different themes. The themes available are color, light, dark and one that matches Flow Launcher's current theme. Change it in the settings!
+
 ### Default Search
 
 ```
 on {your search query}
 ```
 
-This is allows you to search OneNote pages using the OneNote API which searches both the content in a page as well as the page title.
+This allows you to search OneNote pages using the OneNote API which searches both the content in a page and the page title.
 
 - Press <kbd>⏎ Enter</kbd> or left-click on a search result to open in OneNote.
 
@@ -94,11 +100,33 @@ Traverse your OneNote notebooks explorer style.
 
 Whilst using the notebook explorer, if your search query does not match any names of the items in the results, the plugin will give you an option to create a new item.
 
+Pressing <kbd>Ctrl</kbd> + <kbd>⏎ Enter</kbd> on a selection will create the item but not open OneNote for quick creation.
+
 ![create new item gif](doc/create_new_items.gif)
 
 > [!NOTE]
-> Supports all OneNote hierarchy items i.e. notebooks, section groups, sections and pages.
->
+> Supports creation of all OneNote hierarchy items i.e. notebooks, section groups, sections and pages.
+
+##### Create Pages
+
+A preview panel (Default shortcut: <kbd>F1</kbd>) allows for quick page creation with text content. No longer do you need to open OneNote to add text to a page!
+
+This preview panel is available on all *create a page* results in the plugin and has the shortcuts listed below:
+
+| Shortcut                                                | Preview Panel Action                                      |
+| ------------------------------------------------------- | --------------------------------------------------------- |
+| <kbd>Ctrl</kbd> + <kbd>S</kbd>                          | Creates the page in OneNote but **does not open OneNote** |
+| <kbd>Ctrl</kbd> + <kbd>O</kbd>                          | Creates the page in OneNote and opens it                  |
+| <kbd>Ctrl</kbd> + <kbd>⇥ Tab</kbd>                      | Traverse to next textbox/button                           |
+| <kbd>Ctrl</kbd> + <kbd>⇧ Shift</kbd> + <kbd>⇥ Tab</kbd> | Traverse to previous textbox/button                       |
+
+> [!NOTE]
+> The traversal shortcuts work for Flow Launcher as a whole for navigating results.
+
+![create new quick note gif](doc/create_quick_note.gif)
+
+![create pages gif](doc/create_page.gif)
+
 ### Recent Pages
 
 ```
@@ -125,7 +153,7 @@ Scoped search is the same as [default search](#default-search) but restricted to
 ![scoped search gif](doc/scoped_search.gif)
 
 <details>
-  <summary><h4>Example Queries<h4></summary>
+  <summary><h4>Example Queries</h4></summary>
   
   ```
   on nb:\A Notebook\A Section Group\>hello there
@@ -150,7 +178,7 @@ Searches for hierarchy items based on their title alone. Unlike [scoped search](
 ![title search gif](doc/title_search_notebook.gif)
 
 <details>
-  <summary><h4>Example Queries<h4></summary>
+  <summary><h4>Example Queries</h4></summary>
   
   ```
   on nb:\A Notebook\A Section Group\*hello there
@@ -166,7 +194,7 @@ The plugin has a number of settings such as the ability to hide the recycle bin 
 
 <details>
   <summary>Screenshot of settings</summary>
-  <img src= "doc/settings.png" width="823" height="598" alt="settings">
+  <img src= "doc/settings.png" width="100%" alt="settings">
 </details>
 
 ### Keywords
@@ -175,49 +203,14 @@ All the keywords used can be changed according to user preference.
 
 <details>
   <summary>Screenshot of keywords</summary>
-  <img src= "doc/keywords.png" width="823" height="276" alt="keywords">
+  <img src= "doc/keywords.png" width="100%" alt="keywords">
 </details>
 
-<details>
-  <summary><h2 id="changelog">2.0.0 Changelog: Massive Refactor and New Features</h2></summary>
+## Changelog
 
-<!-- omit from toc -->
-### 2.0.0 - 2023-10-05
-
-<!-- omit from toc -->
-#### Added
-
-- **[Created custom OneNote parser/library](https://github.com/Odotocodot/Linq2OneNote)**, adding the ability for several new features.
-- Support for section groups when using the notebook explorer.
-- Support for displaying unread results.
-- Support for showing locked sections in results (you still can't see inside them unless they are unlocked).
-- The ability to search by only title.
-- The ability to do a scoped search (e.g. search in one section only).
-- **Settings!** You can change these options:
-  - Show unread icons.
-  - Show encrypted sections.
-  - Show recycle bin items.
-  - Created coloured icons for notebook and sections.
-  - Default number of recent pages
-  - **Customisable keywords!**
-
-<!-- omit from toc -->
-#### Changed
-
-- Compressed images.
-- Reduced the calls to create a OneNote COM object, this should lead to a overall smoother experience.
-- Updated to .NET 7 (update Flow Launcher if an error persists).
-- Refactored majority of code and project structure.
-
-<!-- omit from toc -->
-#### Removed
-
-- [Scipbe.Common.Office.OneNote](https://github.com/scipbe/ScipBe-Common-Office) package reference.
-
-</details>
+See [here](Changelog.md) for the full list of changes.
 
 ## Acknowledgements
 
 - Made with [Linq2OneNote](https://github.com/Odotocodot/Linq2OneNote) a library for exposing the OneNote API also made by me :smiley:
 - Inspired by the OneNote plugin for [PowerToys](https://github.com/microsoft/PowerToys/tree/main/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote)
-- Icons from [Icons8](https://icons8.com)

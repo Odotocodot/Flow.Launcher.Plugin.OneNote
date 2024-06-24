@@ -1,4 +1,6 @@
-﻿namespace Flow.Launcher.Plugin.OneNote
+﻿using Flow.Launcher.Plugin.OneNote.Icons;
+
+namespace Flow.Launcher.Plugin.OneNote
 {
     public class Settings : UI.Model
     {
@@ -7,6 +9,7 @@
         private bool showRecycleBin = true;
         private bool showEncrypted = false;
         private bool createColoredIcons = true;
+        private IconTheme iconTheme = IconTheme.Color;
         public Keywords Keywords { get; init; } = new Keywords();
 
         public bool ShowRecycleBin
@@ -33,6 +36,12 @@
         {
             get => createColoredIcons;
             set => SetProperty(ref createColoredIcons, value);
+        }
+
+        public IconTheme IconTheme 
+        { 
+            get => iconTheme; 
+            set => SetProperty(ref iconTheme, value); 
         }
     }
 }

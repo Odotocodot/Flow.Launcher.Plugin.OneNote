@@ -3,7 +3,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:linq="clr-namespace:System.Linq;assembly=System.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     xmlns:vm="clr-namespace:Flow.Launcher.Plugin.OneNote.UI.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}"
@@ -17,6 +19,15 @@
                 <ui:ThemeResources />
                 <ResourceDictionary Source="/Flow.Launcher.Plugin.OneNote;component/UI/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <ObjectDataProvider
+                x:Key="DefaultRecentCountOptions"
+                MethodName="Range"
+                ObjectType="{x:Type linq:Enumerable}">
+                <ObjectDataProvider.MethodParameters>
+                    <sys:Int32>1</sys:Int32>
+                    <sys:Int32>20</sys:Int32>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
         </ResourceDictionary>
     </UserControl.Resources>
     <StackPanel Margin="25,0,25,25">
@@ -80,57 +91,13 @@
                         Margin="0,4,4,4"
                         HorizontalAlignment="Center"
                         HorizontalContentAlignment="Center"
-                        Click="ClearCachedIcons">
+                        Command="{Binding ClearCachedIconsCommand}">
                         <Label HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding Icons.CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}" />
+                            <TextBlock Text="{Binding CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}" />
                         </Label>
-                        <Button.Style>
-                            <Style BasedOn="{StaticResource SettingButton}" TargetType="Button">
-                                <Setter Property="IsEnabled" Value="True" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Icons.CachedIconCount}" Value="0">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
                     </Button>
-                    <Button Margin="0,4,22,4">
+                    <Button Margin="0,4,22,4" Command="{Binding OpenGeneratedIconsFolderCommand}">
                         <ui:FontIcon Glyph="&#xf12b;" />
-                        <ui:FlyoutService.Flyout>
-                            <ui:MenuFlyout>
-                                <MenuItem Click="OpenNotebookIconsFolder">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image
-                                                Width="20"
-                                                Height="20"
-                                                Margin="0,0,5,0"
-                                                Source="{Binding NotebookIcon}" />
-                                            <TextBlock Text="Open Notebook Icons Folder" />
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                    <MenuItem.Icon>
-                                        <ui:FontIcon Glyph="&#xed25;" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem Click="OpenSectionIconsFolder">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image
-                                                Width="20"
-                                                Height="20"
-                                                Margin="0,0,5,0"
-                                                Source="{Binding SectionIcon}" />
-                                            <TextBlock Text="Open Section Icons Folder" />
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                    <MenuItem.Icon>
-                                        <ui:FontIcon Glyph="&#xed25;" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                            </ui:MenuFlyout>
-                        </ui:FlyoutService.Flyout>
                     </Button>
                     <ui:ToggleSwitch IsOn="{Binding Settings.CreateColoredIcons}" Style="{DynamicResource SideToggleSwitch}" />
                 </StackPanel>
@@ -139,7 +106,60 @@
         </Border>
         <!--#endregion-->
 
-        <!--#region Recents pages-->
+        <!--#region Icon Theme-->
+        <Border Style="{DynamicResource SettingGroupBox}">
+            <ItemsControl Style="{StaticResource SettingGrid}">
+                <StackPanel Style="{StaticResource TextPanel}">
+                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Icon color theme" />
+                </StackPanel>
+                <ComboBox
+                    Grid.Column="2"
+                    Width="130"
+                    Margin="10,0,18,0"
+                    HorizontalContentAlignment="Center"
+                    ItemsSource="{Binding IconThemes}"
+                    SelectedValue="{Binding Settings.IconTheme}"
+                    SelectedValuePath="IconTheme">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:IconThemeViewModel}">
+                            <StackPanel Orientation="Horizontal" ToolTip="{Binding Tooltip}">
+                                <Grid x:Name="GridImages">
+                                    <Image
+                                        Width="32"
+                                        Height="32"
+                                        SnapsToDevicePixels="True"
+                                        Source="{Binding ImageUri}"
+                                        UseLayoutRounding="True" />
+                                    <Image
+                                        Width="32"
+                                        Height="32"
+                                        SnapsToDevicePixels="True"
+                                        Source="{Binding ImageUri2}"
+                                        UseLayoutRounding="True">
+                                        <Image.Clip>
+                                            <RectangleGeometry Rect="14,0,18,32" />
+                                        </Image.Clip>
+                                    </Image>
+                                </Grid>
+                                <TextBlock
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="{Binding Name}" />
+                            </StackPanel>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ComboBoxItem}}" Value="{x:Null}">
+                                    <Setter TargetName="GridImages" Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ui:FontIcon Glyph="&#xe790;" Style="{StaticResource Glyph}" />
+            </ItemsControl>
+        </Border>
+        <!--#endregion-->
+
+        <!--#region Recent pages-->
         <Border Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
@@ -148,10 +168,10 @@
                 </StackPanel>
                 <ComboBox
                     Grid.Column="2"
-                    Width="100"
+                    Width="130"
                     Margin="10,0,18,0"
                     HorizontalContentAlignment="Center"
-                    ItemsSource="{Binding DefaultRecentCountOptions}"
+                    ItemsSource="{Binding Source={StaticResource DefaultRecentCountOptions}}"
                     SelectedItem="{Binding Settings.DefaultRecentsCount}" />
                 <ui:FontIcon Glyph="&#xe823;" Style="{StaticResource Glyph}" />
             </ItemsControl>
@@ -183,7 +203,7 @@
                             HorizontalAlignment="Right"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
-                            Click="EditButton_Click">
+                            Command="{Binding EditCommand}">
                             <Button.Style>
                                 <Style BasedOn="{StaticResource SettingButton}" TargetType="Button">
                                     <Setter Property="Visibility" Value="Hidden" />
@@ -212,23 +232,41 @@
                     BorderBrush="DarkGray"
                     BorderThickness="1"
                     ItemsSource="{Binding Keywords}"
-                    MouseDoubleClick="ListView_MouseDoubleClick"
-                    MouseUp="ListView_MouseUp"
                     SelectedItem="{Binding SelectedKeyword}"
                     Style="{StaticResource {x:Static GridView.GridViewStyleKey}}">
+                    <ListView.Resources>
+                        <MouseBinding
+                            x:Key="DoubleClickEdit"
+                            Command="{Binding EditCommand}"
+                            Gesture="LeftDoubleClick" />
+                    </ListView.Resources>
                     <ListView.View>
                         <GridView AllowsColumnReorder="False">
-                            <GridViewColumn Width=" 150" Header="Name">
+                            <GridViewColumn
+                                x:Name="NameColumn"
+                                Width=" 150"
+                                Header="Name">
                                 <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" />
+                                    <DataTemplate DataType="{x:Type vm:KeywordViewModel}">
+                                        <TextBlock Width="{Binding Width, ElementName=NameColumn}" Text="{Binding Name}">
+                                            <TextBlock.InputBindings>
+                                                <ui:StaticResource ResourceKey="DoubleClickEdit" />
+                                            </TextBlock.InputBindings>
+                                        </TextBlock>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Width="200" Header="Keyword">
+                            <GridViewColumn
+                                x:Name="KeywordColumn"
+                                Width="200"
+                                Header="Keyword">
                                 <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Keyword}" />
+                                    <DataTemplate DataType="{x:Type vm:KeywordViewModel}">
+                                        <TextBlock Width="{Binding Width, ElementName=KeywordColumn}" Text="{Binding Keyword}">
+                                            <TextBlock.InputBindings>
+                                                <ui:StaticResource ResourceKey="DoubleClickEdit" />
+                                            </TextBlock.InputBindings>
+                                        </TextBlock>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>

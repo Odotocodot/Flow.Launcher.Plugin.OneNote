@@ -10,7 +10,7 @@
     d:DataContext="{d:DesignInstance Type=vm:ChangeKeywordViewModel}"
     Background="{DynamicResource PopuBGColor}"
     Foreground="{DynamicResource PopupTextColor}"
-    Loaded="WindowLoaded"
+    FocusManager.FocusedElement="{Binding ElementName=TextBox_NewKeyword}"
     ResizeMode="NoResize"
     SizeToContent="Height"
     WindowStartupLocation="CenterScreen"
@@ -60,7 +60,8 @@
                         </Grid.ColumnDefinitions>
                         <Button
                             Grid.Column="4"
-                            Click="CloseWindow"
+                            Command="{Binding CloseCommand}"
+                            IsCancel="True"
                             Style="{StaticResource TitleBarCloseButtonStyle}">
                             <Path
                                 Width="46"
@@ -131,8 +132,15 @@
                             Width="105"
                             Margin="10,10,15,10"
                             HorizontalAlignment="Left"
+                            VerticalAlignment="Center" />
+                        <TextBlock
+                            Width="170"
+                            Margin="10,5,10,5"
                             VerticalAlignment="Center"
-                            Text="{Binding NewKeyword}" />
+                            d:Text="This is an error message&#x0a;This is an error message"
+                            Text="{Binding ErrorMessage}"
+                            TextAlignment="Justify"
+                            TextWrapping="Wrap" />
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
@@ -142,19 +150,24 @@
             Background="{DynamicResource PopupButtonAreaBGColor}"
             BorderBrush="{DynamicResource PopupButtonAreaBorderColor}"
             BorderThickness="0,1,0,0">
-            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+            <StackPanel
+                Grid.Row="1"
+                HorizontalAlignment="Center"
+                Orientation="Horizontal">
                 <Button
                     Width="145"
                     Height="30"
                     Margin="10,0,5,0"
-                    Click="CloseWindow"
-                    Content="{DynamicResource cancel}" />
+                    Command="{Binding CloseCommand}"
+                    Content="{DynamicResource cancel}"
+                    IsCancel="True" />
                 <Button
                     x:Name="btnDone"
                     Width="145"
                     Height="30"
                     Margin="5,0,10,0"
-                    Click="Button_ChangeKeyword"
+                    Command="{Binding ChangeKeywordCommand}"
+                    CommandParameter="{Binding ElementName=TextBox_NewKeyword, Path=Text}"
                     Style="{StaticResource AccentButtonStyle}">
                     <TextBlock x:Name="lblAdd" Text="{DynamicResource done}" />
                 </Button>

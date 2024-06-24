@@ -1,34 +1,89 @@
-﻿
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Flow.Launcher.Plugin.OneNote.Icons;
+using Humanizer;
+using Modern = ModernWpf.Controls;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
     public class SettingsViewModel : Model
     {
-        public readonly PluginInitContext context;
-        public SettingsViewModel(PluginInitContext context, Settings settings)
+        private readonly IconProvider iconProvider;
+        private KeywordViewModel selectedKeyword;
+
+        public SettingsViewModel(PluginInitContext context, Settings settings, IconProvider iconProvider)
         {
+            this.iconProvider = iconProvider;
             Settings = settings;
-            this.context = context;
-            Keywords = KeywordViewModel.GetKeywordViewModels(settings.Keywords);
-            Icons = Icons.Instance;
+            Keywords = KeywordViewModel.GetKeywordViewModels(settings.Keywords); 
+            IconThemes = IconThemeViewModel.GetIconThemeViewModels(context);
+            
+            EditCommand = new RelayCommand(
+	            _ => new Views.ChangeKeywordWindow(this, context).ShowDialog(), //Avert your eyes! This is not MVVM!
+	            _ => SelectedKeyword != null);
+
+            OpenGeneratedIconsFolderCommand = new RelayCommand(
+	            _ => context.API.OpenDirectory(iconProvider.GeneratedImagesDirectoryInfo.FullName));
+            
+            ClearCachedIconsCommand = new RelayCommand(
+	            async _ => await ClearCachedIcons(),
+				_ => iconProvider.CachedIconCount > 0);
+            
+            iconProvider.PropertyChanged += (_, args) =>
+            {
+	            if (args.PropertyName == nameof(iconProvider.CachedIconCount))
+	            {
+		            OnPropertyChanged(nameof(CachedIconsFileSize));
+		            CommandManager.InvalidateRequerySuggested();
+	            }
+            };
+            settings.PropertyChanged += (_, args) =>
+			{
+	            if (args.PropertyName == nameof(Settings.IconTheme))
+	            {
+		            Main.ForceReQuery();
+	            }
+			};
+            SelectedKeyword = Keywords[0];
         }
+        public ICommand EditCommand { get; }
+        public ICommand OpenGeneratedIconsFolderCommand { get; }
+        public ICommand ClearCachedIconsCommand { get; }
+        public Settings Settings { get; }
+        public KeywordViewModel[] Keywords { get; }
+        public IconThemeViewModel[] IconThemes { get; }
+        public string CachedIconsFileSize => iconProvider.GeneratedImagesDirectoryInfo.EnumerateFiles()
+			.Select(file => file.Length)
+	        .Aggregate(0L, (a, b) => a + b)
+			.Bytes()
+			.Humanize();
 
-        public Settings Settings { get; init; }
-        public KeywordViewModel[] Keywords { get; init; }
-        public Icons Icons { get; init; }
-        public KeywordViewModel SelectedKeyword { get; set; }
+        public KeywordViewModel SelectedKeyword
+        {
+	        get => selectedKeyword;
+	        set => SetProperty(ref selectedKeyword, value);
+        }
+        
+        //quick and dirty non MVVM stuffs
+        private async Task ClearCachedIcons()
+        {
+	        var dialog = new Modern.ContentDialog()
+	        {
+		        Title = "Clear Cached Icons",
+		        Content = $"Delete cached notebook and sections icons.\n" +
+		                  $"This will delete {"icon".ToQuantity(iconProvider.CachedIconCount)}.",
+		        PrimaryButtonText = "Yes",
+		        CloseButtonText = "Cancel",
+		        DefaultButton = Modern.ContentDialogButton.Close,
+	        };
 
-#pragma warning disable CA1822 // Mark members as static
-        public IEnumerable<int> DefaultRecentCountOptions => Enumerable.Range(1, 16);
-#pragma warning restore CA1822 // Mark members as static
+	        var result = await dialog.ShowAsync();
 
-        public string NotebookIcon => Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Notebook);
-        public string SectionIcon => Path.Combine(context.CurrentPluginMetadata.PluginDirectory, Icons.Section);
-        public void OpenNotebookIconsFolder() => context.API.OpenDirectory(Icons.NotebookIconDirectory);
-        public void OpenSectionIconsFolder() => context.API.OpenDirectory(Icons.SectionIconDirectory);
-        public void ClearCachedIcons() => Icons.ClearCachedIcons();
+	        if (result == Modern.ContentDialogResult.Primary)
+	        {
+		        iconProvider.ClearCachedIcons();
+	        }
+        }
     }
 }
