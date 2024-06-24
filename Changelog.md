@@ -1,13 +1,13 @@
 # Changelog
 
-## 2.1.0 - 2024-6-14
+## 2.1.0 - 2024-6-24
 
 ### Added
 
 - New and improved icons.
 - New preview panel for creating pages ([#20](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/20))
 - New setting for icon theme: FL Default (matches Flow Launcher's theme), light, dark and color.
-- Opening an hierarchy item from the plugin now always brings OneNote to the front.
+- Opening a hierarchy item from the plugin now always brings OneNote to the front.
 - New Hotkey (<kbd>Ctrl</kbd> + <kbd>⏎ Enter</kbd>) to create new items without opening them in OneNote.
 
 ### Changed
