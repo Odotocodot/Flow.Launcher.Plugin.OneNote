@@ -6,6 +6,7 @@
 
     <!--
         To make the view match Flow Launcher the styles have been yoinked (replicated) from the repository. (https://github.com/Flow-Launcher/Flow.Launcher/blob/dev/Flow.Launcher/SettingWindow.xaml)
+        Then slightly tweaked by Odotocodot
         The MIT License (MIT)
         
         Tweaks by Odococodot 2023
