@@ -39,6 +39,11 @@ pm install OneNote
 > [!IMPORTANT]
 > For [version 2.0+](#changelog) requires at Flow Launcher version 1.16+. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
 
+
+> [!IMPORTANT]
+> This plugin is local only! It requires an installation of OneNote on you system!
+
+
 ## Features
 
 ### At a Glance
