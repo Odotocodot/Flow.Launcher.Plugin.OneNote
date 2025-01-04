@@ -4,7 +4,7 @@
     {
         public const string NotebookExplorerSeparator = "\\";
         public string NotebookExplorer { get; set; } = $"nb:{NotebookExplorerSeparator}";
-        public string RecentPages { get; set; } = "rcntpgs:";
+        public string RecentPages { get; set; } = "rp:";
         public string TitleSearch { get; set; } = "*";
         public string ScopedSearch { get; set; } = ">";
     }
