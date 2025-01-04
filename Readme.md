@@ -8,7 +8,15 @@
 </p>
 <h1 align="center">OneNote for Flow Launcher</h1>
 
-A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-taking-app) plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher), allowing for the ability to quickly access and create notes.
+<div align="center">
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![GitHub Release](https://img.shields.io/github/v/release/odotocodot/Flow.Launcher.Plugin.OneNote)
+![Downloads](https://img.shields.io/github/downloads/odotocodot/Flow.Launcher.Plugin.OneNote/total)
+
+</div>
+
+A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-taking-app) plugin for [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher), allowing for the ability to quickly access and create notes.
 
 <!-- omit from toc -->
 ## Contents
@@ -26,6 +34,7 @@ A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-t
 - [Settings](#settings)
   - [Keywords](#keywords)
 - [Changelog](#changelog)
+- [Additional Information](#additional-information)
 - [Acknowledgements](#acknowledgements)
 
 ## Installation
@@ -37,12 +46,10 @@ pm install OneNote
 ```
 
 > [!IMPORTANT]
-> For [version 2.0+](#changelog) requires at Flow Launcher version 1.16+. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
-
-
-> [!IMPORTANT]
-> This plugin is local only! It requires an installation of OneNote on you system!
-
+>
+> - [Versions 2.0+](Changelog.md#200---2023-10-05) requires Flow Launcher version 1.16+. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
+> - This plugin is local only! It requires an installation of OneNote on you system!
+> - Some features require Windows/Microsoft Search to be enabled on your system. See more info [here](#additional-information).
 
 ## Features
 
@@ -214,6 +221,12 @@ All the keywords used can be changed according to user preference.
 ## Changelog
 
 See [here](Changelog.md) for the full list of changes.
+
+## Additional Information
+
+In order to use [default](#default-search) and [scoped](#scoped-search) Windows/Microsoft Search must be enabled on your system. This is due to the [API](https://learn.microsoft.com/en-us/office/client-developer/onenote/application-interface-onenote#findpages-method) that these features rely on, requiring Windows Search.
+This will only be an issue if you have explicit turned off Windows Search.
+Other features should work as intended.
 
 ## Acknowledgements
 
