@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.1.1 - 2025-1-4
+
+### Changes
+
+- Indicated Windows/Microsoft Search is required for default and scoped search in readme. ([#24](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/24))
+- Added some badges.
+- Updated OneNote page result tooltips.
+- Changed recent pages default keyword from `rcntpgs:` to `rp:`.
+
+### Fixes
+
+- Fixed spelling and grammar mistakes.
+
 ## 2.1.0 - 2024-6-24
 
 ### Added
