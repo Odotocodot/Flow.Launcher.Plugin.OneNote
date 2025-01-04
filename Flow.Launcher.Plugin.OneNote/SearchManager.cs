@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Odotocodot.OneNote.Linq;
@@ -168,7 +168,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     result.SubTitle = lastSearch switch
                     {
                         string search when search.StartsWith(Keywords.TitleSearch)
-                            => $"Now search by title in \"{parent.Name}\"",
+                            => $"Now searching by title in \"{parent.Name}\"",
 
                         string search when search.StartsWith(Keywords.ScopedSearch)
                             => $"Now searching all pages in \"{parent.Name}\"",

@@ -68,7 +68,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 new Result
                 {
                     Title = "View notebook explorer",
-                    SubTitle = $"Type \"{settings.Keywords.NotebookExplorer}\" or select this option to search by notebook structure ",
+                    SubTitle = $"Type \"{settings.Keywords.NotebookExplorer}\" or select this option to search by notebook structure",
                     AutoCompleteText = $"{ActionKeyword} {settings.Keywords.NotebookExplorer}",
                     IcoPath = iconProvider.NotebookExplorer,
                     Score = 2000,
@@ -194,9 +194,10 @@ namespace Flow.Launcher.Plugin.OneNote
 
                     subTitle = subTitle[..^(page.Name.Length + PathSeparator.Length)];
                     toolTip =
-                        $"Created:\t\t{page.Created:F}\n" +
-                        $"Last Modified:\t{page.LastModified:F}";
-
+                        $"""
+                         {"Created:",-15}  {page.Created:F}
+                         {"Last Modified:",-15}  {page.LastModified:F}
+                         """;
                     iconInfo = new IconGeneratorInfo(page);
                     break;
                 default:
@@ -239,7 +240,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreateRecentPageResult(OneNotePage page)
         {
             var result = CreateOneNoteItemResult(page, false, null);
-            result.SubTitle = $"{page.LastModified.Humanize()}\t{result.SubTitle}";
+            result.SubTitle = $"{page.LastModified.Humanize()}  |  {result.SubTitle}";
             result.IcoPath = iconProvider.Recent;
             return result;
         }
@@ -454,7 +455,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public static List<Result> NoMatchesFound()
         {
             return SingleResult("No matches found",
-                                "Try searching something else, or syncing your notebooks.",
+                                "Try searching something else, or syncing your notebooks",
                                 IconProvider.Logo);
         }
         public List<Result> InvalidQuery()

@@ -52,7 +52,7 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Show encrypted sections" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[0].Keyword, StringFormat='when using &quot;{0}&quot; show encrypted sections, if the section has been unlocked, allow temporary access.'}" />
+                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[0].Keyword, StringFormat='When using &quot;{0}&quot; show encrypted sections, if the section has been unlocked, allow temporary access.'}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Column="2"
@@ -68,7 +68,7 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Display unread icon" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="Displays a bullet point (&#x2022;) when a item has unread changes." />
+                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="Displays a bullet point (&#x2022;) when an item has unread changes." />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Column="2"
