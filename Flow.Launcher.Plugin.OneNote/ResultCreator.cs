@@ -395,18 +395,29 @@ namespace Flow.Launcher.Plugin.OneNote
                 result.SubTitle = string.Empty;
                 result.ContextData = null;
                 results.Add(result);
+                results.Add(new Result
+                {
+                    Title = "Open in new OneNote window",
+                    IcoPath = IconProvider.Logo,
+                    Action = _ =>
+                    {
+                        OneNoteApplication.ComObject.NavigateTo(item.ID, fNewWindow: true);
+                        WindowHelper.FocusOneNote();
+                        return true;
+                    }
+                });
 
                 if (item is not OneNotePage)
                 {
                     results.Add(new Result
                     {
-                        Title = "Show in Notebook Explorer",
+                        Title = "Copy Notebook Explorer path to clipboard",
                         SubTitle = result.AutoCompleteText,
                         Score = - 1000,
                         IcoPath = iconProvider.NotebookExplorer,
                         Action = _ =>
                         {
-                            context.API.ChangeQuery(result.AutoCompleteText);
+                            context.API.CopyToClipboard(result.AutoCompleteText);
                             return false;
                         }
                     });
