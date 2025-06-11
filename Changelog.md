@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.2 - 2025-6-11
+
+- Added the ability to open items in a new OneNote window using the context menu.([#28](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/28))
+
 ## 2.1.1 - 2025-1-4
 
 ### Changes
