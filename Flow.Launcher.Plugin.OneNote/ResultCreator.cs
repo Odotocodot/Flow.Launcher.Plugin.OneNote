@@ -411,28 +411,28 @@ namespace Flow.Launcher.Plugin.OneNote
             return results;
         }
         
-        public List<Result> NoItemsInCollection(List<Result> results, IOneNoteItem? parent)
+        public List<Result> EmptyCollection(List<Result> results, IOneNoteItem? parent)
         {
             // parent can be null if the collection only contains notebooks.
             switch (parent)
             {
                 case INotebookOrSectionGroup:
                     // Can create section/section group
-                    results.Add(NoItemsInCollectionResult("section", iconProvider.NewSection, "(unencrypted) section"));
-                    results.Add(NoItemsInCollectionResult("section group", iconProvider.NewSectionGroup));
+                    results.Add(EmptyCollectionResult("section", iconProvider.NewSection, "(unencrypted) section"));
+                    results.Add(EmptyCollectionResult("section group", iconProvider.NewSectionGroup));
                     break;
                 case OneNoteSection section:
                     // Can create page
                     if (!section.Locked)
                     {
-                        results.Add(NoItemsInCollectionResult("page", iconProvider.NewPage, section: section));
+                        results.Add(EmptyCollectionResult("page", iconProvider.NewPage, section: section));
                     }
                     break;
             }
 
             return results;
 
-            Result NoItemsInCollectionResult(string title, string iconPath, string? subTitle = null, OneNoteSection? section = null)
+            Result EmptyCollectionResult(string title, string iconPath, string? subTitle = null, OneNoteSection? section = null)
             {
                 return new Result
                 {
@@ -463,7 +463,7 @@ namespace Flow.Launcher.Plugin.OneNote
         }
         public List<Result> SearchingByTitle()
         {
-            return SingleResult($"Now searching by title.", null, iconProvider.Search);
+            return SingleResult("Now searching by title.", string.Empty, iconProvider.Search);
         }
 
         private static List<Result> SingleResult(string title, string subTitle, string iconPath)

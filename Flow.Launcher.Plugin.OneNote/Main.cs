@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using Flow.Launcher.Plugin.OneNote.Icons;
+using Flow.Launcher.Plugin.OneNote.Search;
 using Flow.Launcher.Plugin.OneNote.UI.Views;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
@@ -22,7 +23,8 @@ namespace Flow.Launcher.Plugin.OneNote
         private static Main instance;
         
         private Query currentQuery;
-        
+        private Search.SearchManager sm2;
+
         public Task InitAsync(PluginInitContext context)
         {
             this.context = context;
@@ -65,7 +67,7 @@ namespace Flow.Launcher.Plugin.OneNote
             
             await init;
 
-            return searchManager.Query(query);
+            return searchManager.Query(query.Search);
         }
 
         [Obsolete("Use PluginInitContext.API.ReQuery")]

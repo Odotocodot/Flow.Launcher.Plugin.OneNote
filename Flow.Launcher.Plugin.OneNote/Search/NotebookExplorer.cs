@@ -8,25 +8,24 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 {
 	public class NotebookExplorer : SearchBase
 	{
+		private readonly TitleSearch titleSearch;
+		public NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch) : base(context,
+			settings, resultCreator, () => settings.Keywords.NotebookExplorer)
+		{
+			this.titleSearch = titleSearch;
+		}
+
 		public override List<Result> GetResults(string query)
 		{
-			if (ValidateSearch(query, out string? search, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection))
+			if (!ValidateSearch(query, out string? search, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection))
 				return resultCreator.InvalidQuery(false);
 
 			List<Result> results = search switch
 			{
-				// Empty search so show all in collection
-				string when string.IsNullOrWhiteSpace(search) => ShowAll(parent, collection),
-
-				// Search by title
-				not null when search.StartsWith(Keywords.TitleSearch) && parent is not OneNotePage 
-					=> TitleSearch.Filter(search, parent, collection, context, settings, resultCreator),
-
-				// Scoped search
-				not null when search.StartsWith(Keywords.ScopedSearch) && parent is INotebookOrSectionGroup => ScopedSearch(search, parent),
-
-				// Default search
-				_ => Explorer(search, parent, collection),
+				{ } when search.StartsWith(Keywords.TitleSearch) && parent is not OneNotePage => titleSearch.Filter(search, parent, collection),
+				{ } when search.StartsWith(Keywords.ScopedSearch) && parent is INotebookOrSectionGroup => ScopedSearch(search, parent),
+				{ } when !string.IsNullOrWhiteSpace(search) => Explorer(search, parent, collection),
+				_  => ShowAll(parent, collection),
 			};
 
 			if (parent == null)
@@ -36,8 +35,8 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			result.Title = $"Open \"{parent.Name}\" in OneNote";
 			result.SubTitle = search switch
 			{
-				not null when search.StartsWith(Keywords.TitleSearch) => $"Now searching by title in \"{parent.Name}\"",
-				not null when search.StartsWith(Keywords.ScopedSearch) => $"Now searching all pages in \"{parent.Name}\"",
+				{ } when search.StartsWith(Keywords.TitleSearch) => $"Now searching by title in \"{parent.Name}\"",
+				{ } when search.StartsWith(Keywords.ScopedSearch) => $"Now searching all pages in \"{parent.Name}\"",
 				_ => $"Use \'{Keywords.ScopedSearch}\' to search this item. Use \'{Keywords.TitleSearch}\' to search by title in this item",
 			};
 
@@ -52,7 +51,6 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			collection = OneNoteApplication.GetNotebooks();
 			
 			string search = query[(query.IndexOf(Keywords.NotebookExplorer, StringComparison.Ordinal) + Keywords.NotebookExplorer.Length)..];
-			
 			const string separator = Keywords.NotebookExplorerSeparator;
 			var currIndex = search.IndexOf(separator, StringComparison.Ordinal);
 			var prevIndex = 0;
@@ -80,7 +78,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			                        .Select(item => resultCreator.CreateOneNoteItemResult(item, true))
 			                        .ToList();
 			
-			return results.Any() ? results : resultCreator.NoItemsInCollection(results, parent);
+			return results.Any() ? results : resultCreator.EmptyCollection(results, parent);
 		}
 		
 		private List<Result> ScopedSearch(string query, IOneNoteItem parent)
@@ -93,9 +91,11 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 
 			string currentSearch = query[Keywords.TitleSearch.Length..];
 
-			return OneNoteApplication.FindPages(currentSearch, parent)
-			                         .Select(pg => resultCreator.CreatePageResult(pg, currentSearch))
-			                         .ToList();
+			var results = OneNoteApplication.FindPages(currentSearch, parent)
+			                                .Select(pg => resultCreator.CreatePageResult(pg, currentSearch))
+											.ToList();
+
+			return results.Any() ? results : ResultCreator.NoMatchesFound();
 		}
 		
 		private List<Result> Explorer(string search, IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)

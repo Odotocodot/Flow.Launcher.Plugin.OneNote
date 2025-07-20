@@ -1,43 +1,40 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
 	public class SearchManager
 	{
-		private readonly TitleSearch titleSearch;
-
-		private readonly NotebookExplorer notebookExplorer;
 		private readonly Settings settings;
+		
+		private readonly TitleSearch titleSearch;
+		private readonly NotebookExplorer notebookExplorer;
+		private readonly DefaultSearch defaultSearch;
+		private readonly RecentPages recentPages;
 
-		public SearchManager(Settings settings)
+		public SearchManager(PluginInitContext context, Settings settings, ResultCreator resultCreator)
 		{
 			this.settings = settings;
-			titleSearch = new TitleSearch
-			{
-				KeywordGetter = () => settings.Keywords.TitleSearch,
-			};
-			notebookExplorer = new NotebookExplorer
-			{
-				KeywordGetter = () => settings.Keywords.NotebookExplorer,
-			};
-			
-		}
-		public List<Result> Query(Query query)
-		{
-			//PluginState ps;
-			var r = query.Search switch
-			{
-				{ } search when search.StartsWith(titleSearch.Keyword) => titleSearch.GetResults(search),
-				//string search when search.StartsWith(settings.Keywords.TitleSearch) => TitleSearch(ps, settings.Keywords.TitleSearch, search)
+			titleSearch = new TitleSearch(context, settings, resultCreator);
+			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, titleSearch);
+			recentPages = new RecentPages(context, settings, resultCreator);
+			defaultSearch = new DefaultSearch(context, settings, resultCreator);
 
+		}
+		
+		public List<Result> Query(string search)
+		{
+			return search switch
+			{
+				{ } when search.StartsWith(titleSearch.Keyword) => titleSearch.GetResults(search),
+				{ } when search.StartsWith(notebookExplorer.Keyword) => notebookExplorer.GetResults(search),
+				{ } when search.StartsWith(recentPages.Keyword) => recentPages.GetResults(search),
+				_ => defaultSearch.GetResults(search!),
 			};
-			return null;
 		}
 	}
 	
-	public record PluginState(PluginInitContext Context, Settings Settings, ResultCreator ResultCreator)
-	{
-		public Keywords Keywords => Settings.Keywords;
-	}
+	// public record PluginState(PluginInitContext Context, Settings Settings, ResultCreator ResultCreator)
+	// {
+	// 	public Keywords Keywords => Settings.Keywords;
+	// }
 }

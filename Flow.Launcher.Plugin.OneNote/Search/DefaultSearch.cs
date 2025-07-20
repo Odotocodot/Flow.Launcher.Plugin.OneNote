@@ -6,6 +6,8 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 {
 	public class DefaultSearch : SearchBase
 	{
+		public DefaultSearch(PluginInitContext context, Settings settings, ResultCreator resultCreator) : base(context, settings, resultCreator, null) { }
+
 		public override List<Result> GetResults(string query)
 		{
 			if (!char.IsLetterOrDigit(query[0]))
