@@ -8,23 +8,25 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
 		public string Prefix { get; }
 		public Color? Color { get; }
 		
-		public IconGeneratorInfo(OneNoteNotebook notebook)
+		public IconGeneratorInfo(IOneNoteItem item)
 		{
-			Prefix = IconConstants.Notebook;
-			Color = notebook.Color;
-		}
-		public IconGeneratorInfo(OneNoteSectionGroup sectionGroup)
-		{
-			Prefix = sectionGroup.IsRecycleBin ? IconConstants.RecycleBin : IconConstants.SectionGroup;
-		}
-		public IconGeneratorInfo(OneNoteSection section)
-		{
-			Prefix = IconConstants.Section;
-			Color = section.Color;
-		}
-		public IconGeneratorInfo(OneNotePage page)
-		{
-			Prefix = IconConstants.Page;
+			switch (item)
+			{
+				case OneNoteNotebook n:
+					Prefix = IconConstants.Notebook;
+					Color = n.Color;
+					break;
+				case OneNoteSectionGroup sg:
+					Prefix = sg.IsRecycleBin ? IconConstants.RecycleBin : IconConstants.SectionGroup;
+					break;
+				case OneNoteSection s:
+					Prefix = IconConstants.Section;
+					Color = s.Color;
+					break;
+				case OneNotePage:
+					Prefix = IconConstants.Page;
+					break;
+			}
 		}
 	}
 }

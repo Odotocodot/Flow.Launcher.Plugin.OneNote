@@ -25,26 +25,45 @@ namespace Flow.Launcher.Plugin.OneNote
 
                 string fullSearch = query.Search[(query.Search.IndexOf(Keywords.NotebookExplorer, StringComparison.Ordinal) + Keywords.NotebookExplorer.Length)..];
 
-                IOneNoteItem parent = null;
+                IOneNoteItem? parent = null;
                 IEnumerable<IOneNoteItem> collection = OneNoteApplication.GetNotebooks();
 
+                // // Validate Search Version 1
                 string[] searches = fullSearch.Split(Keywords.NotebookExplorerSeparator, StringSplitOptions.None);
-
-                for (int i = -1; i < searches.Length - 1; i++)
+                // for (int i = -1; i < searches.Length - 1; i++)
+                // {
+                //     if (i < 0)
+                //     {
+                //         continue;
+                //     }
+                //
+                //     parent = collection.FirstOrDefault(item => item.Name.Equals(searches[i]));
+                //     if (parent == null)
+                //     {
+                //         return results;
+                //     }
+                //
+                //     collection = parent.Children;
+                // }
+                
+                // Validate Search Version 2
+                var separator = Keywords.NotebookExplorerSeparator;
+                var currIndex = fullSearch.IndexOf(separator, StringComparison.Ordinal);
+                var prevIndex = 0;
+                while (currIndex != -1)
                 {
-                    if (i < 0)
-                    {
-                        continue;
-                    }
-
-                    parent = collection.FirstOrDefault(item => item.Name.Equals(searches[i]));
+                    //var itemName = fullSearch[prevIndex..currIndex];
+                    
+                    parent = collection.FirstOrDefault(item => item.Name == fullSearch[prevIndex..currIndex]);
                     if (parent == null)
-                    {
-                        return results;
-                    }
-
+                        return resultCreator.InvalidQuery(false);
+                
                     collection = parent.Children;
+                    
+                    prevIndex = currIndex + 1;
+                    currIndex = fullSearch.IndexOf(separator, currIndex + separator.Length, StringComparison.Ordinal);
                 }
+                
 
                 string lastSearch = searches[^1];
 
@@ -140,14 +159,10 @@ namespace Flow.Launcher.Plugin.OneNote
             private void AddCreateNewOneNoteItemResults(string newItemName, IOneNoteItem? parent, List<Result> results)
             {
                 if (results.Any(result => string.Equals(newItemName.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
-                {
                     return;
-                }
 
                 if (parent?.IsInRecycleBin() == true)
-                {
                     return;
-                }
 
                 switch (parent)
                 {

@@ -7,6 +7,7 @@ using Flow.Launcher.Plugin.OneNote.Icons;
 using Flow.Launcher.Plugin.OneNote.UI.Views;
 using Humanizer;
 using Odotocodot.OneNote.Linq;
+using Odotocodot.OneNote.Linq.Abstractions;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
@@ -19,7 +20,6 @@ namespace Flow.Launcher.Plugin.OneNote
         private const string PathSeparator = " > ";
         private const string BulletPoint = "\u2022  ";
         private const string TrianglePoint = "\u2023  ";
-
         private string ActionKeyword => context.CurrentPluginMetadata.ActionKeyword;
         public ResultCreator(PluginInitContext context, Settings settings, IconProvider iconProvider)
         {
@@ -31,7 +31,7 @@ namespace Flow.Launcher.Plugin.OneNote
         private static string GetNicePath(IOneNoteItem item, string separator = PathSeparator) =>
             item.RelativePath.Replace(OneNoteApplication.RelativePathSeparator.ToString(), separator);
 
-        private string GetTitle(IOneNoteItem item, List<int> highlightData)
+        private string GetTitle(IOneNoteItem item, List<int>? highlightData)
         {
             string title = item.Name;
             if (!item.IsUnread || !settings.ShowUnread) 
@@ -51,8 +51,7 @@ namespace Flow.Launcher.Plugin.OneNote
         
         private string GetAutoCompleteText(IOneNoteItem item) 
             => $"{ActionKeyword} {settings.Keywords.NotebookExplorer}{GetNicePath(item, Keywords.NotebookExplorerSeparator)}{Keywords.NotebookExplorerSeparator}";
-
-
+        
         public List<Result> EmptyQuery()
         {
             return new List<Result>
@@ -63,7 +62,8 @@ namespace Flow.Launcher.Plugin.OneNote
                     SubTitle = "Try typing something!",
                     AutoCompleteText = ActionKeyword,
                     IcoPath = iconProvider.Search,
-                    Score = 5000,
+                    AddSelectedCount = false,
+                    Score = Result.MaxScore,
                 },
                 new Result
                 {
@@ -71,6 +71,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     SubTitle = $"Type \"{settings.Keywords.NotebookExplorer}\" or select this option to search by notebook structure",
                     AutoCompleteText = $"{ActionKeyword} {settings.Keywords.NotebookExplorer}",
                     IcoPath = iconProvider.NotebookExplorer,
+                    AddSelectedCount = false,
                     Score = 2000,
                     Action = _ =>
                     {
@@ -84,6 +85,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     SubTitle = $"Type \"{settings.Keywords.RecentPages}\" or select this option to see recently modified pages",
                     AutoCompleteText = $"{ActionKeyword} {settings.Keywords.RecentPages}",
                     IcoPath = iconProvider.Recent,
+                    AddSelectedCount = false,
                     Score = -1000,
                     Action = _ =>
                     {
@@ -95,6 +97,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 {
                     Title = "New quick note",
                     IcoPath = iconProvider.QuickNote,
+                    AddSelectedCount = false,
                     Score = -4000,
                     PreviewPanel = GetNewPagePreviewPanel(null, null),
                     Action = _ =>
@@ -108,6 +111,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 {
                     Title = "Open and sync notebooks",
                     IcoPath = iconProvider.Sync,
+                    AddSelectedCount = false,
                     Score = int.MinValue,
                     Action = _ =>
                     {
@@ -130,45 +134,32 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
         
-        public Result CreateOneNoteItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int> highlightData = null, int score = 0)
+        public Result CreateOneNoteItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int>? highlightData = null, int score = 0)
         {
-            string title = GetTitle(item, highlightData);
-            string toolTip = string.Empty;
-            string subTitle = GetNicePath(item);
-            string autoCompleteText = GetAutoCompleteText(item);
-
-            IconGeneratorInfo iconInfo;
+            var title = GetTitle(item, highlightData);
+            var toolTip = string.Empty;
+            var subTitle = GetNicePath(item);
+            var autoCompleteText = GetAutoCompleteText(item);
+            var iconInfo = new IconGeneratorInfo(item);
             
             switch (item)
             {
-                case OneNoteNotebook notebook:
+                case INotebookOrSectionGroup i:
                     toolTip =
                         $"""
                          Last Modified:
-                         {TrianglePoint}{notebook.LastModified:F}
+                         {TrianglePoint}{i.LastModified:F}
 
                          Contains:
-                         {TrianglePoint}{"section group".ToQuantity(notebook.SectionGroups.Count())}
-                         {TrianglePoint}{"section".ToQuantity(notebook.Sections.Count())}
-                         {TrianglePoint}{"page".ToQuantity(notebook.GetPages().Count())}
+                         {TrianglePoint}{"section group".ToQuantity(i.SectionGroups.Count())}
+                         {TrianglePoint}{"section".ToQuantity(i.Sections.Count())}
+                         {TrianglePoint}{"page".ToQuantity(i.GetPages().Count())}
                          """;
 
-                    subTitle = string.Empty;
-                    iconInfo = new IconGeneratorInfo(notebook);
-                    break;
-                case OneNoteSectionGroup sectionGroup:
-                    toolTip =
-                        $"""
-                         Last Modified:
-                         {TrianglePoint}{sectionGroup.LastModified:F}
-                         
-                         Contains:
-                         {TrianglePoint}{"section group".ToQuantity(sectionGroup.SectionGroups.Count())}
-                         {TrianglePoint}{"section".ToQuantity(sectionGroup.Sections.Count())}
-                         {TrianglePoint}{"page".ToQuantity(sectionGroup.GetPages().Count())}
-                         """;
-
-                    iconInfo = new IconGeneratorInfo(sectionGroup);
+                    if (i is OneNoteNotebook)
+                    {
+                        subTitle = string.Empty;
+                    }
                     break;
                 case OneNoteSection section:
                     if (section.Encrypted)
@@ -184,8 +175,6 @@ namespace Flow.Launcher.Plugin.OneNote
                          Contains:
                          {TrianglePoint}{"page".ToQuantity(section.GetPages().Count())}
                          """;
-                    
-                    iconInfo = new IconGeneratorInfo(section);
                     break;
                 case OneNotePage page:
                     autoCompleteText = actionIsAutoComplete ? autoCompleteText[..^1] : string.Empty;
@@ -198,10 +187,6 @@ namespace Flow.Launcher.Plugin.OneNote
                          {"Created:",-15}  {page.Created:F}
                          {"Last Modified:",-15}  {page.LastModified:F}
                          """;
-                    iconInfo = new IconGeneratorInfo(page);
-                    break;
-                default:
-                    iconInfo = default;
                     break;
             }
 
@@ -222,7 +207,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         context.API.ChangeQuery($"{autoCompleteText}", true);
                         return false;
                     }
-
+                    
                     await Task.Run(() =>
                     {
                         item.Sync();
@@ -426,13 +411,12 @@ namespace Flow.Launcher.Plugin.OneNote
             return results;
         }
         
-        public List<Result> NoItemsInCollection(List<Result> results, IOneNoteItem parent)
+        public List<Result> NoItemsInCollection(List<Result> results, IOneNoteItem? parent)
         {
             // parent can be null if the collection only contains notebooks.
             switch (parent)
             {
-                case OneNoteNotebook:
-                case OneNoteSectionGroup:
+                case INotebookOrSectionGroup:
                     // Can create section/section group
                     results.Add(NoItemsInCollectionResult("section", iconProvider.NewSection, "(unencrypted) section"));
                     results.Add(NoItemsInCollectionResult("section group", iconProvider.NewSectionGroup));
@@ -448,7 +432,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
             return results;
 
-            Result NoItemsInCollectionResult(string title, string iconPath, string subTitle = null, OneNoteSection section = null)
+            Result NoItemsInCollectionResult(string title, string iconPath, string? subTitle = null, OneNoteSection? section = null)
             {
                 return new Result
                 {
@@ -460,7 +444,7 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
 
-        private Lazy<UserControl> GetNewPagePreviewPanel(OneNoteSection section, string pageTitle) =>
+        private Lazy<UserControl> GetNewPagePreviewPanel(OneNoteSection? section, string? pageTitle) =>
             new(() => new NewOneNotePagePreviewPanel(context, section, pageTitle));
 
         public static List<Result> NoMatchesFound()
@@ -469,10 +453,12 @@ namespace Flow.Launcher.Plugin.OneNote
                                 "Try searching something else, or syncing your notebooks",
                                 IconProvider.Logo);
         }
-        public List<Result> InvalidQuery()
+        public List<Result> InvalidQuery(bool includeSubtitle = true)
         {
             return SingleResult("Invalid query",
-                                "The first character of the search must be a letter or a digit",
+                                includeSubtitle 
+                                    ? "The first character of the search must be a letter or a digit"
+                                    : string.Empty,
                                 iconProvider.Warning);
         }
         public List<Result> SearchingByTitle()

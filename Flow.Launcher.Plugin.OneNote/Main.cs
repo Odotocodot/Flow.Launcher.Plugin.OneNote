@@ -8,6 +8,7 @@ using Flow.Launcher.Plugin.OneNote.UI.Views;
 using Odotocodot.OneNote.Linq;
 namespace Flow.Launcher.Plugin.OneNote
 {
+    #nullable disable
     public class Main : IAsyncPlugin, IContextMenu, ISettingProvider, IDisposable
     {
         private PluginInitContext context;
@@ -21,10 +22,12 @@ namespace Flow.Launcher.Plugin.OneNote
         private static Main instance;
         
         private Query currentQuery;
+        
         public Task InitAsync(PluginInitContext context)
         {
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
+            
             iconProvider = new IconProvider(context, settings);
             resultCreator = new ResultCreator(context, settings, iconProvider);
             searchManager = new SearchManager(context, settings, resultCreator);
@@ -34,27 +37,28 @@ namespace Flow.Launcher.Plugin.OneNote
             return Task.CompletedTask;
         }
 
-        public void OnVisibilityChanged(object _, VisibilityChangedEventArgs e)
+        private void OnVisibilityChanged(object _, VisibilityChangedEventArgs e)
         {
             if (context.CurrentPluginMetadata.Disabled || !e.IsVisible)
             {
-                OneNoteApplication.ReleaseComObject();
+                Task.Run(OneNoteApplication.ReleaseComObject);
             }
         }
 
         private static async Task OneNoteInitAsync(CancellationToken token = default)
         {
-            if (semaphore.CurrentCount == 0 || OneNoteApplication.HasComObject)
+            if (OneNoteApplication.HasComObject)
                 return;
-
-            await semaphore.WaitAsync(token);
-            OneNoteApplication.InitComObject();
+            
+            if (await semaphore.WaitAsync(0,token))
+                OneNoteApplication.InitComObject();
+            
             semaphore.Release();
         }
         public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
         {
             currentQuery = query;
-            var init = OneNoteInitAsync(token);
+            Task init = OneNoteInitAsync(token);
 
             if (string.IsNullOrEmpty(query.Search))
                 return resultCreator.EmptyQuery();
@@ -64,6 +68,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return searchManager.Query(query);
         }
 
+        [Obsolete("Use PluginInitContext.API.ReQuery")]
         public static void ForceReQuery() => instance.context.API.ChangeQuery(instance.currentQuery.RawQuery, true);
 
         public List<Result> LoadContextMenus(Result selectedResult)

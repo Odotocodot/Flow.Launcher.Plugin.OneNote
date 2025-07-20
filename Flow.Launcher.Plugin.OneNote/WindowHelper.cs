@@ -21,7 +21,8 @@ namespace Flow.Launcher.Plugin.OneNote
 
             SetForegroundWindow(handle);
         }
-        const int SW_RESTORE = 9;
+
+        private const int SW_RESTORE = 9;
 
         [LibraryImport("User32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
