@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Flow.Launcher.Plugin.OneNote.Icons;
@@ -16,7 +17,11 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         {
             this.iconProvider = iconProvider;
             Settings = settings;
-            Keywords = KeywordViewModel.GetKeywordViewModels(settings.Keywords); 
+            Keywords = settings.Keywords
+                               .GetType()
+                               .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                               .Select(p => new KeywordViewModel(p.Name.Humanize(LetterCasing.Title), (Keyword)p.GetValue(settings.Keywords)!))
+                               .ToArray();
             IconThemes = IconThemeViewModel.GetIconThemeViewModels(context);
             
             EditCommand = new RelayCommand(

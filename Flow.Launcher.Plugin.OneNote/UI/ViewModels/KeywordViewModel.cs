@@ -1,36 +1,20 @@
-﻿using System.Reflection;
-using System.Linq;
-using Humanizer;
-
-namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
+﻿namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
     public class KeywordViewModel : BaseModel
     {
-        private object Instance { get; init; }
-        private PropertyInfo PropertyInfo { get; init; }
-        public string Name { get; private init; }
-
-        public string Keyword
+        public KeywordViewModel(string keywordName, Keyword keyword)
         {
-            get => (string)PropertyInfo.GetValue(Instance);
-            set
+            Name = keywordName;
+            Keyword = keyword;
+            keyword.PropertyChanged += (_, args) =>
             {
-                PropertyInfo.SetValue(Instance, value, null);
-                OnPropertyChanged();
-            }
+                if (args.PropertyName == nameof(Keyword.Value))
+                {
+                    OnPropertyChanged(nameof(Keyword));
+                }
+            };
         }
-        
-        public static KeywordViewModel[] GetKeywordViewModels(Keywords keywords)
-        {
-            return keywords.GetType()
-                           .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                           .Select(p => new KeywordViewModel
-                           {
-                               Instance = keywords,
-                               PropertyInfo = p,
-                               Name = p.Name.Humanize(LetterCasing.Title)
-                           })
-                           .ToArray();
-        }
+        public string Name { get; private init; }
+        public Keyword Keyword { get; }
     }
 }

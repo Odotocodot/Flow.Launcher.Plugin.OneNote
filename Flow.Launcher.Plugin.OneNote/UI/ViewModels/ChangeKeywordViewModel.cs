@@ -10,18 +10,19 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         private readonly KeywordViewModel[] keywords;
         private readonly Action closeAction;
 
-        private string errorMessage;
+        private string? errorMessage;
 
+        
         public ChangeKeywordViewModel(SettingsViewModel settingsViewModel, PluginInitContext context, Action close)
         {
             this.context = context;
             closeAction = close;
             keywords = settingsViewModel.Keywords;
-            SelectedKeyword = settingsViewModel.SelectedKeyword;
+            SelectedKeyword = settingsViewModel.SelectedKeyword!;
             ChangeKeywordCommand = new RelayCommand(
                 keyword => ChangeKeyword((string)keyword),
                 keyword => CanChangeKeyword((string)keyword));
-            CloseCommand = new RelayCommand( _=> closeAction?.Invoke());
+            CloseCommand = new RelayCommand(_ => closeAction.Invoke());
         }
         public KeywordViewModel SelectedKeyword { get; }
 
@@ -29,7 +30,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 
         public ICommand ChangeKeywordCommand { get; }
 
-        public string ErrorMessage
+        public string? ErrorMessage
         {
             get => errorMessage;
             private set => SetProperty(ref errorMessage, value);
@@ -50,7 +51,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
                 return false;
             }
 
-            var alreadySetKeyword = keywords.FirstOrDefault(k => k.Keyword == newKeyword);
+            KeywordViewModel? alreadySetKeyword = keywords.FirstOrDefault(k => k.Keyword == newKeyword);
             if (alreadySetKeyword != null)
             {
                 ErrorMessage = $"The new keyword is already set for {alreadySetKeyword.Name}.";
@@ -63,9 +64,9 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 
         private void ChangeKeyword(string newKeyword)
         {
-            SelectedKeyword.Keyword = newKeyword.Trim();
+            SelectedKeyword.Keyword.ChangeKeyword(newKeyword.Trim());
             context.API.SaveSettingJsonStorage<Settings>();
-            closeAction?.Invoke();
+            closeAction.Invoke();
         }
     }
 
