@@ -14,7 +14,7 @@
                 }
             };
         }
-        public string Name { get; private init; }
+        public string Name { get; }
         public Keyword Keyword { get; }
     }
 }

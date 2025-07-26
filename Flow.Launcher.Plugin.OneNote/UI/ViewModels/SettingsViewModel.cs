@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -11,7 +12,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
     public class SettingsViewModel : Model
     {
         private readonly IconProvider iconProvider;
-        private KeywordViewModel selectedKeyword;
+        private KeywordViewModel? selectedKeyword;
 
         public SettingsViewModel(PluginInitContext context, Settings settings, IconProvider iconProvider)
         {
@@ -22,18 +23,20 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
                                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                                .Select(p => new KeywordViewModel(p.Name.Humanize(LetterCasing.Title), (Keyword)p.GetValue(settings.Keywords)!))
                                .ToArray();
-            IconThemes = IconThemeViewModel.GetIconThemeViewModels(context);
+            IconThemes = Enum.GetValues<IconTheme>()
+                             .Select(iconTheme => new IconThemeViewModel(iconTheme, context))
+                             .ToArray();
             
             EditCommand = new RelayCommand(
-	            _ => new Views.ChangeKeywordWindow(this, context).ShowDialog(), //Avert your eyes! This is not MVVM!
-	            _ => SelectedKeyword != null);
+	            () => new Views.ChangeKeywordWindow(this, context).ShowDialog(), //Avert your eyes! This is not MVVM!
+	            () => SelectedKeyword != null);
 
             OpenGeneratedIconsFolderCommand = new RelayCommand(
-	            _ => context.API.OpenDirectory(iconProvider.GeneratedImagesDirectoryInfo.FullName));
+	            () => context.API.OpenDirectory(iconProvider.GeneratedImagesDirectoryInfo.FullName));
             
             ClearCachedIconsCommand = new RelayCommand(
-	            async _ => await ClearCachedIcons(),
-				_ => iconProvider.CachedIconCount > 0);
+	            async () => await ClearCachedIcons(),
+				() => iconProvider.CachedIconCount > 0);
             
             iconProvider.PropertyChanged += (_, args) =>
             {
@@ -47,7 +50,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			{
 	            if (args.PropertyName == nameof(Settings.IconTheme))
 	            {
-		            Main.ForceReQuery();
+		            context.API.ReQuery();
 	            }
 			};
             SelectedKeyword = Keywords[0];
@@ -64,7 +67,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			.Bytes()
 			.Humanize();
 
-        public KeywordViewModel SelectedKeyword
+        public KeywordViewModel? SelectedKeyword
         {
 	        get => selectedKeyword;
 	        set => SetProperty(ref selectedKeyword, value);

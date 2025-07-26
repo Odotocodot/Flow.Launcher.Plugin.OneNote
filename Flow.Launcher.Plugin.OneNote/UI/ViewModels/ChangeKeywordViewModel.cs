@@ -19,10 +19,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
             closeAction = close;
             keywords = settingsViewModel.Keywords;
             SelectedKeyword = settingsViewModel.SelectedKeyword!;
-            ChangeKeywordCommand = new RelayCommand(
-                keyword => ChangeKeyword((string)keyword),
-                keyword => CanChangeKeyword((string)keyword));
-            CloseCommand = new RelayCommand(_ => closeAction.Invoke());
+            ChangeKeywordCommand = new RelayCommand<string>(ChangeKeyword!, CanChangeKeyword);
+            CloseCommand = new RelayCommand(closeAction.Invoke);
         }
         public KeywordViewModel SelectedKeyword { get; }
 
@@ -36,7 +34,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
             private set => SetProperty(ref errorMessage, value);
         }
 
-        private bool CanChangeKeyword(string newKeyword)
+        private bool CanChangeKeyword(string? newKeyword)
         {
             if (string.IsNullOrWhiteSpace(newKeyword))
             {
@@ -66,6 +64,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         {
             SelectedKeyword.Keyword.ChangeKeyword(newKeyword.Trim());
             context.API.SaveSettingJsonStorage<Settings>();
+            context.API.ReQuery();
             closeAction.Invoke();
         }
     }

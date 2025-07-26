@@ -7,8 +7,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
 	public class NewOneNotePageViewModel : Model
 	{
-		private string pageTitle;
-		private string pageContent;
+		private string pageTitle = string.Empty;
+		private string pageContent = string.Empty;
 		private readonly OneNoteSection section;
 		private readonly PluginInitContext context;
 
@@ -17,8 +17,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			this.context = context;
 			this.section = section;
 			PageTitle = pageTitle;
-			CreateCommand = new RelayCommand(_ => CreatePage(false));
-			CreateAndOpenCommand = new RelayCommand(_ => CreatePage(true));
+			CreateCommand = new RelayCommand(() => CreatePage(false));
+			CreateAndOpenCommand = new RelayCommand(() => CreatePage(true));
 		}
 
 		private void CreatePage(bool openImmediately)
@@ -29,7 +29,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			var xmlWrap = $"<one:Outline><one:Position x=\"36.0\" y=\"86.4000015258789\" z=\"0\"/><one:Size width=\"72.0\" height=\"13.42771339416504\"/><one:OEChildren><one:OE alignment=\"left\"><one:T><![CDATA[{PageContent}]]></one:T></one:OE></one:OEChildren></one:Outline>";
 			pageContentXml = pageContentXml.Insert(pageContentXml.IndexOf("</one:Page>", StringComparison.Ordinal), xmlWrap);
 			OneNoteApplication.UpdatePageContent(pageContentXml);
-			Main.ForceReQuery();
+			context.API.ReQuery();
 			if (openImmediately)
 			{
 				page.OpenInOneNote();
@@ -43,6 +43,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 					$"{context.CurrentPluginMetadata.PluginDirectory}/{IconProvider.Logo}");
 			}
 		}
+		
 		public string PageTitle
 		{
 			get => pageTitle;
