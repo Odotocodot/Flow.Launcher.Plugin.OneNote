@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
@@ -8,15 +7,14 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		protected readonly PluginInitContext context;
 		protected readonly Settings settings;
 		protected readonly ResultCreator resultCreator;
-		private readonly Func<string> keywordGetter;
-		protected SearchBase(PluginInitContext context, Settings settings, ResultCreator resultCreator, Func<string> keywordGetter)
+		public readonly Keyword Keyword;
+		protected SearchBase(PluginInitContext context, Settings settings, ResultCreator resultCreator, Keyword keyword)
 		{
 			this.context = context;
 			this.settings = settings;
 			this.resultCreator = resultCreator;
-			this.keywordGetter = keywordGetter;
+			Keyword = keyword;
 		}
-		public string Keyword => keywordGetter();
 		protected Keywords Keywords => settings.Keywords;
 		public abstract List<Result> GetResults(string query);
 	}

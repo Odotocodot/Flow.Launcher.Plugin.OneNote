@@ -23,7 +23,6 @@ namespace Flow.Launcher.Plugin.OneNote
         private static Main instance;
         
         private Query currentQuery;
-        private Search.SearchManager sm2;
 
         public Task InitAsync(PluginInitContext context)
         {

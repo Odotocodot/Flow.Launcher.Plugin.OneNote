@@ -9,8 +9,8 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 	public class NotebookExplorer : SearchBase
 	{
 		private readonly TitleSearch titleSearch;
-		public NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch) : base(context,
-			settings, resultCreator, () => settings.Keywords.NotebookExplorer)
+		public NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch) 
+			: base(context, settings, resultCreator, settings.Keywords.NotebookExplorer)
 		{
 			this.titleSearch = titleSearch;
 		}
@@ -22,8 +22,8 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 
 			List<Result> results = search switch
 			{
-				{ } when search.StartsWith(Keywords.TitleSearch) && parent is not OneNotePage => titleSearch.Filter(search, parent, collection),
-				{ } when search.StartsWith(Keywords.ScopedSearch) && parent is INotebookOrSectionGroup => ScopedSearch(search, parent),
+				{ } when search.StartsWithOrd(Keywords.TitleSearch) && parent is not OneNotePage => titleSearch.Filter(search, parent, collection),
+				{ } when search.StartsWithOrd(Keywords.ScopedSearch) && parent is INotebookOrSectionGroup => ScopedSearch(search, parent),
 				{ } when !string.IsNullOrWhiteSpace(search) => Explorer(search, parent, collection),
 				_  => ShowAll(parent, collection),
 			};
@@ -35,8 +35,8 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			result.Title = $"Open \"{parent.Name}\" in OneNote";
 			result.SubTitle = search switch
 			{
-				{ } when search.StartsWith(Keywords.TitleSearch) => $"Now searching by title in \"{parent.Name}\"",
-				{ } when search.StartsWith(Keywords.ScopedSearch) => $"Now searching all pages in \"{parent.Name}\"",
+				{ } when search.StartsWithOrd(Keywords.TitleSearch) => $"Now searching by title in \"{parent.Name}\"",
+				{ } when search.StartsWithOrd(Keywords.ScopedSearch) => $"Now searching all pages in \"{parent.Name}\"",
 				_ => $"Use \'{Keywords.ScopedSearch}\' to search this item. Use \'{Keywords.TitleSearch}\' to search by title in this item",
 			};
 

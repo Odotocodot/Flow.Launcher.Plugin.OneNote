@@ -4,8 +4,6 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 {
 	public class SearchManager
 	{
-		private readonly Settings settings;
-		
 		private readonly TitleSearch titleSearch;
 		private readonly NotebookExplorer notebookExplorer;
 		private readonly DefaultSearch defaultSearch;
@@ -13,7 +11,6 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 
 		public SearchManager(PluginInitContext context, Settings settings, ResultCreator resultCreator)
 		{
-			this.settings = settings;
 			titleSearch = new TitleSearch(context, settings, resultCreator);
 			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, titleSearch);
 			recentPages = new RecentPages(context, settings, resultCreator);
@@ -25,16 +22,11 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		{
 			return search switch
 			{
-				{ } when search.StartsWith(titleSearch.Keyword) => titleSearch.GetResults(search),
-				{ } when search.StartsWith(notebookExplorer.Keyword) => notebookExplorer.GetResults(search),
-				{ } when search.StartsWith(recentPages.Keyword) => recentPages.GetResults(search),
+				{ } when search.StartsWithOrd(titleSearch.Keyword) => titleSearch.GetResults(search),
+				{ } when search.StartsWithOrd(notebookExplorer.Keyword) => notebookExplorer.GetResults(search),
+				{ } when search.StartsWithOrd(recentPages.Keyword) => recentPages.GetResults(search),
 				_ => defaultSearch.GetResults(search!),
 			};
 		}
 	}
-	
-	// public record PluginState(PluginInitContext Context, Settings Settings, ResultCreator ResultCreator)
-	// {
-	// 	public Keywords Keywords => Settings.Keywords;
-	// }
 }

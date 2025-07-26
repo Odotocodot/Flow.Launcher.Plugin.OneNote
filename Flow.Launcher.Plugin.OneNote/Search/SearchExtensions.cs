@@ -41,7 +41,6 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			}
 		}
 
-		//TODO: implement
 		public static bool StartsWithOrd(this string str, string value)
 		{
 			return str.StartsWith(value, StringComparison.Ordinal);

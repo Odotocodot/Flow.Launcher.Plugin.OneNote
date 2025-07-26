@@ -6,7 +6,8 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 {
 	public class RecentPages : SearchBase
 	{
-		public RecentPages(PluginInitContext context, Settings settings, ResultCreator resultCreator) : base(context, settings, resultCreator, () => settings.Keywords.RecentPages) { }
+		public RecentPages(PluginInitContext context, Settings settings, ResultCreator resultCreator) 
+			: base(context, settings, resultCreator, settings.Keywords.RecentPages) { }
 
 		public override List<Result> GetResults(string query)
 		{

@@ -7,8 +7,8 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 {
 	public class TitleSearch : SearchBase
 	{
-		public TitleSearch(PluginInitContext context, Settings settings, ResultCreator resultCreator) : base(context, settings, resultCreator,
-			() => settings.Keywords.TitleSearch) { }
+		public TitleSearch(PluginInitContext context, Settings settings, ResultCreator resultCreator) 
+			: base(context, settings, resultCreator, settings.Keywords.TitleSearch) { }
 
 		public override List<Result> GetResults(string query) => Filter(query, null, OneNoteApplication.GetNotebooks());
 
