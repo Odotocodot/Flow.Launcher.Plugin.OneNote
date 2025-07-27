@@ -118,9 +118,9 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 				case null:
 					results.Add(resultCreator.CreateNewNotebookResult(search));
 					break;
-				case INotebookOrSectionGroup:
-					results.Add(resultCreator.CreateNewSectionResult(search, parent));
-					results.Add(resultCreator.CreateNewSectionGroupResult(search, parent));
+				case INotebookOrSectionGroup p:
+					results.Add(resultCreator.CreateNewSectionResult(search, p));
+					results.Add(resultCreator.CreateNewSectionGroupResult(search, p));
 					break;
 				case OneNoteSection section:
 					if (!section.Locked)
