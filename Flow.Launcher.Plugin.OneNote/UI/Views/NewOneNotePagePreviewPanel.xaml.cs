@@ -8,7 +8,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.Views
 {
 	public partial class NewOneNotePagePreviewPanel : UserControl
 	{
-		public NewOneNotePagePreviewPanel(PluginInitContext context, OneNoteSection section, string pageTitle)
+		public NewOneNotePagePreviewPanel(PluginInitContext context, OneNoteSection? section, string? pageTitle)
 		{
 			DataContext = new NewOneNotePageViewModel(context, section, pageTitle);
 			InitializeComponent();

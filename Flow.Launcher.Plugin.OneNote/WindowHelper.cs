@@ -16,10 +16,10 @@ namespace Flow.Launcher.Plugin.OneNote
             IntPtr handle = process.MainWindowHandle;
             if (IsIconic(handle))
             {
-                ShowWindow(handle, SW_RESTORE);
+                _ = ShowWindow(handle, SW_RESTORE);
             }
 
-            SetForegroundWindow(handle);
+            _ = SetForegroundWindow(handle);
         }
 
         private const int SW_RESTORE = 9;

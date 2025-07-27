@@ -13,7 +13,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		{
 			int count = settings.DefaultRecentsCount;
 			
-			if (query.Length > Keyword.Length && int.TryParse(query[Keyword.Length..], out int userChosenCount))
+			if (query.Length > keyword.Length && int.TryParse(query[keyword.Length..], out int userChosenCount))
 				count = userChosenCount;
         
 			return OneNoteApplication.GetNotebooks()

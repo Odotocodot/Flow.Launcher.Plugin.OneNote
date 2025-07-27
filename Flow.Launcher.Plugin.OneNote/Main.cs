@@ -20,10 +20,8 @@ namespace Flow.Launcher.Plugin.OneNote
         private IconProvider iconProvider;
 
         private static SemaphoreSlim semaphore;
-        private static Main instance;
-        
-        private Query currentQuery;
 
+        
         public Task InitAsync(PluginInitContext context)
         {
             this.context = context;
@@ -34,7 +32,6 @@ namespace Flow.Launcher.Plugin.OneNote
             searchManager = new SearchManager(context, settings, resultCreator);
             semaphore = new SemaphoreSlim(1,1);
             context.API.VisibilityChanged += OnVisibilityChanged;
-            instance = this;
             return Task.CompletedTask;
         }
 
@@ -46,19 +43,26 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
 
-        private static async Task OneNoteInitAsync(CancellationToken token = default)
+        private static async Task OneNoteInitAsync(CancellationToken token)
         {
             if (OneNoteApplication.HasComObject)
                 return;
             
-            if (await semaphore.WaitAsync(0,token))
-                OneNoteApplication.InitComObject();
+            if (!await semaphore.WaitAsync(0,token))
+                return;
             
-            semaphore.Release();
+            try
+            {
+                OneNoteApplication.InitComObject();
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+            
         }
         public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
         {
-            currentQuery = query;
             Task init = OneNoteInitAsync(token);
 
             if (string.IsNullOrEmpty(query.Search))
@@ -68,9 +72,6 @@ namespace Flow.Launcher.Plugin.OneNote
 
             return searchManager.Query(query.Search);
         }
-
-        [Obsolete("Use PluginInitContext.API.ReQuery")]
-        public static void ForceReQuery() => instance.context.API.ChangeQuery(instance.currentQuery.RawQuery, true);
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {

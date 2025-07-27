@@ -5,7 +5,7 @@ using Odotocodot.OneNote.Linq;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public record struct SearchResult<T>(T item, List<int>? highlightData, int score) where T : IOneNoteItem;
+	public record struct SearchResult<T>(T Item, List<int>? HighlightData, int Score) where T : IOneNoteItem;
 	public static class SearchExtensions
 	{
 		public static IEnumerable<SearchResult<T>> FuzzySearch<T>(this IEnumerable<T> source, string search, PluginInitContext context) where T: IOneNoteItem

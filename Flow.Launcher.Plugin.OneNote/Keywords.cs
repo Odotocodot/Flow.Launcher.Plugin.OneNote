@@ -39,7 +39,7 @@ namespace Flow.Launcher.Plugin.OneNote
     public class KeywordJsonConverter : JsonConverter<Keyword>
     {
         public override Keyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) 
-            => new(JsonSerializer.Deserialize<string>(ref reader, options));
+            => new(JsonSerializer.Deserialize<string>(ref reader, options)!);
 
         public override void Write(Utf8JsonWriter writer, Keyword value, JsonSerializerOptions options) 
             => JsonSerializer.Serialize(writer, value.Value, options);

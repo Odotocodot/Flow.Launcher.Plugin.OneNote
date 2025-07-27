@@ -7,7 +7,7 @@ namespace Flow.Launcher.Plugin.OneNote
         private bool showUnread = true;
         private int defaultRecentsCount = 5;
         private bool showRecycleBin = true;
-        private bool showEncrypted = false;
+        private bool showEncrypted;
         private bool createColoredIcons = true;
         private IconTheme iconTheme = IconTheme.Color;
         public Keywords Keywords { get; init; } = new Keywords();

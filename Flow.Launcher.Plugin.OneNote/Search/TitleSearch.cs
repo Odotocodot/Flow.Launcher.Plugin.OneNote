@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Odotocodot.OneNote.Linq;
@@ -14,15 +13,15 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 
 		public List<Result> Filter(string query, IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)
 		{
-			if (query.Length == Keyword.Length || parent == null)
-				return resultCreator.SearchingByTitle();
+			if (query.Length == keyword.Length)
+				return resultCreator.SearchType("Now searching by title", parent?.Name);
 
-			var currentSearch = query[Keyword.Length..];
+			var currentSearch = query[keyword.Length..];
 
 			var results = collection.Traverse()
 			                        .FilterBySettings(settings)
 			                        .FuzzySearch(currentSearch, context)
-			                        .Select(x => resultCreator.CreateOneNoteItemResult(x.item, false, x.highlightData, x.score))
+			                        .Select(x => resultCreator.CreateOneNoteItemResult(x.Item, false, x.HighlightData, x.Score))
 			                        .ToList();
 
 			return results.Any() ? results : ResultCreator.NoMatchesFound();

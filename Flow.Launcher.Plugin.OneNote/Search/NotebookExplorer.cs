@@ -33,13 +33,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			
 			Result result = resultCreator.CreateOneNoteItemResult(parent, false, score: Result.MaxScore);
 			result.Title = $"Open \"{parent.Name}\" in OneNote";
-			result.SubTitle = search switch
-			{
-				{ } when search.StartsWithOrd(Keywords.TitleSearch) => $"Now searching by title in \"{parent.Name}\"",
-				{ } when search.StartsWithOrd(Keywords.ScopedSearch) => $"Now searching all pages in \"{parent.Name}\"",
-				_ => $"Use \'{Keywords.ScopedSearch}\' to search this item. Use \'{Keywords.TitleSearch}\' to search by title in this item",
-			};
-
+			result.SubTitle = $"Use \'{Keywords.ScopedSearch}\' to search this item. Use \'{Keywords.TitleSearch}\' to search by title in this item";
 			results.Add(result);
 			return results;
 		}
@@ -84,7 +78,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		private List<Result> ScopedSearch(string query, IOneNoteItem parent)
 		{
 			if (query.Length == Keywords.ScopedSearch.Length)
-				return new List<Result>(0);
+				return resultCreator.SearchType("Now searching all pages", parent.Name);
 
 			if (!char.IsLetterOrDigit(query[Keywords.ScopedSearch.Length]))
 				return resultCreator.InvalidQuery();
@@ -102,7 +96,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		{
 			var results = collection.FilterBySettings(settings)
 			                        .FuzzySearch(search, context)
-			                        .Select(r => resultCreator.CreateOneNoteItemResult(r.item, true, r.highlightData, r.score))
+			                        .Select(r => resultCreator.CreateOneNoteItemResult(r.Item, true, r.HighlightData, r.Score))
 			                        .ToList();
 
 			// If parent is a section, pages inside can have the same name

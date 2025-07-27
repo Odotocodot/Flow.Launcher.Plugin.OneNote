@@ -76,7 +76,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         //quick and dirty non MVVM stuffs
         private async Task ClearCachedIcons()
         {
-	        var dialog = new Modern.ContentDialog()
+	        var dialog = new Modern.ContentDialog
 	        {
 		        Title = "Clear Cached Icons",
 		        Content = $"Delete cached notebook and sections icons.\n" +

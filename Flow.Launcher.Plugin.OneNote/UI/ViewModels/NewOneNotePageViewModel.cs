@@ -7,12 +7,12 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
 	public class NewOneNotePageViewModel : Model
 	{
-		private string pageTitle = string.Empty;
+		private string? pageTitle = string.Empty;
 		private string pageContent = string.Empty;
-		private readonly OneNoteSection section;
+		private readonly OneNoteSection? section;
 		private readonly PluginInitContext context;
 
-		public NewOneNotePageViewModel(PluginInitContext context, OneNoteSection section, string pageTitle)
+		public NewOneNotePageViewModel(PluginInitContext context, OneNoteSection? section, string? pageTitle)
 		{
 			this.context = context;
 			this.section = section;
@@ -44,7 +44,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			}
 		}
 		
-		public string PageTitle
+		public string? PageTitle
 		{
 			get => pageTitle;
 			set => SetProperty(ref pageTitle, value);
