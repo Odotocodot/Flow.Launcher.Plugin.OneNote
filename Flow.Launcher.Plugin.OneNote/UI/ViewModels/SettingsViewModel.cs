@@ -18,7 +18,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         {
             this.iconProvider = iconProvider;
             Settings = settings;
-            Keywords = settings.Keywords
+            Keywords = settings.Keywords //Order is the order they are written in Keywords.cs
                                .GetType()
                                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                                .Select(p => new KeywordViewModel(p.Name.Humanize(LetterCasing.Title), (Keyword)p.GetValue(settings.Keywords)!))
@@ -60,6 +60,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         public ICommand ClearCachedIconsCommand { get; }
         public Settings Settings { get; }
         public KeywordViewModel[] Keywords { get; }
+        public KeywordViewModel NotebookExplorerKeyword => Keywords[0];
+        public KeywordViewModel RecentPagesKeyword => Keywords[1];
         public IconThemeViewModel[] IconThemes { get; }
         public string CachedIconsFileSize => iconProvider.GeneratedImagesDirectoryInfo.EnumerateFiles()
 			.Select(file => file.Length)

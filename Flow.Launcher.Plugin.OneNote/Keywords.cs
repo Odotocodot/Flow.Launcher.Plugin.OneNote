@@ -16,22 +16,15 @@ namespace Flow.Launcher.Plugin.OneNote
     }
     
     [JsonConverter(typeof(KeywordJsonConverter))]
-    public class Keyword : BaseModel
+    public class Keyword
     {
-        public Keyword(string value)
-        {
-            Value = value;
-        }
+        public Keyword(string value) => Value = value;
         public string Value { get; private set; }
 
-        public void ChangeKeyword(string newValue)
-        {
-            Value = newValue;
-            OnPropertyChanged(nameof(Value));
-        }
+        public void ChangeKeyword(string newValue) => Value = newValue;
 
         public int Length => Value.Length;
-        public static implicit operator string(Keyword keyword) => keyword.Value;
+        public static implicit operator string(Keyword keyword) => keyword.Value; 
         public override string ToString() => Value;
     }
     

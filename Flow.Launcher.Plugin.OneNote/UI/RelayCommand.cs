@@ -47,11 +47,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI
             this.execute = execute;
             this.canExecute = canExecute;
         }
-        
-        public bool CanExecute(T? parameter) => canExecute?.Invoke(parameter) != false;
-        public void Execute(T? parameter) => execute(parameter);
 
-        public bool CanExecute(object? parameter) => CanExecute((T?)parameter);
-        public void Execute(object? parameter) => Execute((T?)parameter);
+        public bool CanExecute(object? parameter) => canExecute?.Invoke((T?)parameter) != false;
+        public void Execute(object? parameter) => execute.Invoke((T?)parameter);
     }
 }

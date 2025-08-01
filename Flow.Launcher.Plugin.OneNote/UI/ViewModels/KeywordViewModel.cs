@@ -1,20 +1,23 @@
 ﻿namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
-    public class KeywordViewModel : BaseModel
+    public class KeywordViewModel : Model
     {
+        private readonly Keyword keyword;
         public KeywordViewModel(string keywordName, Keyword keyword)
         {
             Name = keywordName;
-            Keyword = keyword;
-            keyword.PropertyChanged += (_, args) =>
-            {
-                if (args.PropertyName == nameof(Keyword.Value))
-                {
-                    OnPropertyChanged(nameof(Keyword));
-                }
-            };
+            this.keyword = keyword;
         }
         public string Name { get; }
-        public Keyword Keyword { get; }
+        
+        public string Value
+        {
+            get => keyword.Value;
+            set
+            {
+                keyword.ChangeKeyword(value);
+                OnPropertyChanged();
+            }
+        }
     }
 }

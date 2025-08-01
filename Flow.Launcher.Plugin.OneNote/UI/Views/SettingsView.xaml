@@ -36,7 +36,7 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Show recycle bin" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[0].Keyword, StringFormat='When using &quot;{0}&quot; show items that are in the recycle bin'}" />
+                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding NotebookExplorerKeyword.Value, StringFormat='When using &quot;{0}&quot; show items that are in the recycle bin'}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Column="2"
@@ -52,7 +52,7 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Show encrypted sections" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[0].Keyword, StringFormat='When using &quot;{0}&quot; show encrypted sections, if the section has been unlocked, allow temporary access.'}" />
+                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding NotebookExplorerKeyword.Value, StringFormat='When using &quot;{0}&quot; show encrypted sections, if the section has been unlocked, allow temporary access.'}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Column="2"
@@ -164,7 +164,7 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Default number of recent pages" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[1].Keyword, StringFormat='The initial number of recent pages to show when using &quot;{0}&quot;'}" />
+                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding RecentPagesKeyword.Value, StringFormat='The initial number of recent pages to show when using &quot;{0}&quot;'}" />
                 </StackPanel>
                 <ComboBox
                     Grid.Column="2"
@@ -262,7 +262,7 @@
                                 Header="Keyword">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate DataType="{x:Type vm:KeywordViewModel}">
-                                        <TextBlock Width="{Binding Width, ElementName=KeywordColumn}" Text="{Binding Keyword}">
+                                        <TextBlock Width="{Binding Width, ElementName=KeywordColumn}" Text="{Binding Value}">
                                             <TextBlock.InputBindings>
                                                 <ui:StaticResource ResourceKey="DoubleClickEdit" />
                                             </TextBlock.InputBindings>
