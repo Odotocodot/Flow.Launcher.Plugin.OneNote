@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.0 - 2025-#-##
+- **⚠ Now requires Flow Launcher version 2.0.0 or later.**
+- Update Flow.Launcher.Plugin to 5.0.0
+- Update to Net 9.0
+- Refactored code
+
+
 ## 2.1.2 - 2025-6-11
 
 - Added the ability to open items in a new OneNote window using the context menu.([#28](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/28))
