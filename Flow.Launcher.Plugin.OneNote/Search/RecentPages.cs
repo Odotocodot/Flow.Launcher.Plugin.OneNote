@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Odotocodot.OneNote.Linq;
+using LinqToOneNote;
+using OneNoteApp = LinqToOneNote.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
@@ -16,13 +17,14 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			if (query.Length > keyword.Length && int.TryParse(query[keyword.Length..], out int userChosenCount))
 				count = userChosenCount;
         
-			return OneNoteApplication.GetNotebooks()
-			                         .GetPages()
-			                         .FilterBySettings(settings)
-			                         .OrderByDescending(pg => pg.LastModified)
-			                         .Take(count)
-			                         .Select(resultCreator.CreateRecentPageResult)
-			                         .ToList();
+			return OneNoteApp.GetFullHierarchy()
+			                 .Notebooks
+	                         .GetAllPages()
+	                         .FilterBySettings(settings)
+	                         .OrderByDescending(pg => pg.LastModified)
+	                         .Take(count)
+	                         .Select(resultCreator.CreateRecentPageResult)
+	                         .ToList();
 		}
 	}
 }

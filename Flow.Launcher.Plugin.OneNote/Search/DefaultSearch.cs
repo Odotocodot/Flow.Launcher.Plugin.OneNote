@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Odotocodot.OneNote.Linq;
+using OneNoteApp = LinqToOneNote.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
@@ -16,9 +16,9 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 				return resultCreator.InvalidQuery();
 			}
 
-			return OneNoteApplication.FindPages(query)
-			                         .Select(pg => resultCreator.CreatePageResult(pg, query))
-			                         .ToList();
+			return OneNoteApp.FindPages(query)
+			                 .Select(pg => resultCreator.CreatePageResult(pg, query))
+			                 .ToList();
 
 		}
 	}

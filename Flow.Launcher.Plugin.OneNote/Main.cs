@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using Flow.Launcher.Plugin.OneNote.Icons;
 using Flow.Launcher.Plugin.OneNote.Search;
 using Flow.Launcher.Plugin.OneNote.UI.Views;
-using Odotocodot.OneNote.Linq;
+using OneNoteApp = LinqToOneNote.OneNote;
 namespace Flow.Launcher.Plugin.OneNote
 {
     #nullable disable
@@ -39,13 +39,13 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             if (context.CurrentPluginMetadata.Disabled || !e.IsVisible)
             {
-                Task.Run(OneNoteApplication.ReleaseComObject);
+                Task.Run(OneNoteApp.ReleaseComObject);
             }
         }
 
         private static async Task OneNoteInitAsync(CancellationToken token)
         {
-            if (OneNoteApplication.HasComObject)
+            if (OneNoteApp.HasComObject)
                 return;
             
             if (!await semaphore.WaitAsync(0,token))
@@ -53,7 +53,7 @@ namespace Flow.Launcher.Plugin.OneNote
             
             try
             {
-                OneNoteApplication.InitComObject();
+                OneNoteApp.InitComObject();
             }
             finally
             {
@@ -87,7 +87,7 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             context.API.VisibilityChanged -= OnVisibilityChanged;
             semaphore.Dispose();
-            OneNoteApplication.ReleaseComObject();
+            OneNoteApp.ReleaseComObject();
         }
     }
 }

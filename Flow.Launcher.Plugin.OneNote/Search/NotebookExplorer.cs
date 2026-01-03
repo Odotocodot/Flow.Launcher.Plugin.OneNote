@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Odotocodot.OneNote.Linq;
-using Odotocodot.OneNote.Linq.Abstractions;
+using LinqToOneNote;
+using LinqToOneNote.Abstractions;
+using OneNoteApp = LinqToOneNote.OneNote;
+
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
@@ -22,7 +24,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 
 			List<Result> results = search switch
 			{
-				{ } when search.StartsWithOrd(Keywords.TitleSearch) && parent is not OneNotePage => titleSearch.Filter(search, parent, collection),
+				{ } when search.StartsWithOrd(Keywords.TitleSearch) && parent is not Page => titleSearch.Filter(search, parent, collection),
 				{ } when search.StartsWithOrd(Keywords.ScopedSearch) && parent is INotebookOrSectionGroup => ScopedSearch(search, parent),
 				{ } when !string.IsNullOrWhiteSpace(search) => Explorer(search, parent, collection),
 				_  => ShowAll(parent, collection),
@@ -42,7 +44,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		{
 			lastSearch = null;
 			parent = null;
-			collection = OneNoteApplication.GetNotebooks();
+			collection = OneNoteApp.GetFullHierarchy().Notebooks;
 			
 			string search = query[(query.IndexOf(Keywords.NotebookExplorer, StringComparison.Ordinal) + Keywords.NotebookExplorer.Length)..];
 			const string separator = Keywords.NotebookExplorerSeparator;
@@ -85,9 +87,9 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 
 			string currentSearch = query[Keywords.TitleSearch.Length..];
 
-			var results = OneNoteApplication.FindPages(currentSearch, parent)
-			                                .Select(pg => resultCreator.CreatePageResult(pg, currentSearch))
-											.ToList();
+			var results = OneNoteApp.FindPages(currentSearch, parent)
+			                        .Select(pg => resultCreator.CreatePageResult(pg, currentSearch))
+									.ToList();
 
 			return results.Any() ? results : ResultCreator.NoMatchesFound();
 		}
@@ -100,7 +102,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			                        .ToList();
 
 			// If parent is a section, pages inside can have the same name
-			if (parent is not OneNoteSection && results.Any(result => string.Equals(search.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
+			if (parent is not Section && results.Any(result => string.Equals(search.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
 				return results;
 
 			if (parent?.IsInRecycleBin() == true)
@@ -116,7 +118,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 					results.Add(resultCreator.CreateNewSectionResult(search, x));
 					results.Add(resultCreator.CreateNewSectionGroupResult(search, x));
 					break;
-				case OneNoteSection section:
+				case Section section:
 					if (!section.Locked)
 					{
 						results.Add(resultCreator.CreateNewPageResult(search, section));

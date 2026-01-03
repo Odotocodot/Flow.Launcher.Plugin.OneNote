@@ -1,5 +1,5 @@
 using System.Drawing;
-using Odotocodot.OneNote.Linq;
+using LinqToOneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Icons
 {
@@ -12,18 +12,18 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
 		{
 			switch (item)
 			{
-				case OneNoteNotebook n:
+				case Notebook n:
 					prefix = IconConstants.Notebook;
 					color = n.Color;
 					break;
-				case OneNoteSectionGroup sg:
+				case SectionGroup sg:
 					prefix = sg.IsRecycleBin ? IconConstants.RecycleBin : IconConstants.SectionGroup;
 					break;
-				case OneNoteSection s:
+				case Section s:
 					prefix = IconConstants.Section;
 					color = s.Color;
 					break;
-				case OneNotePage:
+				case Page:
 					prefix = IconConstants.Page;
 					break;
 			}

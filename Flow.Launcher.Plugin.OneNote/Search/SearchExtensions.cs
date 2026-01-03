@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Flow.Launcher.Plugin.SharedModels;
-using Odotocodot.OneNote.Linq;
+using LinqToOneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
@@ -24,7 +24,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			foreach (var item in source)
 			{
 				var success = true;
-				if (settings.ShowEncrypted && item is OneNoteSection section)
+				if (settings.ShowEncrypted && item is Section section)
 				{
 					success = !section.Encrypted;
 				}

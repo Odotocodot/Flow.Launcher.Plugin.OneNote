@@ -2,13 +2,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Flow.Launcher.Plugin.OneNote.UI.ViewModels;
-using Odotocodot.OneNote.Linq;
+using LinqToOneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.Views
 {
 	public partial class NewOneNotePagePreviewPanel : UserControl
 	{
-		public NewOneNotePagePreviewPanel(PluginInitContext context, OneNoteSection? section, string? pageTitle)
+		public NewOneNotePagePreviewPanel(PluginInitContext context, Section? section, string? pageTitle)
 		{
 			DataContext = new NewOneNotePageViewModel(context, section, pageTitle);
 			InitializeComponent();
