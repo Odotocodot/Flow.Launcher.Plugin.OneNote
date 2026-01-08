@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 using Flow.Launcher.Plugin.OneNote.Icons;
 using Flow.Launcher.Plugin.OneNote.UI.Views;
 using Humanizer;
-using Odotocodot.OneNote.Linq;
-using Odotocodot.OneNote.Linq.Abstractions;
+using LinqToOneNote;
+using LinqToOneNote.Abstractions;
+using OneNoteApp = LinqToOneNote.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
@@ -28,8 +28,7 @@ namespace Flow.Launcher.Plugin.OneNote
             this.context = context;
         }
 
-        private static string GetNicePath(IOneNoteItem item, string separator = PathSeparator) =>
-            item.RelativePath.Replace(OneNoteApplication.RelativePathSeparator.ToString(), separator);
+        private static string GetNicePath(IOneNoteItem item, string separator = PathSeparator) => item.GetRelativePath(false, separator);
 
         private string GetTitle(IOneNoteItem item, List<int>? highlightData)
         {
@@ -51,7 +50,7 @@ namespace Flow.Launcher.Plugin.OneNote
         
         private string GetAutoCompleteText(IOneNoteItem item) //Auto complete text if in notebook explorer
         {
-            string slash = item is OneNotePage ? string.Empty : Keywords.NotebookExplorerSeparator;
+            string slash = item is Page ? string.Empty : Keywords.NotebookExplorerSeparator;
             return $"{ActionKeyword} {settings.Keywords.NotebookExplorer}{GetNicePath(item, Keywords.NotebookExplorerSeparator)}{slash}";
         }
 
@@ -105,7 +104,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     PreviewPanel = GetNewPagePreviewPanel(null, null),
                     Action = _ =>
                     {
-                        OneNoteApplication.CreateQuickNote(true);
+                        OneNoteApp.CreateQuickNote(OpenMode.ExistingOrNewWindow);
                         WindowHelper.FocusOneNote();
                         return true;
                     },
@@ -118,17 +117,17 @@ namespace Flow.Launcher.Plugin.OneNote
                     Score = int.MinValue,
                     Action = _ =>
                     {
-                        var notebooks = OneNoteApplication.GetNotebooks();
+                        var notebooks = OneNoteApp.GetFullHierarchy().Notebooks;
                         foreach (var notebook in notebooks)
                         {
                             notebook.Sync();
                         }
 
-                        notebooks.GetPages()
+                        notebooks.GetAllPages()
                                  .Where(i => !i.IsInRecycleBin)
                                  .OrderByDescending(pg => pg.LastModified)
                                  .First()
-                                 .OpenInOneNote();
+                                 .Open();
                         
                         WindowHelper.FocusOneNote();
                         return true;
@@ -154,17 +153,17 @@ namespace Flow.Launcher.Plugin.OneNote
                          {TrianglePoint}{i.LastModified:F}
 
                          Contains:
-                         {TrianglePoint}{"section group".ToQuantity(i.SectionGroups.Count())}
-                         {TrianglePoint}{"section".ToQuantity(i.Sections.Count())}
-                         {TrianglePoint}{"page".ToQuantity(i.GetPages().Count())}
+                         {TrianglePoint}{"section group".ToQuantity(i.SectionGroups.Count)}
+                         {TrianglePoint}{"section".ToQuantity(i.Sections.Count)}
+                         {TrianglePoint}{"page".ToQuantity(i.GetAllPages().Count())}
                          """;
 
-                    if (i is OneNoteNotebook)
+                    if (i is Notebook)
                     {
                         subTitle = string.Empty;
                     }
                     break;
-                case OneNoteSection section:
+                case Section section:
                     if (section.Encrypted)
                     {
                         title += $" [Encrypted] {(section.Locked ? "[Locked]" : "[Unlocked]")}";
@@ -176,10 +175,10 @@ namespace Flow.Launcher.Plugin.OneNote
                          {TrianglePoint}{section.LastModified:F}
                          
                          Contains:
-                         {TrianglePoint}{"page".ToQuantity(section.GetPages().Count())}
+                         {TrianglePoint}{"page".ToQuantity(section.GetAllPages().Count())}
                          """;
                     break;
-                case OneNotePage page:
+                case Page page:
                     autoCompleteText = actionIsAutoComplete ? autoCompleteText[..^1] : string.Empty;
 
                     actionIsAutoComplete = false;
@@ -214,7 +213,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     await Task.Run(() =>
                     {
                         item.Sync();
-                        item.OpenInOneNote();
+                        item.Open();
                     });
                     WindowHelper.FocusOneNote();
                     return true;
@@ -222,10 +221,10 @@ namespace Flow.Launcher.Plugin.OneNote
             };
         }
         
-        public Result CreatePageResult(OneNotePage page, string query) 
+        public Result CreatePageResult(Page page, string query) 
             => CreateOneNoteItemResult(page, false, string.IsNullOrWhiteSpace(query) ? null : context.API.FuzzySearch(query, page.Name).MatchData);
 
-        public Result CreateRecentPageResult(OneNotePage page)
+        public Result CreateRecentPageResult(Page page)
         {
             var result = CreateOneNoteItemResult(page, false);
             result.SubTitle = $"{page.LastModified.Humanize()}  |  {result.SubTitle}";
@@ -234,92 +233,59 @@ namespace Flow.Launcher.Plugin.OneNote
             return result;
         }
 
-        
-        private bool CreateNewItem<T>(T parent, string name, bool validTitle, ActionContext c, Func<T, string, bool, string> createAction) where T : IOneNoteItem
+        //When name can have invalid chars
+        private Result CreateNewItemResult<TNew, TParent>(string newName, TParent? parent, string iconPath, Func<TParent?, string, OpenMode, TNew> createFunc)
+            where TNew : IOneNoteItem, INameInvalidCharacters
+            where TParent : IOneNoteItem
+            => CreateNewItemResult(newName, parent, iconPath, createFunc, OneNoteApp.IsValidName<TNew>(newName), TNew.InvalidCharacters);
+
+        private Result CreateNewItemResult<TNew, TParent>(string newName, TParent? parent, string iconPath, Func<TParent?, string, OpenMode, TNew> createFunc, bool validTitle = true, IReadOnlyList<char>? invalidChars = null)
+            where TNew : IOneNoteItem
+            where TParent : IOneNoteItem
         {
-            if (!validTitle)
-            {
-                return false;
-            }
-
-            bool showOneNote = !c.SpecialKeyState.CtrlPressed;
-
-            createAction(parent, name, showOneNote);
-                    
-            context.API.ReQuery();
-                    
-            if(showOneNote)
-                WindowHelper.FocusOneNote();
-                    
-            return showOneNote;
-        }
-
-        public Result CreateNewPageResult(string newPageName, OneNoteSection section)
-        {
-            newPageName = newPageName.Trim();
+            newName = newName.Trim();
+            string type = nameof(TNew);
             return new Result
             {
-                Title = $"Create page: \"{newPageName}\"",
-                SubTitle = $"Path: {GetNicePath(section)}{PathSeparator}{newPageName}",
-                AutoCompleteText = $"{GetAutoCompleteText(section)}{newPageName}",
-                IcoPath = iconProvider.NewPage,
-                PreviewPanel = GetNewPagePreviewPanel(section, newPageName),
-                Action = c => CreateNewItem(section, newPageName, true, c, OneNoteApplication.CreatePage),
-            };
-        }
-
-        public Result CreateNewSectionResult(string newSectionName, INotebookOrSectionGroup parent)
-        {
-            newSectionName = newSectionName.Trim();
-            bool validTitle = OneNoteApplication.IsSectionNameValid(newSectionName);
-
-            return new Result
-            {
-                Title = $"Create section: \"{newSectionName}\"",
+                Title = $"Create {type.Transform(To.LowerCase)} \"{newName}\"",
                 SubTitle = validTitle
-                        ? $"Path: {GetNicePath(parent)}{PathSeparator}{newSectionName}"
-                        : $"Section names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionChars)}",
-                AutoCompleteText = $"{GetAutoCompleteText(parent)}{newSectionName}",
-                IcoPath = iconProvider.NewSection,
-                Action = c => CreateNewItem(parent, newSectionName, validTitle, c, OneNoteApplication.CreateSection),
+                    ? parent == null // parent is null if trying to create a notebook
+                        ? $"Location: {OneNoteApp.GetDefaultNotebookLocation()}" 
+                        : $"Path: {GetNicePath(parent)}{PathSeparator}{newName}"
+                    : $"{type.Transform(To.SentenceCase)} names cannot contain: {string.Join(' ', invalidChars!)}",
+                AutoCompleteText = parent == null ? $"{ActionKeyword} {settings.Keywords.NotebookExplorer}{newName}" : $"{GetAutoCompleteText(parent)}{newName}",
+                IcoPath = iconPath,
+                Action = c =>
+                {
+                    if (!validTitle)
+                        return false;
+
+                    bool showOneNote = !c.SpecialKeyState.CtrlPressed;
+                    createFunc(parent, newName, showOneNote ? OpenMode.ExistingOrNewWindow : OpenMode.None);
+
+                    context.API.ReQuery();
+
+                    if (showOneNote)
+                        WindowHelper.FocusOneNote();
+
+                    return showOneNote;
+                },
             };
         }
 
-        public Result CreateNewSectionGroupResult(string newSectionGroupName, INotebookOrSectionGroup parent)
+        public Result CreateNewPageResult(string newPageName, Section section)
         {
-            newSectionGroupName = newSectionGroupName.Trim();
-            bool validTitle = OneNoteApplication.IsSectionGroupNameValid(newSectionGroupName);
-
-            return new Result
-            {
-                Title = $"Create section group: \"{newSectionGroupName}\"",
-                SubTitle = validTitle
-                    ? $"Path: {GetNicePath(parent)}{PathSeparator}{newSectionGroupName}"
-                    : $"Section group names cannot contain: {string.Join(' ', OneNoteApplication.InvalidSectionGroupChars)}",
-                AutoCompleteText = $"{GetAutoCompleteText(parent)}{newSectionGroupName}",
-                IcoPath = iconProvider.NewSectionGroup,
-                Action = c => CreateNewItem(parent, newSectionGroupName, validTitle, c, OneNoteApplication.CreateSectionGroup),
-            };
+            var result = CreateNewItemResult(newPageName, section, iconProvider.NewPage, OneNoteApp.CreatePage);
+            result.PreviewPanel = GetNewPagePreviewPanel(section, newPageName);
+            return result;
         }
-        
-        public Result CreateNewNotebookResult(string newNotebookName)
-        {
-            newNotebookName = newNotebookName.Trim();
-            bool validTitle = OneNoteApplication.IsNotebookNameValid(newNotebookName);
 
-            return new Result
-            {
-                Title = $"Create notebook: \"{newNotebookName}\"",
-                SubTitle = validTitle
-                    ? $"Location: {OneNoteApplication.GetDefaultNotebookLocation()}"
-                    : $"Notebook names cannot contain: {string.Join(' ', OneNoteApplication.InvalidNotebookChars)}",
-                AutoCompleteText = $"{ActionKeyword} {settings.Keywords.NotebookExplorer}{newNotebookName}",
-                IcoPath = iconProvider.NewNotebook,
-                Action = c => CreateNewItem<IOneNoteItem>(null, newNotebookName, validTitle,
-                        c, (_, name, valid) => OneNoteApplication.CreateNotebook(name, valid)),
-            };
-        }
-        
+        public Result CreateNewSectionResult(string newSectionName, INotebookOrSectionGroup parent) => CreateNewItemResult(newSectionName, parent, iconProvider.NewSection, OneNoteApp.CreateSection);
+
+        public Result CreateNewSectionGroupResult(string newSectionGroupName, INotebookOrSectionGroup parent) => CreateNewItemResult(newSectionGroupName, parent, iconProvider.NewSectionGroup, OneNoteApp.CreateSectionGroup);
+
+        public Result CreateNewNotebookResult(string newNotebookName) => CreateNewItemResult<Notebook, IOneNoteItem>(newNotebookName, null, iconProvider.NewNotebook, (_, name, openMode) => OneNoteApp.CreateNotebook(name, openMode));
+
         public List<Result> ContextMenu(Result selectedResult)
         {
             var results = new List<Result>();
@@ -341,7 +307,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     AddSelectedCount = false,
                     Action = _ =>
                     {
-                        OneNoteApplication.ComObject.NavigateTo(item.ID, fNewWindow: true);
+                        OneNoteApp.Open(item, true);
                         WindowHelper.FocusOneNote();
                         return true;
                     }
@@ -376,7 +342,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     results.Add(EmptyCollectionResult("section", iconProvider.NewSection, "(unencrypted) section"));
                     results.Add(EmptyCollectionResult("section group", iconProvider.NewSectionGroup));
                     break;
-                case OneNoteSection section:
+                case Section section:
                     // Can create page
                     if (!section.Locked)
                     {
@@ -387,7 +353,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
             return results;
 
-            Result EmptyCollectionResult(string title, string iconPath, string? subTitle = null, OneNoteSection? section = null)
+            Result EmptyCollectionResult(string title, string iconPath, string? subTitle = null, Section? section = null)
             {
                 return new Result
                 {
@@ -399,7 +365,7 @@ namespace Flow.Launcher.Plugin.OneNote
             }
         }
 
-        private Lazy<UserControl> GetNewPagePreviewPanel(OneNoteSection? section, string? pageTitle) 
+        private Lazy<System.Windows.Controls.UserControl> GetNewPagePreviewPanel(Section? section, string? pageTitle)
             => new(() => new NewOneNotePagePreviewPanel(context, section, pageTitle));
 
         public static List<Result> NoMatchesFound()
@@ -437,6 +403,5 @@ namespace Flow.Launcher.Plugin.OneNote
                 }
             };
         }
-
     }
 }
