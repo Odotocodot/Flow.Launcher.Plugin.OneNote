@@ -6,6 +6,7 @@
 - Update to Net 9.0
 - Refactored code
 - Migrate from `Odotocodot.OneNote.Linq 1.2.0` to `LinqToOneNote 2.0.0`
+- Improve notebook explorer performance.
 
 
 ## 2.1.2 - 2025-6-11

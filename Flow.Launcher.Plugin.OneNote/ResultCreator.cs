@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace Flow.Launcher.Plugin.OneNote
         private readonly PluginInitContext context;
         private readonly Settings settings;
         private readonly IconProvider iconProvider;
+        private readonly ConcurrentDictionary<RelativePathKey, string> relativePaths = [];
 
         private const string PathSeparator = " > ";
         private const string BulletPoint = "\u2022  ";
@@ -28,7 +30,9 @@ namespace Flow.Launcher.Plugin.OneNote
             this.context = context;
         }
 
-        private static string GetNicePath(IOneNoteItem item, string separator = PathSeparator) => item.GetRelativePath(false, separator);
+        private readonly record struct RelativePathKey(IOneNoteItem Item, string Separator);
+        private string GetNicePath(IOneNoteItem item, string separator = PathSeparator) 
+            => relativePaths.GetOrAdd(new RelativePathKey(item, separator), v => v.Item.GetRelativePath(false, v.Separator));
 
         private string GetTitle(IOneNoteItem item, List<int>? highlightData)
         {

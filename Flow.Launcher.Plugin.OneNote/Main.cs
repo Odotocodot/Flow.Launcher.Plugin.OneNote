@@ -9,7 +9,7 @@ using Flow.Launcher.Plugin.OneNote.UI.Views;
 using OneNoteApp = LinqToOneNote.OneNote;
 namespace Flow.Launcher.Plugin.OneNote
 {
-    #nullable disable
+#nullable disable
     public class Main : IAsyncPlugin, IContextMenu, ISettingProvider, IDisposable
     {
         private PluginInitContext context;
@@ -18,6 +18,7 @@ namespace Flow.Launcher.Plugin.OneNote
         private SearchManager searchManager;
         private Settings settings;
         private IconProvider iconProvider;
+        private VisibilityChanged visibilityChanged;
 
         private static SemaphoreSlim semaphore;
 
@@ -26,21 +27,19 @@ namespace Flow.Launcher.Plugin.OneNote
         {
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
-            
+
+            visibilityChanged = new VisibilityChanged(context);
             iconProvider = new IconProvider(context, settings);
             resultCreator = new ResultCreator(context, settings, iconProvider);
-            searchManager = new SearchManager(context, settings, resultCreator);
-            semaphore = new SemaphoreSlim(1,1);
-            context.API.VisibilityChanged += OnVisibilityChanged;
-            return Task.CompletedTask;
-        }
+            searchManager = new SearchManager(context, settings, resultCreator, visibilityChanged);
+            semaphore = new SemaphoreSlim(1, 1);
 
-        private void OnVisibilityChanged(object _, VisibilityChangedEventArgs e)
-        {
-            if (context.CurrentPluginMetadata.Disabled || !e.IsVisible)
+            visibilityChanged.Subscribe(static (isVisible) =>
             {
-                Task.Run(OneNoteApp.ReleaseComObject);
-            }
+                if (!isVisible)
+                    Task.Run(OneNoteApp.ReleaseComObject);
+            });
+            return Task.CompletedTask;
         }
 
         private static async Task OneNoteInitAsync(CancellationToken token)
@@ -70,7 +69,7 @@ namespace Flow.Launcher.Plugin.OneNote
             
             await init;
 
-            return searchManager.Query(query.Search);
+            return searchManager.Query(query);
         }
 
         public List<Result> LoadContextMenus(Result selectedResult)
@@ -85,7 +84,7 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public void Dispose()
         {
-            context.API.VisibilityChanged -= OnVisibilityChanged;
+            visibilityChanged.Dispose();
             semaphore.Dispose();
             OneNoteApp.ReleaseComObject();
         }

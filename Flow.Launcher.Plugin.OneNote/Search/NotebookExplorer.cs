@@ -11,13 +11,22 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 	public class NotebookExplorer : SearchBase
 	{
 		private readonly TitleSearch titleSearch;
-		public NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch) 
+		private Root? cache;
+		private bool updateCache;
+		public NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch, VisibilityChanged visibilityChanged)
 			: base(context, settings, resultCreator, settings.Keywords.NotebookExplorer)
 		{
 			this.titleSearch = titleSearch;
+			visibilityChanged.Subscribe(isVisible =>
+			{
+				if (!isVisible)
+				{
+					updateCache = true;
+				}
+			});
 		}
 
-		public override List<Result> GetResults(string query)
+		internal List<Result> GetResults(Query query)
 		{
 			if (!ValidateSearch(query, out string? search, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection))
 				return resultCreator.InvalidQuery(false);
@@ -40,13 +49,21 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			return results;
 		}
 
-		private bool ValidateSearch(string query, out string? lastSearch, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection)
+		public override List<Result> GetResults(string query) => GetResults(query);
+
+		private bool ValidateSearch(Query query, out string? lastSearch, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection)
 		{
 			lastSearch = null;
 			parent = null;
-			collection = OneNoteApp.GetFullHierarchy().Notebooks;
-			
-			string search = query[(query.IndexOf(Keywords.NotebookExplorer, StringComparison.Ordinal) + Keywords.NotebookExplorer.Length)..];
+			if (updateCache || query.IsReQuery || cache == null)
+			{
+				cache = OneNoteApp.GetFullHierarchy();
+				updateCache = false;
+			}
+
+			collection = cache.Notebooks;
+
+			string search = query.Search[(query.Search.IndexOf(Keywords.NotebookExplorer, StringComparison.Ordinal) + Keywords.NotebookExplorer.Length)..];
 			const string separator = Keywords.NotebookExplorerSeparator;
 			var currIndex = search.IndexOf(separator, StringComparison.Ordinal);
 			var prevIndex = 0;

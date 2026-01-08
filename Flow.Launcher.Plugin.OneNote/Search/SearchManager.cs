@@ -9,20 +9,21 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		private readonly DefaultSearch defaultSearch;
 		private readonly RecentPages recentPages;
 
-		public SearchManager(PluginInitContext context, Settings settings, ResultCreator resultCreator)
+		public SearchManager(PluginInitContext context, Settings settings, ResultCreator resultCreator, VisibilityChanged visibilityChanged)
 		{
 			titleSearch = new TitleSearch(context, settings, resultCreator);
-			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, titleSearch);
+			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, titleSearch, visibilityChanged);
 			recentPages = new RecentPages(context, settings, resultCreator);
 			defaultSearch = new DefaultSearch(context, settings, resultCreator);
 		}
-		
-		public List<Result> Query(string search)
+
+		public List<Result> Query(Query query)
 		{
+			string search = query.Search;
 			return search switch
 			{
 				{ } when search.StartsWithOrd(titleSearch.keyword) => titleSearch.GetResults(search),
-				{ } when search.StartsWithOrd(notebookExplorer.keyword) => notebookExplorer.GetResults(search),
+				{ } when search.StartsWithOrd(notebookExplorer.keyword) => notebookExplorer.GetResults(query),
 				{ } when search.StartsWithOrd(recentPages.keyword) => recentPages.GetResults(search),
 				_ => defaultSearch.GetResults(search!),
 			};
