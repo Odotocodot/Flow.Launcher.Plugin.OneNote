@@ -74,7 +74,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			                        .Select(item => resultCreator.CreateOneNoteItemResult(item, true))
 			                        .ToList();
 			
-			return results.Any() ? results : resultCreator.EmptyCollection(results, parent);
+			return results.Count != 0 ? results : resultCreator.EmptyCollection(results, parent);
 		}
 		
 		private List<Result> ScopedSearch(string query, IOneNoteItem parent)
@@ -91,7 +91,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			                        .Select(pg => resultCreator.CreatePageResult(pg, currentSearch))
 									.ToList();
 
-			return results.Any() ? results : ResultCreator.NoMatchesFound();
+            return results.Count != 0 ? results : ResultCreator.NoMatchesFound();
 		}
 		
 		private List<Result> Explorer(string search, IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)

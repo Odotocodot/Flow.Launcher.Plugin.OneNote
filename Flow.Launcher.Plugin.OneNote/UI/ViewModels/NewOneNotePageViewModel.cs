@@ -25,8 +25,20 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 		private void CreatePage(bool openImmediately)
 		{
 			var page = OneNoteApp.CreatePage(section, PageTitle);
+			var xmlWrap = $"""
+						<one:Outline>
+							<one:Position x="36.0" y="86.4000015258789" z="0"/>
+							<one:Size width="72.0" height="13.42771339416504"/>
+							<one:OEChildren>
+								<one:OE alignment="left">
+									<one:T>
+										<![CDATA[{PageContent}]]>
+									</one:T>
+								</one:OE>
+							</one:OEChildren>
+						</one:Outline>
+						""";
 			var pageContentXml = page.GetPageContent();
-			var xmlWrap = $"<one:Outline><one:Position x=\"36.0\" y=\"86.4000015258789\" z=\"0\"/><one:Size width=\"72.0\" height=\"13.42771339416504\"/><one:OEChildren><one:OE alignment=\"left\"><one:T><![CDATA[{PageContent}]]></one:T></one:OE></one:OEChildren></one:Outline>";
 			pageContentXml = pageContentXml.Insert(pageContentXml.IndexOf("</one:Page>", StringComparison.Ordinal), xmlWrap);
 			OneNoteApp.UpdatePageContent(pageContentXml);
 			context.API.ReQuery();

@@ -7,8 +7,10 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		protected readonly PluginInitContext context;
 		protected readonly Settings settings;
 		protected readonly ResultCreator resultCreator;
+#nullable disable
 		public readonly Keyword keyword;
-		protected SearchBase(PluginInitContext context, Settings settings, ResultCreator resultCreator, Keyword keyword)
+#nullable restore
+		protected SearchBase(PluginInitContext context, Settings settings, ResultCreator resultCreator, Keyword? keyword)
 		{
 			this.context = context;
 			this.settings = settings;

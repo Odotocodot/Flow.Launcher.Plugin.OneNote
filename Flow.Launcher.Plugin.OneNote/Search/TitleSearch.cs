@@ -25,7 +25,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			                        .Select(x => resultCreator.CreateOneNoteItemResult(x.Item, false, x.HighlightData, x.Score))
 			                        .ToList();
 
-			return results.Any() ? results : ResultCreator.NoMatchesFound();
+			return results.Count != 0 ? results : ResultCreator.NoMatchesFound();
 		}
 	}
 }

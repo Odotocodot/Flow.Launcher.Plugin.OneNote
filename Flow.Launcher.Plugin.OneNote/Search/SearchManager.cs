@@ -15,7 +15,6 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, titleSearch);
 			recentPages = new RecentPages(context, settings, resultCreator);
 			defaultSearch = new DefaultSearch(context, settings, resultCreator);
-
 		}
 		
 		public List<Result> Query(string search)
