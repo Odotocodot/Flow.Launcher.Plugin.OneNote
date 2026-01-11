@@ -29,6 +29,12 @@
         IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
         CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     -->
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Flow.Launcher.Plugin.OneNote;component/UI/DesignTimeStyles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+
     <Style x:Key="SideToggleSwitch" TargetType="{x:Type ui:ToggleSwitch}">
         <Setter Property="Grid.Column" Value="2" />
         <Setter Property="FocusVisualMargin" Value="5" />
