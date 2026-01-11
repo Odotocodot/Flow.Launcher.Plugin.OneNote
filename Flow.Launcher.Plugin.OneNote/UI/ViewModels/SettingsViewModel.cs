@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Flow.Launcher.Plugin.OneNote.Icons;
 using Humanizer;
-using Modern = ModernWpf.Controls;
+using Modern = iNKORE.UI.WPF.Modern.Controls;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
