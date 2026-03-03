@@ -4,7 +4,7 @@
     "Name": "OneNote",
     "Description": "Search and create your OneNote notes",
     "Author": "Odotocodot",
-    "Version": "2.2.0-beta",
+    "Version": "3.0.0-beta",
     "Language": "csharp",
     "Website": "https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote",
     "IcoPath": "Images/logo.png",

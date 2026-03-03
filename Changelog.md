@@ -2,11 +2,12 @@
 
 ## 3.0.0 - 2026-#-##
 - **⚠ Now requires Flow Launcher version 2.0.0 or later.**
-- Update Flow.Launcher.Plugin to 5.0.0
-- Update to Net 9.0
 - Refactored code
-- Migrate from `Odotocodot.OneNote.Linq 1.2.0` to `LinqToOneNote 2.0.0`
-- Improve notebook explorer performance.
+- Improved notebook explorer performance.
+- Dependencies
+  - Updated to Net 9.0
+  - Updated `Flow.Launcher.Plugin-4.1.0` to `Flow.Launcher.Plugin-5.2.0`
+  - Updated `Odotocodot.OneNote.Linq-1.2.0` to `LinqToOneNote-2.0.0`
 
 
 ## 2.1.2 - 2025-6-11

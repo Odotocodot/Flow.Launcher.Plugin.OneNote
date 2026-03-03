@@ -302,8 +302,8 @@ namespace Flow.Launcher.Plugin.OneNote
                 
                 results.Add(new Result
                 {
-                    Title = "Open in new OneNote window",
-                    IcoPath = IconProvider.Logo,
+                    Title = $"Open \"{item.Name}\" in new OneNote window",
+                    Icon = result.Icon,
                     Score = 20,
                     AddSelectedCount = false,
                     Action = _ =>
@@ -320,7 +320,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     Title = "Show in Notebook Explorer",
                     SubTitle = autoCompleteText,
                     AddSelectedCount = false,
-                    Score = 10,
+                    Score = 0,
                     IcoPath = iconProvider.NotebookExplorer,
                     Action = _ =>
                     {
@@ -383,13 +383,13 @@ namespace Flow.Launcher.Plugin.OneNote
                                     : string.Empty,
                                 iconProvider.Warning);
         }
-        public List<Result> SearchType(string title, string? parentName)
+        public List<Result> SearchType(string title, string? parentName, string subTitle = "")
         {
             if (!string.IsNullOrWhiteSpace(parentName))
             {
                 title += $" in \"{parentName}\"";
             }
-            return SingleResult(title, string.Empty, iconProvider.Search);
+            return SingleResult(title, subTitle, iconProvider.Search);
         }
 
         private static List<Result> SingleResult(string title, string subTitle, string iconPath)
