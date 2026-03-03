@@ -30,6 +30,7 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
         public string Warning => settings.IconTheme == IconTheme.Color
             ? $"{IC.ImagesDirectory}{IC.Warning}.{GetIconThemeString(IconTheme.Dark)}.png"
             : GetIconPath(IC.Warning);
+        public static GlyphInfo Clipboard { get; } = new("/Resources/#Segoe Fluent Icons", "\uf0e3"); // Clipboard
 
         public int CachedIconCount => iconCache.Keys.Count(k => char.IsDigit(k.Split('.')[1][1]));
         public DirectoryInfo GeneratedImagesDirectoryInfo { get; }

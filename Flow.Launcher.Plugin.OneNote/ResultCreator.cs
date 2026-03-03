@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -313,6 +312,7 @@ namespace Flow.Launcher.Plugin.OneNote
                         return true;
                     }
                 });
+                
 
                 string autoCompleteText = GetAutoCompleteText(item);
                 results.Add(new Result
@@ -320,13 +320,27 @@ namespace Flow.Launcher.Plugin.OneNote
                     Title = "Show in Notebook Explorer",
                     SubTitle = autoCompleteText,
                     AddSelectedCount = false,
-                    Score = 0,
+                    Score = 10,
                     IcoPath = iconProvider.NotebookExplorer,
                     Action = _ =>
                     {
                         context.API.BackToQueryResults();
                         context.API.ChangeQuery(autoCompleteText, true);
                         return false;
+                    }
+                });
+                
+                results.Add(new Result
+                {
+                    Title = "Copy link to clipboard",
+                    Glyph = IconProvider.Clipboard,
+                    Score = 0,
+                    AddSelectedCount = false,
+                    Action = _ =>
+                    {
+                        OneNoteApp.ComObject.GetHyperlinkToObject(item.Id, string.Empty, out var hyperlink);
+                        context.API.CopyToClipboard(hyperlink);
+                        return true;
                     }
                 });
             }
