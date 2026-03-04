@@ -244,15 +244,15 @@ namespace Flow.Launcher.Plugin.OneNote
             where TParent : IOneNoteItem
         {
             newName = newName.Trim();
-            string type = nameof(TNew);
+            string type = typeof(TNew).Name;
             return new Result
             {
-                Title = $"Create {type.Transform(To.LowerCase)} \"{newName}\"",
+                Title = $"Create new {type.Humanize().ToLower()}: \"{newName}\"",
                 SubTitle = validTitle
                     ? parent == null // parent is null if trying to create a notebook
                         ? $"Location: {OneNoteApp.GetDefaultNotebookLocation()}" 
                         : $"Path: {GetNicePath(parent)}{PathSeparator}{newName}"
-                    : $"{type.Transform(To.SentenceCase)} names cannot contain: {string.Join(' ', invalidChars!)}",
+                    : $"{type.Humanize()} names cannot contain: {string.Join(' ', invalidChars!)}",
                 AutoCompleteText = parent == null ? $"{ActionKeyword} {settings.Keywords.NotebookExplorer}{newName}" : $"{GetAutoCompleteText(parent)}{newName}",
                 IcoPath = iconPath,
                 Action = c =>
