@@ -24,7 +24,15 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 
 		private void CreatePage(bool openImmediately)
 		{
-			var page = OneNoteApp.CreatePage(section, PageTitle);
+			Page page;
+			if (section == null)
+			{
+				OneNoteApp.CreateQuickNote(PageTitle, out page);
+			}
+			else
+			{
+				page = OneNoteApp.CreatePage(section, PageTitle);
+			}
 			var xmlWrap = $"""
 						<one:Outline>
 							<one:Position x="36.0" y="86.4000015258789" z="0"/>
