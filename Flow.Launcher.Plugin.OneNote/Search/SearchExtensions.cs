@@ -24,12 +24,12 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			foreach (var item in source)
 			{
 				var success = true;
-				if (settings.ShowEncrypted && item is Section section)
+				if (!settings.ShowEncrypted && item is Section section)
 				{
 					success = !section.Encrypted;
 				}
 
-				if (settings.ShowRecycleBin && item.IsInRecycleBin())
+				if (!settings.ShowRecycleBin && item.IsInRecycleBin())
 				{
 					success = false;
 				}
