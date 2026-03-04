@@ -1,30 +1,32 @@
 using System.Drawing;
-using Odotocodot.OneNote.Linq;
+using LinqToOneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Icons
 {
-	public record struct IconGeneratorInfo
+	public struct IconGeneratorInfo
 	{
-		public string Prefix { get; }
-		public Color? Color { get; }
+		public readonly string prefix = string.Empty;
+		public readonly Color? color;
 		
-		public IconGeneratorInfo(OneNoteNotebook notebook)
+		public IconGeneratorInfo(IOneNoteItem item)
 		{
-			Prefix = IconConstants.Notebook;
-			Color = notebook.Color;
-		}
-		public IconGeneratorInfo(OneNoteSectionGroup sectionGroup)
-		{
-			Prefix = sectionGroup.IsRecycleBin ? IconConstants.RecycleBin : IconConstants.SectionGroup;
-		}
-		public IconGeneratorInfo(OneNoteSection section)
-		{
-			Prefix = IconConstants.Section;
-			Color = section.Color;
-		}
-		public IconGeneratorInfo(OneNotePage page)
-		{
-			Prefix = IconConstants.Page;
+			switch (item)
+			{
+				case Notebook n:
+					prefix = IconConstants.Notebook;
+					color = n.Color;
+					break;
+				case SectionGroup sg:
+					prefix = sg.IsRecycleBin ? IconConstants.RecycleBin : IconConstants.SectionGroup;
+					break;
+				case Section s:
+					prefix = IconConstants.Section;
+					color = s.Color;
+					break;
+				case Page:
+					prefix = IconConstants.Page;
+					break;
+			}
 		}
 	}
 }

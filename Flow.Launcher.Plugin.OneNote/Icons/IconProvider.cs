@@ -12,6 +12,11 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
 {
     public class IconProvider : BaseModel
     {
+        private readonly PluginInitContext context;
+        private readonly Settings settings;
+        private readonly string imagesDirectory;
+        private readonly ConcurrentDictionary<string, ImageSource> iconCache = new();
+        
         public const string Logo = IC.ImagesDirectory + IC.Logo + ".png";
         public string Sync => GetIconPath(IC.Sync);
         public string Search => GetIconPath(IC.Search);
@@ -23,17 +28,13 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
         public string NewSectionGroup => GetIconPath(IC.NewSectionGroup);
         public string NewNotebook => GetIconPath(IC.NewNotebook);
         public string Warning => settings.IconTheme == IconTheme.Color
-                ? $"{IC.ImagesDirectory}{IC.Warning}.{GetIconThemeString(IconTheme.Dark)}.png"
-                : GetIconPath(IC.Warning);
-        
-        private readonly Settings settings;
-        private readonly ConcurrentDictionary<string,ImageSource> iconCache = new();
-        private readonly string imagesDirectory;
+            ? $"{IC.ImagesDirectory}{IC.Warning}.{GetIconThemeString(IconTheme.Dark)}.png"
+            : GetIconPath(IC.Warning);
+        public static GlyphInfo Clipboard { get; } = new("/Resources/#Segoe Fluent Icons", "\uf0e3"); // Clipboard
 
-        public DirectoryInfo GeneratedImagesDirectoryInfo { get; }
         public int CachedIconCount => iconCache.Keys.Count(k => char.IsDigit(k.Split('.')[1][1]));
-        
-        private readonly PluginInitContext context;
+        public DirectoryInfo GeneratedImagesDirectoryInfo { get; }
+
 
         public IconProvider(PluginInitContext context, Settings settings)
         {
@@ -60,7 +61,7 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
             {
                 iconTheme = FlowLauncherThemeToIconTheme();
             }
-            return Enum.GetName(iconTheme).ToLower();
+            return iconTheme.ToString().ToLower();
         }
         
         private static IconTheme FlowLauncherThemeToIconTheme()
@@ -79,38 +80,38 @@ namespace Flow.Launcher.Plugin.OneNote.Icons
         
         public Result.IconDelegate GetIcon(IconGeneratorInfo info)
         { 
-            bool generate = (string.CompareOrdinal(info.Prefix, IC.Notebook) == 0 
-                             || string.CompareOrdinal(info.Prefix, IC.Section) == 0)
+            bool generate = (string.CompareOrdinal(info.prefix, IC.Notebook) == 0 
+                             || string.CompareOrdinal(info.prefix, IC.Section) == 0)
                             && settings.CreateColoredIcons 
-                            && info.Color.HasValue;
+                            && info.color.HasValue;
 
             return generate ? GetIconGenerated : GetIconStatic;
 
             ImageSource GetIconGenerated()
             {
-                var imageSource = iconCache.GetOrAdd($"{info.Prefix}.{info.Color!.Value.ToArgb()}.png", ImageSourceFactory, info.Color.Value);
+                var imageSource = iconCache.GetOrAdd($"{info.prefix}.{info.color!.Value.ToArgb()}.png",
+                    static (key, t) => ImageSourceFactory(t.self, key, t.Color), 
+                    (Color: info.color.Value, self: this));
                 OnPropertyChanged(nameof(CachedIconCount));
                 return imageSource;
             }
             
             ImageSource GetIconStatic()
             {
-                return iconCache.GetOrAdd($"{info.Prefix}.{GetIconThemeString(settings.IconTheme)}.png", key =>
-                {
-                    var path = Path.Combine(imagesDirectory, key);
-                    return BitmapImageFromPath(path);
-                });
+                return iconCache.GetOrAdd($"{info.prefix}.{GetIconThemeString(settings.IconTheme)}.png", 
+                    static (key,dir) => BitmapImageFromPath(Path.Combine(dir, key)),
+                    imagesDirectory);
             }
         }
 
-        private ImageSource ImageSourceFactory(string key, Color color)
+        private static ImageSource ImageSourceFactory(IconProvider self, string key, Color color)
         {
             var prefix = key.Split('.')[0];
-            var path = Path.Combine(imagesDirectory, $"{prefix}.dark.png");
+            var path = Path.Combine(self.imagesDirectory, $"{prefix}.dark.png");
             var bitmap =  BitmapImageFromPath(path);
             var newBitmap = ChangeIconColor(bitmap, color);
                                 
-            path = $"{GeneratedImagesDirectoryInfo.FullName}{key}";
+            path = $"{self.GeneratedImagesDirectoryInfo.FullName}{key}";
 
             using var fileStream = new FileStream(path, FileMode.Create);
             var encoder = new PngBitmapEncoder(); 

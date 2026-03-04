@@ -6,7 +6,7 @@
     xmlns:linq="clr-namespace:System.Linq;assembly=System.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
-    xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
     xmlns:vm="clr-namespace:Flow.Launcher.Plugin.OneNote.UI.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}"
     d:DesignHeight="700"
@@ -36,7 +36,10 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Show recycle bin" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[0].Keyword, StringFormat='When using &quot;{0}&quot; show items that are in the recycle bin'}" />
+                    <TextBlock
+                        d:Text="When using &quot;{0}&quot; show items that are in the recycle bin"
+                        Style="{DynamicResource SettingSubTitleLabel}"
+                        Text="{Binding NotebookExplorerKeyword.Value, StringFormat='When using &quot;{0}&quot; show items that are in the recycle bin'}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Column="2"
@@ -52,7 +55,10 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Show encrypted sections" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[0].Keyword, StringFormat='When using &quot;{0}&quot; show encrypted sections, if the section has been unlocked, allow temporary access.'}" />
+                    <TextBlock
+                        d:Text="When using &quot;{0}&quot; show encrypted sections, if the section has been unlocked, allow temporary access."
+                        Style="{DynamicResource SettingSubTitleLabel}"
+                        Text="{Binding NotebookExplorerKeyword.Value, StringFormat='When using &quot;{0}&quot; show encrypted sections, if the section has been unlocked, allow temporary access.'}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Column="2"
@@ -93,7 +99,7 @@
                         HorizontalContentAlignment="Center"
                         Command="{Binding ClearCachedIconsCommand}">
                         <Label HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}" />
+                            <TextBlock d:Text="Clear Cached Images:  {0}" Text="{Binding CachedIconsFileSize, StringFormat='Clear Cached Images:  {0}'}" />
                         </Label>
                     </Button>
                     <Button Margin="0,4,22,4" Command="{Binding OpenGeneratedIconsFolderCommand}">
@@ -164,7 +170,10 @@
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
                     <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Default number of recent pages" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="{Binding Keywords[1].Keyword, StringFormat='The initial number of recent pages to show when using &quot;{0}&quot;'}" />
+                    <TextBlock
+                        d:Text="The initial number of recent pages to show when using &quot;{0}&quot;"
+                        Style="{DynamicResource SettingSubTitleLabel}"
+                        Text="{Binding RecentPagesKeyword.Value, StringFormat='The initial number of recent pages to show when using &quot;{0}&quot;'}" />
                 </StackPanel>
                 <ComboBox
                     Grid.Column="2"
@@ -262,7 +271,7 @@
                                 Header="Keyword">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate DataType="{x:Type vm:KeywordViewModel}">
-                                        <TextBlock Width="{Binding Width, ElementName=KeywordColumn}" Text="{Binding Keyword}">
+                                        <TextBlock Width="{Binding Width, ElementName=KeywordColumn}" Text="{Binding Value}">
                                             <TextBlock.InputBindings>
                                                 <ui:StaticResource ResourceKey="DoubleClickEdit" />
                                             </TextBlock.InputBindings>

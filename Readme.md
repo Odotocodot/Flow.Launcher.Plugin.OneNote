@@ -47,7 +47,8 @@ pm install OneNote
 
 > [!IMPORTANT]
 >
-> - [Versions 2.0+](Changelog.md#200---2023-10-05) requires Flow Launcher version 1.16+. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
+> - [Versions `2.0+`](Changelog.md#200---2023-10-05) requires Flow Launcher version `1.16+`. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
+> - [Versions `3.0+`](Changelog.md#300---2026-03-04) requires Flow Launcher version `2.1+`. 
 > - This plugin is local only! It requires an installation of OneNote on you system!
 > - Some features require Windows/Microsoft Search to be enabled on your system. See more info [here](#additional-information).
 
@@ -59,7 +60,7 @@ pm install OneNote
 | -------------------------- | --------------------------------------- | ---------------------------- |
 | ` on {your search query} ` | [Default Search](#default-search)       | Search OneNote pages         |
 | ` on nb:\ `                | [Notebook Explorer](#notebook-explorer) | Navigate notebooks hierarchy |
-| ` on rcntpgs: `            | [Recent Pages](#recent-pages)           | View recently modified pages |
+| ` on rp: `                 | [Recent Pages](#recent-pages)           | View recently modified pages |
 
 <!-- omit from toc -->
 #### Modifiers
@@ -142,12 +143,12 @@ This preview panel is available on all *create a page* results in the plugin and
 ### Recent Pages
 
 ```
-on rcntpgs:
+on rp:
 ```
 
 Displays your recently modified OneNote pages.
 
-Add a number after `` rcntpgs: `` to display that number of recent pages. E.g. the full query ``on rcntpgs:10`` will show the 10 most recently modified pages.
+Add a number after `` rp: `` to display that number of recent pages. E.g. the full query ``on rp:10`` will show the 10 most recently modified pages.
 
 ![recent pages gif](doc/recent_pages.gif)
 
@@ -230,5 +231,5 @@ Other features should work as intended.
 
 ## Acknowledgements
 
-- Made with [Linq2OneNote](https://github.com/Odotocodot/Linq2OneNote) a library for exposing the OneNote API also made by me :smiley:
+- Made with [LinqToOneNote](https://github.com/Odotocodot/Linq2OneNote) a library for exposing the OneNote API also made by me :smiley:
 - Inspired by the OneNote plugin for [PowerToys](https://github.com/microsoft/PowerToys/tree/main/src/modules/launcher/Plugins/Microsoft.PowerToys.Run.Plugin.OneNote)

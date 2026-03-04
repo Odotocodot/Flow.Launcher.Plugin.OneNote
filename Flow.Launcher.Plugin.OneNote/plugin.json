@@ -4,9 +4,10 @@
     "Name": "OneNote",
     "Description": "Search and create your OneNote notes",
     "Author": "Odotocodot",
-    "Version": "2.1.2",
+    "Version": "3.0.0",
     "Language": "csharp",
     "Website": "https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote",
     "IcoPath": "Images/logo.png",
-    "ExecuteFileName": "Flow.Launcher.Plugin.OneNote.dll"
+    "ExecuteFileName": "Flow.Launcher.Plugin.OneNote.dll",
+    "MinimumAppVersion" : "2.1.0"
 }

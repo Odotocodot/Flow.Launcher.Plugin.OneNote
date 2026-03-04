@@ -10,18 +10,17 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         private readonly KeywordViewModel[] keywords;
         private readonly Action closeAction;
 
-        private string errorMessage;
+        private string? errorMessage;
 
+        
         public ChangeKeywordViewModel(SettingsViewModel settingsViewModel, PluginInitContext context, Action close)
         {
             this.context = context;
             closeAction = close;
             keywords = settingsViewModel.Keywords;
-            SelectedKeyword = settingsViewModel.SelectedKeyword;
-            ChangeKeywordCommand = new RelayCommand(
-                keyword => ChangeKeyword((string)keyword),
-                keyword => CanChangeKeyword((string)keyword));
-            CloseCommand = new RelayCommand( _=> closeAction?.Invoke());
+            SelectedKeyword = settingsViewModel.SelectedKeyword!;
+            ChangeKeywordCommand = new RelayCommand<string>(ChangeKeyword!, CanChangeKeyword);
+            CloseCommand = new RelayCommand(closeAction.Invoke);
         }
         public KeywordViewModel SelectedKeyword { get; }
 
@@ -29,13 +28,13 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 
         public ICommand ChangeKeywordCommand { get; }
 
-        public string ErrorMessage
+        public string? ErrorMessage
         {
             get => errorMessage;
             private set => SetProperty(ref errorMessage, value);
         }
 
-        private bool CanChangeKeyword(string newKeyword)
+        private bool CanChangeKeyword(string? newKeyword)
         {
             if (string.IsNullOrWhiteSpace(newKeyword))
             {
@@ -44,13 +43,13 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
             }
 
             newKeyword = newKeyword.Trim();
-            if (SelectedKeyword.Keyword == newKeyword)
+            if (SelectedKeyword.Value == newKeyword)
             {
                 ErrorMessage = "The new keyword is the same as the old keyword.";
                 return false;
             }
 
-            var alreadySetKeyword = keywords.FirstOrDefault(k => k.Keyword == newKeyword);
+            KeywordViewModel? alreadySetKeyword = keywords.FirstOrDefault(k => k.Value == newKeyword);
             if (alreadySetKeyword != null)
             {
                 ErrorMessage = $"The new keyword is already set for {alreadySetKeyword.Name}.";
@@ -63,9 +62,10 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 
         private void ChangeKeyword(string newKeyword)
         {
-            SelectedKeyword.Keyword = newKeyword.Trim();
+            SelectedKeyword.Value = newKeyword.Trim();
             context.API.SaveSettingJsonStorage<Settings>();
-            closeAction?.Invoke();
+            context.API.ReQuery();
+            closeAction.Invoke();
         }
     }
 

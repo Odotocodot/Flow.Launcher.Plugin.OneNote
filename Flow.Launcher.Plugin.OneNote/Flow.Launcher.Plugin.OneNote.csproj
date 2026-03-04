@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <AssemblyName>Flow.Launcher.Plugin.OneNote</AssemblyName>
     <PackageId>Flow.Launcher.Plugin.OneNote</PackageId>
     <Authors>Odotocodot</Authors>
@@ -10,6 +10,7 @@
     <PackageTags>flow-launcher flow-plugin</PackageTags>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>    <!-- Required for bringing OneNote to front -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
@@ -27,11 +28,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Flow.Launcher.Plugin" Version="4.1.0" />
+    <PackageReference Include="Flow.Launcher.Plugin" Version="5.2.0" />
     <PackageReference Include="Humanizer.Core" Version="2.14.1" />
-    <PackageReference Include="ModernWpfUI" Version="0.9.6" />
-    <PackageReference Include="Odotocodot.OneNote.Linq" Version="1.1.0" />
+    <PackageReference Include="LinqToOneNote" Version="2.1.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.6" />
+	<PackageReference Include="iNKORE.UI.WPF.Modern" Version="0.10.1" />
   </ItemGroup>
 
   <ItemGroup>

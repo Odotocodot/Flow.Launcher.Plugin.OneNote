@@ -1,5 +1,4 @@
-﻿using System.Windows;
-using Flow.Launcher.Plugin.OneNote.UI.ViewModels;
+﻿using Flow.Launcher.Plugin.OneNote.UI.ViewModels;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.Views
 {

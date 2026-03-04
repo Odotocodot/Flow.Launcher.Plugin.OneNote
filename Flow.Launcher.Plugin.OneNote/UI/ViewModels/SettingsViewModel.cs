@@ -1,34 +1,42 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Flow.Launcher.Plugin.OneNote.Icons;
 using Humanizer;
-using Modern = ModernWpf.Controls;
+using Modern = iNKORE.UI.WPF.Modern.Controls;
 
 namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 {
     public class SettingsViewModel : Model
     {
         private readonly IconProvider iconProvider;
-        private KeywordViewModel selectedKeyword;
+        private KeywordViewModel? selectedKeyword;
 
         public SettingsViewModel(PluginInitContext context, Settings settings, IconProvider iconProvider)
         {
             this.iconProvider = iconProvider;
             Settings = settings;
-            Keywords = KeywordViewModel.GetKeywordViewModels(settings.Keywords); 
-            IconThemes = IconThemeViewModel.GetIconThemeViewModels(context);
+            Keywords = settings.Keywords //Order is the order they are written in Keywords.cs
+                               .GetType()
+                               .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                               .Select(p => new KeywordViewModel(p.Name.Humanize(LetterCasing.Title), (Keyword)p.GetValue(settings.Keywords)!))
+                               .ToArray();
+            IconThemes = Enum.GetValues<IconTheme>()
+                             .Select(iconTheme => new IconThemeViewModel(iconTheme, context))
+                             .ToArray();
             
             EditCommand = new RelayCommand(
-	            _ => new Views.ChangeKeywordWindow(this, context).ShowDialog(), //Avert your eyes! This is not MVVM!
-	            _ => SelectedKeyword != null);
+	            () => new Views.ChangeKeywordWindow(this, context).ShowDialog(), //Avert your eyes! This is not MVVM!
+	            () => SelectedKeyword != null);
 
             OpenGeneratedIconsFolderCommand = new RelayCommand(
-	            _ => context.API.OpenDirectory(iconProvider.GeneratedImagesDirectoryInfo.FullName));
+	            () => context.API.OpenDirectory(iconProvider.GeneratedImagesDirectoryInfo.FullName));
             
             ClearCachedIconsCommand = new RelayCommand(
-	            async _ => await ClearCachedIcons(),
-				_ => iconProvider.CachedIconCount > 0);
+	            async () => await ClearCachedIcons(),
+				() => iconProvider.CachedIconCount > 0);
             
             iconProvider.PropertyChanged += (_, args) =>
             {
@@ -42,7 +50,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			{
 	            if (args.PropertyName == nameof(Settings.IconTheme))
 	            {
-		            Main.ForceReQuery();
+		            context.API.ReQuery();
 	            }
 			};
             SelectedKeyword = Keywords[0];
@@ -52,6 +60,8 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         public ICommand ClearCachedIconsCommand { get; }
         public Settings Settings { get; }
         public KeywordViewModel[] Keywords { get; }
+        public KeywordViewModel NotebookExplorerKeyword => Keywords[0];
+        public KeywordViewModel RecentPagesKeyword => Keywords[1];
         public IconThemeViewModel[] IconThemes { get; }
         public string CachedIconsFileSize => iconProvider.GeneratedImagesDirectoryInfo.EnumerateFiles()
 			.Select(file => file.Length)
@@ -59,7 +69,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			.Bytes()
 			.Humanize();
 
-        public KeywordViewModel SelectedKeyword
+        public KeywordViewModel? SelectedKeyword
         {
 	        get => selectedKeyword;
 	        set => SetProperty(ref selectedKeyword, value);
@@ -68,7 +78,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         //quick and dirty non MVVM stuffs
         private async Task ClearCachedIcons()
         {
-	        var dialog = new Modern.ContentDialog()
+	        var dialog = new Modern.ContentDialog
 	        {
 		        Title = "Clear Cached Icons",
 		        Content = $"Delete cached notebook and sections icons.\n" +
