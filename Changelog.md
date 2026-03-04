@@ -1,20 +1,22 @@
 # Changelog
 
-## 3.0.0 - 2026-#-##
-- **⚠ Now requires Flow Launcher version 2.0.0 or later.**
+## 3.0.0 - 2026-03-04
+
+- **⚠ Now requires Flow Launcher version 2.1.0 or later.**
 - Refactored code
-- Improved notebook explorer performance.
+- Improved Notebook Explorer performance.
+- Added copy link to clipboard context menu item. ([#32](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/32))
 - Dependencies
   - Updated to Net 9.0
   - Updated `Flow.Launcher.Plugin-4.1.0` to `Flow.Launcher.Plugin-5.2.0`
   - Updated `Odotocodot.OneNote.Linq-1.2.0` to `LinqToOneNote-2.0.0`
+  - Migrated from `ModernWpfUI` to `iNKORE.UI.WPF.Modern`
 
-
-## 2.1.2 - 2025-6-11
+## 2.1.2 - 2025-06-11
 
 - Added the ability to open items in a new OneNote window using the context menu.([#28](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/28))
 
-## 2.1.1 - 2025-1-4
+## 2.1.1 - 2025-01-04
 
 ### Changes
 
@@ -27,7 +29,7 @@
 
 - Fixed spelling and grammar mistakes.
 
-## 2.1.0 - 2024-6-24
+## 2.1.0 - 2024-06-24
 
 ### Added
 
