@@ -26,7 +26,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			});
 		}
 
-		internal List<Result> GetResults(Query query)
+		public override List<Result> GetResults(Query query)
 		{
 			if (!ValidateSearch(query, out string? search, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection))
 				return resultCreator.InvalidQuery(false);
@@ -48,8 +48,6 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			results.Add(result);
 			return results;
 		}
-
-		public override List<Result> GetResults(string query) => GetResults(query);
 
 		private bool ValidateSearch(Query query, out string? lastSearch, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection)
 		{

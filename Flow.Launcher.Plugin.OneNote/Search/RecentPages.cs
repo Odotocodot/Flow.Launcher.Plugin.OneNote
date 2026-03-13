@@ -5,16 +5,14 @@ using OneNoteApp = LinqToOneNote.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public class RecentPages : SearchBase
+	public class RecentPages(PluginInitContext context, Settings settings, ResultCreator resultCreator)
+		: SearchBase(context, settings, resultCreator, settings.Keywords.RecentPages)
 	{
-		public RecentPages(PluginInitContext context, Settings settings, ResultCreator resultCreator) 
-			: base(context, settings, resultCreator, settings.Keywords.RecentPages) { }
-
-		public override List<Result> GetResults(string query)
+		public override List<Result> GetResults(Query query)
 		{
 			int count = settings.DefaultRecentsCount;
-			
-			if (query.Length > keyword.Length && int.TryParse(query[keyword.Length..], out int userChosenCount))
+			string search = query.Search;
+			if (search.Length > keyword.Length && int.TryParse(search[keyword.Length..], out int userChosenCount))
 				count = userChosenCount;
         
 			return OneNoteApp.GetFullHierarchy()

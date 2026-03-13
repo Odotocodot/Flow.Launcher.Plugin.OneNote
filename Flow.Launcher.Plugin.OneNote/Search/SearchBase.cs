@@ -18,6 +18,6 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			this.keyword = keyword;
 		}
 		protected Keywords Keywords => settings.Keywords;
-		public abstract List<Result> GetResults(string query);
+		public abstract List<Result> GetResults(Query query);
 	}
 }

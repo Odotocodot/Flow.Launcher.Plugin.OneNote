@@ -22,10 +22,10 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			string search = query.Search;
 			return search switch
 			{
-				{ } when search.StartsWithOrd(titleSearch.keyword) => titleSearch.GetResults(search),
+				{ } when search.StartsWithOrd(titleSearch.keyword) => titleSearch.GetResults(query),
 				{ } when search.StartsWithOrd(notebookExplorer.keyword) => notebookExplorer.GetResults(query),
-				{ } when search.StartsWithOrd(recentPages.keyword) => recentPages.GetResults(search),
-				_ => defaultSearch.GetResults(search!),
+				{ } when search.StartsWithOrd(recentPages.keyword) => recentPages.GetResults(query),
+				_ => defaultSearch.GetResults(query),
 			};
 		}
 	}
