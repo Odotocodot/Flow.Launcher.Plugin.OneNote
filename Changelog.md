@@ -1,8 +1,15 @@
 # Changelog
 
+## 3.0.1 - 2026-03-13
+
+- Fix crash on quick note with empty title (Updated to `LinqToOneNote-2.1.1`)
+- Fix incorrect **scope search** check
+- Cache OneNote hierarchy when applicable
+  - This brings the performance improvement for Notebook Explorer from last version to **recent pages** and **title search**
+
 ## 3.0.0 - 2026-03-04
 
-- **⚠ Now requires Flow Launcher version 2.1.0 or later.**
+- **⚠ Now requires Flow Launcher version `2.1.0` or later.**
 - Refactored code
 - Improved Notebook Explorer performance.
 - Added copy link to clipboard context menu item. ([#32](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/32))

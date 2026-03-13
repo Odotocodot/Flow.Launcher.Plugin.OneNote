@@ -26,6 +26,8 @@ namespace Flow.Launcher.Plugin.OneNote
         public int Length => Value.Length;
         public static implicit operator string(Keyword keyword) => keyword.Value; 
         public override string ToString() => Value;
+
+        public static Keyword Empty { get; } = new ("");
     }
     
     //Needed for legacy as keywords where just saved as a string

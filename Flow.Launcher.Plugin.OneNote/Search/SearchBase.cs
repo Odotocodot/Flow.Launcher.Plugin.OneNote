@@ -2,22 +2,13 @@ using System.Collections.Generic;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public abstract class SearchBase
+	public abstract class SearchBase(PluginInitContext context, Settings settings, ResultCreator resultCreator, Keyword keyword)
 	{
-		protected readonly PluginInitContext context;
-		protected readonly Settings settings;
-		protected readonly ResultCreator resultCreator;
-#nullable disable
-		public readonly Keyword keyword;
-#nullable restore
-		protected SearchBase(PluginInitContext context, Settings settings, ResultCreator resultCreator, Keyword? keyword)
-		{
-			this.context = context;
-			this.settings = settings;
-			this.resultCreator = resultCreator;
-			this.keyword = keyword;
-		}
+		protected readonly PluginInitContext context = context;
+		protected readonly Settings settings = settings;
+		protected readonly ResultCreator resultCreator = resultCreator;
+		public readonly Keyword keyword = keyword;
 		protected Keywords Keywords => settings.Keywords;
-		public abstract List<Result> GetResults(string query);
+		public abstract List<Result> GetResults(Query query);
 	}
 }

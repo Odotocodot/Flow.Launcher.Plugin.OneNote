@@ -5,28 +5,12 @@ using LinqToOneNote;
 using LinqToOneNote.Abstractions;
 using OneNoteApp = LinqToOneNote.OneNote;
 
-
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public class NotebookExplorer : SearchBase
+	public class NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch, RootCache rootCache)
+		: SearchBase(context, settings, resultCreator, settings.Keywords.NotebookExplorer)
 	{
-		private readonly TitleSearch titleSearch;
-		private Root? cache;
-		private bool updateCache;
-		public NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch, VisibilityChanged visibilityChanged)
-			: base(context, settings, resultCreator, settings.Keywords.NotebookExplorer)
-		{
-			this.titleSearch = titleSearch;
-			visibilityChanged.Subscribe(isVisible =>
-			{
-				if (!isVisible)
-				{
-					updateCache = true;
-				}
-			});
-		}
-
-		internal List<Result> GetResults(Query query)
+		public override List<Result> GetResults(Query query)
 		{
 			if (!ValidateSearch(query, out string? search, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection))
 				return resultCreator.InvalidQuery(false);
@@ -49,19 +33,12 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			return results;
 		}
 
-		public override List<Result> GetResults(string query) => GetResults(query);
-
 		private bool ValidateSearch(Query query, out string? lastSearch, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection)
 		{
 			lastSearch = null;
 			parent = null;
-			if (updateCache || query.IsReQuery || cache == null)
-			{
-				cache = OneNoteApp.GetFullHierarchy();
-				updateCache = false;
-			}
 
-			collection = cache.Notebooks;
+			collection = rootCache.Root.Notebooks;
 
 			string search = query.Search[(query.Search.IndexOf(Keywords.NotebookExplorer, StringComparison.Ordinal) + Keywords.NotebookExplorer.Length)..];
 			const string separator = Keywords.NotebookExplorerSeparator;
@@ -102,7 +79,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			if (!char.IsLetterOrDigit(query[Keywords.ScopedSearch.Length]))
 				return resultCreator.InvalidQuery();
 
-			string currentSearch = query[Keywords.TitleSearch.Length..];
+			string currentSearch = query[Keywords.ScopedSearch.Length..];
 
 			var results = OneNoteApp.FindPages(currentSearch, parent)
 			                        .Select(pg => resultCreator.CreatePageResult(pg, currentSearch))

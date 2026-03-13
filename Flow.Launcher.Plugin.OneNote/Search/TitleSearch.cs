@@ -1,16 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using LinqToOneNote;
-using OneNoteApp = LinqToOneNote.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public class TitleSearch : SearchBase
+	public class TitleSearch(PluginInitContext context, Settings settings, ResultCreator resultCreator, RootCache rootCache)
+		: SearchBase(context, settings, resultCreator, settings.Keywords.TitleSearch)
 	{
-		public TitleSearch(PluginInitContext context, Settings settings, ResultCreator resultCreator) 
-			: base(context, settings, resultCreator, settings.Keywords.TitleSearch) { }
-
-		public override List<Result> GetResults(string query) => Filter(query, null, OneNoteApp.GetFullHierarchy().Notebooks);
+		public override List<Result> GetResults(Query query) => Filter(query.Search, null, rootCache.Root.Notebooks);
 
 		public List<Result> Filter(string query, IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)
 		{

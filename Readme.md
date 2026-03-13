@@ -187,6 +187,9 @@ Searches for hierarchy items based on their title alone. Unlike [scoped search](
 > [!NOTE]
 > Can be used in conjunction with [notebook explorer](#notebook-explorer).
 
+> [!NOTE]
+> Does not rely on the OneNote Search API (uses Flow Launcher's internal search), thus bitwise operators do not work.
+
 ![title search gif](doc/title_search_default.gif)
 ![title search gif](doc/title_search_notebook.gif)
 

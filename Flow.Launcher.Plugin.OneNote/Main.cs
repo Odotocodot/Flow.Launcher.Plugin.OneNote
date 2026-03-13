@@ -7,6 +7,7 @@ using Flow.Launcher.Plugin.OneNote.Icons;
 using Flow.Launcher.Plugin.OneNote.Search;
 using Flow.Launcher.Plugin.OneNote.UI.Views;
 using OneNoteApp = LinqToOneNote.OneNote;
+
 namespace Flow.Launcher.Plugin.OneNote
 {
 #nullable disable
@@ -18,7 +19,6 @@ namespace Flow.Launcher.Plugin.OneNote
         private SearchManager searchManager;
         private Settings settings;
         private IconProvider iconProvider;
-        private VisibilityChanged visibilityChanged;
 
         private static SemaphoreSlim semaphore;
 
@@ -28,17 +28,18 @@ namespace Flow.Launcher.Plugin.OneNote
             this.context = context;
             settings = context.API.LoadSettingJsonStorage<Settings>();
 
-            visibilityChanged = new VisibilityChanged(context);
             iconProvider = new IconProvider(context, settings);
             resultCreator = new ResultCreator(context, settings, iconProvider);
-            searchManager = new SearchManager(context, settings, resultCreator, visibilityChanged);
+            searchManager = new SearchManager(context, settings, resultCreator);
             semaphore = new SemaphoreSlim(1, 1);
 
-            visibilityChanged.Subscribe(static (isVisible) =>
+            context.API.VisibilityChanged += (_, args) =>
             {
-                if (!isVisible)
-                    Task.Run(OneNoteApp.ReleaseComObject);
-            });
+                if (args.IsVisible)
+                    return;
+                Task.Run(OneNoteApp.ReleaseComObject);
+                searchManager.RootCache.SetDirty();
+            };
             return Task.CompletedTask;
         }
 
@@ -84,7 +85,6 @@ namespace Flow.Launcher.Plugin.OneNote
 
         public void Dispose()
         {
-            visibilityChanged.Dispose();
             semaphore.Dispose();
             OneNoteApp.ReleaseComObject();
         }
