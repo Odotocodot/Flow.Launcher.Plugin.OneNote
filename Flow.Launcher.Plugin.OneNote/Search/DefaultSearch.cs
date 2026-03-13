@@ -5,7 +5,7 @@ using OneNoteApp = LinqToOneNote.OneNote;
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
 	public class DefaultSearch(PluginInitContext context, Settings settings, ResultCreator resultCreator)
-		: SearchBase(context, settings, resultCreator, null)
+		: SearchBase(context, settings, resultCreator, Keyword.Empty)
 	{
 		public override List<Result> GetResults(Query query)
 		{
