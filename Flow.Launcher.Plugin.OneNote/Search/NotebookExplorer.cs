@@ -102,7 +102,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			if (!char.IsLetterOrDigit(query[Keywords.ScopedSearch.Length]))
 				return resultCreator.InvalidQuery();
 
-			string currentSearch = query[Keywords.TitleSearch.Length..];
+			string currentSearch = query[Keywords.ScopedSearch.Length..];
 
 			var results = OneNoteApp.FindPages(currentSearch, parent)
 			                        .Select(pg => resultCreator.CreatePageResult(pg, currentSearch))
