@@ -7,9 +7,9 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 	public class TitleSearch(PluginInitContext context, Settings settings, ResultCreator resultCreator, RootCache rootCache)
 		: SearchBase(context, settings, resultCreator, settings.Keywords.TitleSearch)
 	{
-		public override List<Result> GetResults(Query query) => Filter(query.Search, null, rootCache.Root.Notebooks);
+		public override List<Result> GetResults(Query query) => GetResults(query.Search, null, rootCache.Root.Notebooks);
 
-		public List<Result> Filter(string query, IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)
+		public List<Result> GetResults(string query, IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)
 		{
 			if (query.Length == keyword.Length)
 				return resultCreator.SearchType("Now searching by title", parent?.Name);

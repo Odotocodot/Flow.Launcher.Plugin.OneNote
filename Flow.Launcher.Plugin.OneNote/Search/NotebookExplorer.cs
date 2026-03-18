@@ -7,9 +7,10 @@ using OneNoteApp = LinqToOneNote.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public class NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch, RootCache rootCache)
+	public class NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, RootCache rootCache)
 		: SearchBase(context, settings, resultCreator, settings.Keywords.NotebookExplorer)
 	{
+		private readonly TitleSearch titleSearch = new (context, settings, resultCreator, rootCache);
 		private readonly StandardSearch standardSearch = new(context, settings, resultCreator);
 		public override List<Result> GetResults(Query query)
 		{
@@ -18,7 +19,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 
 			List<Result> results = search switch
 			{
-				{ } when search.StartsWithOrd(Keywords.TitleSearch) && parent is not Page => titleSearch.Filter(search, parent, collection),
+				{ } when search.StartsWithOrd(Keywords.TitleSearch) && parent is not Page => titleSearch.GetResults(search, parent, collection),
 				{ } when search.StartsWithOrd(Keywords.ScopedSearch) && parent is INotebookOrSectionGroup => standardSearch.GetResults(query, parent),
 				{ } when !string.IsNullOrWhiteSpace(search) => Explorer(search, parent, collection),
 				_  => ShowAll(parent, collection),

@@ -15,7 +15,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		{
 			rootCache = new RootCache();
 			titleSearch = new TitleSearch(context, settings, resultCreator, rootCache);
-			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, titleSearch, rootCache);
+			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, rootCache);
 			recentPages = new RecentPages(context, settings, resultCreator, rootCache);
 			standardSearch = new StandardSearch(context, settings, resultCreator);
 		}
