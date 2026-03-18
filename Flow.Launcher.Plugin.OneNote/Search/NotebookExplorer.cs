@@ -10,6 +10,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 	public class NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch, RootCache rootCache)
 		: SearchBase(context, settings, resultCreator, settings.Keywords.NotebookExplorer)
 	{
+		private readonly StandardSearch standardSearch = new(context, settings, resultCreator);
 		public override List<Result> GetResults(Query query)
 		{
 			if (!ValidateSearch(query, out string? search, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection))
@@ -18,7 +19,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			List<Result> results = search switch
 			{
 				{ } when search.StartsWithOrd(Keywords.TitleSearch) && parent is not Page => titleSearch.Filter(search, parent, collection),
-				{ } when search.StartsWithOrd(Keywords.ScopedSearch) && parent is INotebookOrSectionGroup => ScopedSearch(search, parent),
+				{ } when search.StartsWithOrd(Keywords.ScopedSearch) && parent is INotebookOrSectionGroup => standardSearch.GetResults(query, parent),
 				{ } when !string.IsNullOrWhiteSpace(search) => Explorer(search, parent, collection),
 				_  => ShowAll(parent, collection),
 			};
@@ -69,23 +70,6 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			                        .ToList();
 			
 			return results.Count != 0 ? results : resultCreator.EmptyCollection(results, parent);
-		}
-		
-		private List<Result> ScopedSearch(string query, IOneNoteItem parent)
-		{
-			if (query.Length == Keywords.ScopedSearch.Length)
-				return resultCreator.SearchType("Now searching all pages", parent.Name);
-
-			if (!char.IsLetterOrDigit(query[Keywords.ScopedSearch.Length]))
-				return resultCreator.InvalidQuery();
-
-			string currentSearch = query[Keywords.ScopedSearch.Length..];
-
-			var results = OneNoteApp.FindPages(currentSearch, parent)
-			                        .Select(pg => resultCreator.CreatePageResult(pg, currentSearch))
-									.ToList();
-
-            return results.Count != 0 ? results : ResultCreator.NoMatchesFound();
 		}
 		
 		private List<Result> Explorer(string search, IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)
