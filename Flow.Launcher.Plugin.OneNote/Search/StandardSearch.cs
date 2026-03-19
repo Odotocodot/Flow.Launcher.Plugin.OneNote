@@ -8,7 +8,9 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 	public class StandardSearch(PluginInitContext context, Settings settings, ResultCreator resultCreator)
 		: SearchBase(context, settings, resultCreator, Keyword.Empty)
 	{
+		//Standard search
 		public override List<Result> GetResults(Query query) => Filter(query.Search, null, keyword);
+		//Scope search
 		public List<Result> GetResults(Query query, IOneNoteItem? parent) => Filter(query.Search, parent, settings.Keywords.ScopedSearch);
 
 		private List<Result> Filter(string query, IOneNoteItem? parent, Keyword keyword)

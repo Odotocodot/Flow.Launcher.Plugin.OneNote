@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Flow.Launcher.Plugin.SharedModels;
 using LinqToOneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public record struct SearchResult<T>(T Item, List<int>? HighlightData, int Score) where T : IOneNoteItem;
+	public record struct SearchResult<T>(T Item, List<int>? HighlightData, int Score) where T : IOneNoteItem; // (Purposeful) Mutable struct :o
 	public static class SearchExtensions
 	{
 		public static IEnumerable<SearchResult<T>> FuzzySearch<T>(this IEnumerable<T> source, string search, PluginInitContext context) where T: IOneNoteItem
@@ -41,9 +42,17 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			}
 		}
 
-		public static bool StartsWithOrd(this string str, string value)
+		public static IEnumerable<SearchResult<T>> SortByLastModified<T>(this IEnumerable<SearchResult<T>> source, bool sortByLastModified) where T : IOneNoteItem
 		{
-			return str.StartsWith(value, StringComparison.Ordinal);
+			return sortByLastModified 
+				? source.OrderByDescending(x =>
+				{
+					x.Score = 0;
+					return x.Item.LastModified;
+				})
+				: source;
 		}
+			
+		public static bool StartsWithOrd(this string str, string value) => str.StartsWith(value, StringComparison.Ordinal);
 	}
 }
