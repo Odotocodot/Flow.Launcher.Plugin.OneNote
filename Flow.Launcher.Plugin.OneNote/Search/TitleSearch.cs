@@ -17,20 +17,21 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			var currentSearch = query[keyword.Length..];
 
 			bool sortByLastModified = false;
-			if (currentSearch.StartsWithOrd(Keywords.SortByLastModified))
+			var lastModifiedKeyword = Keywords.RecentPages;
+			if (currentSearch.StartsWithOrd(lastModifiedKeyword))
 			{
-				if (currentSearch.Length == Keywords.SortByLastModified.Length)
+				if (currentSearch.Length == lastModifiedKeyword.Length)
 				{
 					return resultCreator.SearchType("Now searching by title ordered by last modified", parent?.Name);
 				}
-				currentSearch = currentSearch[Keywords.SortByLastModified.Length..];
+				currentSearch = currentSearch[lastModifiedKeyword.Length..];
 				sortByLastModified = true;
 			}
 
 			var results = collection.Descendants()
 			                        .FilterBySettings(settings)
 			                        .FuzzySearch(currentSearch, context)
-			                        .SortByLastModified(sortByLastModified)
+			                        .OrderByLastModified(sortByLastModified)
 			                        .Select(x =>
 			                        {
 				                        Result result = resultCreator.CreateOneNoteItemResult(x.Item, false, x.HighlightData, x.Score);

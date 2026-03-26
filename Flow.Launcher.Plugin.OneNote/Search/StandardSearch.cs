@@ -13,15 +13,15 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		//Scope search
 		public List<Result> GetResults(Query query, IOneNoteItem? parent) => Filter(query.Search, parent, settings.Keywords.ScopedSearch);
 
-		private List<Result> Filter(string query, IOneNoteItem? parent, Keyword keyword)
+		private List<Result> Filter(string search, IOneNoteItem? parent, Keyword keyword)
 		{
-			if (query.Length == keyword.Length)
+			if (search.Length == keyword.Length)
 				return resultCreator.SearchType("Now searching all pages", parent?.Name);
 			
-			if (!char.IsLetterOrDigit(query[keyword.Length]))
+			if (!char.IsLetterOrDigit(search[keyword.Length]))
 				return resultCreator.InvalidQuery();
 			
-			string currentSearch = query[keyword.Length..];
+			string currentSearch = search[keyword.Length..];
 			
 			IEnumerable<Page> pages = parent is null 
 				? OneNoteApp.FindPages(currentSearch) 

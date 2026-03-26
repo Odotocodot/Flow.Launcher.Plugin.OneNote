@@ -12,7 +12,6 @@ namespace Flow.Launcher.Plugin.OneNote
         public Keyword RecentPages { get; set; } = new ("rp:");
         public Keyword TitleSearch { get; set; } = new ("*");
         public Keyword ScopedSearch { get; set; } = new (">");
-        
     }
     
     [JsonConverter(typeof(KeywordJsonConverter))]

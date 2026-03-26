@@ -42,7 +42,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			}
 		}
 
-		public static IEnumerable<SearchResult<T>> SortByLastModified<T>(this IEnumerable<SearchResult<T>> source, bool sortByLastModified) where T : IOneNoteItem
+		public static IEnumerable<SearchResult<T>> OrderByLastModified<T>(this IEnumerable<SearchResult<T>> source, bool sortByLastModified) where T : IOneNoteItem
 		{
 			return sortByLastModified 
 				? source.OrderByDescending(x =>

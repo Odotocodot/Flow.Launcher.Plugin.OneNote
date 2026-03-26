@@ -8,15 +8,14 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		private readonly NotebookExplorer notebookExplorer;
 		private readonly StandardSearch standardSearch;
 		private readonly RecentPages recentPages;
-		private readonly RootCache rootCache;
-		public RootCache RootCache => rootCache;
+		public RootCache RootCache { get; }
 
 		public SearchManager(PluginInitContext context, Settings settings, ResultCreator resultCreator)
 		{
-			rootCache = new RootCache();
-			titleSearch = new TitleSearch(context, settings, resultCreator, rootCache);
-			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, rootCache);
-			recentPages = new RecentPages(context, settings, resultCreator, rootCache);
+			RootCache = new RootCache();
+			titleSearch = new TitleSearch(context, settings, resultCreator, RootCache);
+			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, RootCache);
+			recentPages = new RecentPages(context, settings, resultCreator, RootCache);
 			standardSearch = new StandardSearch(context, settings, resultCreator);
 		}
 
@@ -24,7 +23,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		{
 			if (query.IsReQuery)
 			{
-				rootCache.SetDirty();
+				RootCache.SetDirty();
 			}
 			string search = query.Search;
 			return search switch
