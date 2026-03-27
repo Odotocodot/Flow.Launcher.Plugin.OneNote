@@ -6,7 +6,11 @@ using LinqToOneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public record struct SearchResult<T>(T Item, List<int>? HighlightData, int Score) where T : IOneNoteItem; // (Purposeful) Mutable struct :o
+	public record SearchResult<T>(T Item, List<int>? HighlightData, int Score) where T : IOneNoteItem
+	{
+		public int Score { get; set; } = Score;
+	}
+
 	public static class SearchExtensions
 	{
 		public static IEnumerable<SearchResult<T>> FuzzySearch<T>(this IEnumerable<T> source, string search, PluginInitContext context) where T: IOneNoteItem
