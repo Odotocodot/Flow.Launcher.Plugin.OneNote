@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using LinqToOneNote;
+using OneNoteApp = LinqToOneNote.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
@@ -13,6 +14,16 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			string search = query.Search;
 			if (search.Length > keyword.Length && int.TryParse(search[keyword.Length..], out int userChosenCount))
 				count = userChosenCount;
+			
+			string currentSearch = query.Search[keyword.Length..];
+			if (!string.IsNullOrWhiteSpace(currentSearch))
+			{
+				return OneNoteApp.FindPages(currentSearch)
+				                 .FilterBySettings(settings)
+				                 .OrderByDescending(pg => pg.LastModified)
+				                 .Select(resultCreator.CreateRecentPageResult)
+				                 .ToList();
+			}
         
 			return rootCache.Root
 			                .Notebooks
