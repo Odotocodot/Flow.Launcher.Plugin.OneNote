@@ -10,5 +10,21 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		public readonly Keyword keyword = keyword;
 		protected Keywords Keywords => settings.Keywords;
 		public abstract List<Result> GetResults(Query query);
+
+		protected bool GetSortOrder(ref string currentSearch, out bool emptySearchOnSorted)
+		{
+			emptySearchOnSorted = false;
+			Keyword lastModifiedKeyword = Keywords.RecentPages;
+			if (!currentSearch.StartsWithOrd(lastModifiedKeyword))
+				return false;
+			if (currentSearch.Length == lastModifiedKeyword.Length)
+			{
+				emptySearchOnSorted = true;
+			}
+			currentSearch = currentSearch[lastModifiedKeyword.Length..];
+			return true;
+		}
+		
+		
 	}
 }

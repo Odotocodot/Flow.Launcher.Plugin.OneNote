@@ -8,36 +8,26 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 		: SearchBase(context, settings, resultCreator, settings.Keywords.TitleSearch)
 	{
 		public override List<Result> GetResults(Query query) => GetResults(query.Search, null, rootCache.Root.Notebooks);
-
+		
 		public List<Result> GetResults(string query, IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)
 		{
+			const string emptySearchPrefix = "Now searching by title";
 			if (query.Length == keyword.Length)
-				return resultCreator.SearchType("Now searching by title", parent?.Name);
+				//TODO return Searching by title and a Searching by last modified result with an action to auto complete last modified.
+				return resultCreator.SearchType(emptySearchPrefix, parent?.Name);
 
 			var currentSearch = query[keyword.Length..];
 
-			bool sortByLastModified = false;
-			var lastModifiedKeyword = Keywords.RecentPages;
-			if (currentSearch.StartsWithOrd(lastModifiedKeyword))
-			{
-				if (currentSearch.Length == lastModifiedKeyword.Length)
-				{
-					return resultCreator.SearchType("Now searching by title ordered by last modified", parent?.Name);
-				}
-				currentSearch = currentSearch[lastModifiedKeyword.Length..];
-				sortByLastModified = true;
-			}
+			var sortByLastModified = GetSortOrder(ref currentSearch, out var emptySearch);
+			
+			if(emptySearch)
+				return resultCreator.SearchType($"{emptySearchPrefix} ordered by last modified", parent?.Name);;
 
 			var results = collection.Descendants()
 			                        .FilterBySettings(settings)
 			                        .FuzzySearch(currentSearch, context)
+			                        .Select(x => resultCreator.CreateOneNoteItemResult(x.Item, false, x.HighlightData, x.Score))
 			                        .OrderByLastModified(sortByLastModified)
-			                        .Select(x =>
-			                        {
-				                        Result result = resultCreator.CreateOneNoteItemResult(x.Item, false, x.HighlightData, x.Score);
-				                        result.AddSelectedCount = !sortByLastModified; 
-				                        return result;
-			                        })
 			                        .ToList();
 
 			return results.Count != 0 ? results : ResultCreator.NoMatchesFound();

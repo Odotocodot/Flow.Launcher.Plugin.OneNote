@@ -46,13 +46,14 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			}
 		}
 
-		public static IEnumerable<SearchResult<T>> OrderByLastModified<T>(this IEnumerable<SearchResult<T>> source, bool sortByLastModified) where T : IOneNoteItem
+		public static IEnumerable<Result> OrderByLastModified(this IEnumerable<Result> source, bool sortByLastModified)
 		{
 			return sortByLastModified 
-				? source.OrderByDescending(x =>
+				? source.OrderByDescending(result =>
 				{
-					x.Score = 0;
-					return x.Item.LastModified;
+					result.Score = 0;
+					result.AddSelectedCount = !sortByLastModified;
+					return ((IOneNoteItem)result.ContextData).LastModified;
 				})
 				: source;
 		}
