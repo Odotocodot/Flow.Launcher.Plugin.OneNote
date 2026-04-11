@@ -233,10 +233,9 @@ namespace Flow.Launcher.Plugin.OneNote
             return result;
         }
         
-        
-        public Result CreateRecentItemResult(IOneNoteItem item, List<int>? highlightData = null, int score = 0)
+        public Result CreateRecentItemResult(IOneNoteItem item, List<int>? highlightData = null)
         {
-            var result = CreateOneNoteItemResult(item, false, highlightData, score);
+            var result = CreateOneNoteItemResult(item, false, highlightData);
             result.SubTitle = $"{item.LastModified.Humanize()}  |  {result.SubTitle}";
             if(item is Page)
                 result.IcoPath = iconProvider.Recent;
