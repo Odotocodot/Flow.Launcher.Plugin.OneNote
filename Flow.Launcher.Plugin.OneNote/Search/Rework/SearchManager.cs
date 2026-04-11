@@ -13,13 +13,16 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 	{
 		private readonly OrderedDictionary<Keyword, SearchFunction> searchFunctions; //TODO: mutable keys beware/ need to fix
 		private readonly Keywords keywords;
-		public RootCache RootCache { get; }  = new RootCache();
+		public RootCache RootCache { get; }
 
 		public SearchManager(PluginInitContext context, Settings settings, ResultCreator resultCreator)
 		{
-			keywords = settings.Keywords;
 			var standardSearch = new StandardSearch(context, settings, resultCreator);
 			var titleSearch = new TitleSearch(context, settings, resultCreator);
+			
+			RootCache = new RootCache();
+			keywords = settings.Keywords;
+			
 			searchFunctions = new OrderedDictionary<Keyword, SearchFunction>()
 			{
 				{ keywords.NotebookExplorer, new NotebookExplorer(context, settings, resultCreator, titleSearch, standardSearch) },
@@ -163,8 +166,6 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 
 		public override List<Result> GetResults(ref SearchData searchData)
 		{
-			Debug.Assert(!string.IsNullOrWhiteSpace(searchData.Search), "Uh oh spaghetti oh not supposed to have a value yoooou. \"string.IsNullOrWhiteSpace(searchData.Search)\"");
-			//TODO: check if searchData.search is empty because it should never be, it would got to EmptySearch
 			if (!ValidateSearch(ref searchData)) 
 				return resultCreator.InvalidQuery(false);
 
@@ -172,12 +173,16 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 				return ResultCreator.SingleResult("Failed at parsing keywords", string.Empty, string.Empty);
 			
 			IOneNoteItem? parent = searchData.Parent;
-			var results = (keyword, parent) switch
+			SearchFunction searchFunction = (keyword, parent) switch
 			{
-				(not null, not Page) when keyword == keywords.TitleSearch => titleSearch.GetResults(ref searchData),
-				(not null, INotebookOrSectionGroup) when keyword == keywords.ScopedSearch => standardSearch.GetResults(ref searchData),
-				_ => explorer.GetResults(ref searchData),
+				(not null, not Page) when keyword == keywords.TitleSearch => titleSearch,
+				(not null, INotebookOrSectionGroup) when keyword == keywords.ScopedSearch => standardSearch,
+				_ => explorer,
 			};
+
+			var results = string.IsNullOrWhiteSpace(searchData.Search)
+				? searchFunction.EmptySearch(ref searchData)
+				: searchFunction.GetResults(ref searchData);
 
 			if (parent == null)
 				return results;
@@ -192,7 +197,8 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 		private bool ValidateSearch(ref SearchData searchData) 
 		{
 			(var search, IOneNoteItem? parent, IEnumerable<IOneNoteItem>? collection, _) = searchData;
-			Debug.Assert(collection != null, nameof(collection) + " != null");
+			
+			//From SearchManager.Query SearchData
 			//parent is null here
 			//collection is rootCache.Root.Notebooks as this functions validates the search with the whole query;
 
@@ -203,7 +209,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			while (currIndex != -1)
 			{
 				var itemName = search[prevIndex..currIndex];
-				parent = collection.FirstOrDefault(item => item.Name == itemName);
+				parent = collection?.FirstOrDefault(item => item.Name == itemName);
 				if (parent == null)
 					return false;
                 
@@ -229,6 +235,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 				var (search, parent, collection, sortOrder) = searchData; 
 
 				Debug.Assert(collection != null, nameof(collection) + " != null");
+				
 				var searchResults = collection.FilterBySettings(settings)
 				                              .FuzzySearch(search, context);
 				var results = sortOrder switch
@@ -279,7 +286,8 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			}
 		}
 	}
-	
+	//Parent => parent of the current item/search area
+	//Collection => children of the parent, if parent == null; Collection = rootCache.Root.Notebooks
 	public record struct SearchData(string Search, IOneNoteItem? Parent, IEnumerable<IOneNoteItem>? Collection, SortOrder SortOrder);
 
 	public enum SortOrder
