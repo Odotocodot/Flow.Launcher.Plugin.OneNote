@@ -33,41 +33,32 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 		}
 		
 		//Get the keyword 
-		private static bool TryParseSearch(ref SearchData searchData, [NotNullWhen(true)] out Keyword? keyword, IEnumerable<Keyword> keywordsToMatch, Keywords keywords)
+		public static bool TryParseSearch(ref SearchData searchData, [NotNullWhen(true)] out Keyword? keyword, IList<Keyword> keywordsToMatch, Keywords keywords)
 		{
-			foreach (Keyword key in keywordsToMatch)	
+			var search = searchData.search;
+			for (var i = 0; i < keywordsToMatch.Count; i++)
 			{
-				if (TryParse(key, ref searchData, keywords))
+				Keyword key = keywordsToMatch[i];
+				if (!search.StartsWithOrd(key))
+					continue;
+
+				keyword = key;
+				if ( /*keyword != keywords.NotebookExplorer &&*/ search[key.Length..].StartsWith(keywords.RecentPages)) //TODO maybe allow NotebookExplorer+ RecentPAges?
 				{
-					keyword = key;
+					searchData.search = search[(key.Length + keywords.RecentPages.Length)..];
+					searchData.sortOrder = SortOrder.RecentlyModified;
 					return true;
 				}
+
+				searchData.search = search[key.Length..];
+				searchData.sortOrder = SortOrder.Default;
+				return true;
 			}
 
 			//Should never fail;
 			//context.API.LogWarn(nameof(SearchManager), $"Could not parse keywords from search: {search}. This should never happen...");
 			keyword = null;
 			return false;
-			
-			static bool TryParse(Keyword keyword, ref SearchData searchData, Keywords keywords) //TODO: Use span for performance
-			{
-				(var search, _,_,_) = searchData;
-				if (!search.StartsWithOrd(keyword))
-				{
-					return false;
-				}
-				
-				if ( /*keyword != keywords.NotebookExplorer &&*/ search[keyword.Length..].StartsWith(keywords.RecentPages)) //TODO maybe allow NotebookExplorer+ RecentPAges?
-				{
-					searchData.search = search[(keyword.Length + keywords.RecentPages.Length)..];
-					searchData.sortOrder = SortOrder.RecentlyModified;
-					return true;
-				}
-
-				searchData.search = search[keyword.Length..];
-				searchData.sortOrder = SortOrder.Default;
-				return true;
-			}
 		}
 		
 		public List<Result> Query(Query query)
@@ -122,7 +113,19 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			};
 		}
 
-		public override List<Result> EmptySearch(ref SearchData searchData) => resultCreator.SearchType("Now searching all pages", searchData.parent?.Name);
+		public override List<Result> EmptySearch(ref SearchData searchData)
+		{
+			return searchData.sortOrder switch
+			{
+				SortOrder.RecentlyModified => searchData.collection
+				                                        .GetAllPages()
+				                                        .FilterBySettings(settings)
+				                                        .OrderByDescending(pg => pg.LastModified)
+				                                        .Select(pg => resultCreator.CreateRecentItemResult(pg))
+				                                        .ToList(),
+				_ => resultCreator.SearchType("Now searching all pages", searchData.parent?.Name),
+			}
+		}
 	}
 
 	public class TitleSearch : SearchFunction
@@ -137,9 +140,9 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			return sortOrder switch
 			{
 				SortOrder.RecentlyModified => results.OrderByDescending(sr => sr.Item.LastModified)
-				                                     .Select(x => resultCreator.CreateRecentItemResult(x.Item, x.HighlightData, x.Score))
+				                                     .Select(sr => resultCreator.CreateRecentItemResult(sr.Item, sr.HighlightData))
 				                                     .ToList(),
-				_ => results.Select(x => resultCreator.CreateOneNoteItemResult(x.Item, false, x.HighlightData, x.Score))
+				_ => results.Select(sr => resultCreator.CreateOneNoteItemResult(sr.Item, false, sr.HighlightData, sr.Score))
 				            .ToList(),
 			};
 		}
@@ -158,6 +161,15 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 	public class NotebookExplorer : SearchFunction
 	{
 		private Explorer explorer = new Explorer();
+		private Keywords keywords;
+		private Keyword[] keywordsToMatch;
+		private TitleSearch titleSearch;
+		private StandardSearch standardSearch;
+
+		public NotebookExplorer()
+		{
+			keywordsToMatch = [keywords.TitleSearch, keywords.ScopedSearch, Keyword.Empty];
+		}
 
 		public override List<Result> GetResults(ref SearchData searchData)
 		{
@@ -165,15 +177,25 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			if (!ValidateSearch(ref searchData)) 
 				return resultCreator.InvalidQuery(false);
 
-			return null;
-			// if (parent == null)
-			// 	return results;
-			//
-			// Result result = resultCreator.CreateOneNoteItemResult(parent, false, score: Result.MaxScore);
-			// result.Title = $"Open \"{parent.Name}\" in OneNote";
-			// result.SubTitle = $"Use \'{Keywords.ScopedSearch}\' to search this item. Use \'{Keywords.TitleSearch}\' to search by title in this item";
-			// results.Add(result);
-			// return results;
+			if(!SearchManager.TryParseSearch(ref searchData, out Keyword? keyword, keywordsToMatch, keywords))
+				return ResultCreator.SingleResult("Failed at parsing keywords", string.Empty, string.Empty);
+			
+			IOneNoteItem? parent = searchData.parent;
+			var results = (keyword, parent) switch
+			{
+				(not null, not Page) when keyword == keywords.TitleSearch => titleSearch.GetResults(ref searchData),
+				(not null, INotebookOrSectionGroup) when keyword == keywords.ScopedSearch => standardSearch.GetResults(ref searchData),
+				_ => explorer.GetResults(ref searchData),
+			};
+
+			if (parent == null)
+				return results;
+			
+			Result result = resultCreator.CreateOneNoteItemResult(parent, false, score: Result.MaxScore);
+			result.Title = $"Open \"{parent.Name}\" in OneNote";
+			result.SubTitle = $"Use \'{keywords.ScopedSearch}\' to search this item. Use \'{keywords.TitleSearch}\' to search by title in this item. Use \'{keywords.RecentPages}\' to sort by recently modified";
+			results.Add(result);
+			return results;
 		}
 		
 		private bool ValidateSearch(ref SearchData searchData) 
@@ -217,11 +239,18 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			public override List<Result> GetResults(ref SearchData searchData)
 			{
 				var (search, parent, collection, sortOrder) = searchData; //TODO: sort order
-				
-				var results = collection.FilterBySettings(settings)
-				                        .FuzzySearch(search, context)
-				                        .Select(r => resultCreator.CreateOneNoteItemResult(r.Item, true, r.HighlightData, r.Score))
-				                        .ToList();
+
+				Debug.Assert(collection != null, nameof(collection) + " != null");
+				var searchResults = collection.FilterBySettings(settings)
+				                              .FuzzySearch(search, context);
+				var results = sortOrder switch
+				{
+					SortOrder.RecentlyModified => searchResults.OrderByDescending(sr => sr.Item.LastModified)
+					                                           .Select(sr => resultCreator.CreateRecentItemResult(sr.Item, sr.HighlightData))
+					                                           .ToList(),
+					_ => searchResults.Select(r => resultCreator.CreateOneNoteItemResult(r.Item, true, r.HighlightData, r.Score))
+					                  .ToList(),
+				};
 
 				// If parent is a section, pages inside can have the same name
 				if (parent is not Section && results.Any(result => string.Equals(search.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
