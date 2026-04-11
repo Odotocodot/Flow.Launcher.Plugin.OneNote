@@ -22,51 +22,50 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 		{
 			keywords = settings.Keywords;
 			this.context = context;
+			var standardSearch = new StandardSearch();
 			searchFunctions = new OrderedDictionary<Keyword, SearchFunction>()
 			{
 				{ keywords.NotebookExplorer, new NotebookExplorer() },
 				{ keywords.TitleSearch, new TitleSearch() },
-				{ keywords.ScopedSearch, new StandardSearch() },
-				{ Keyword.Empty, new StandardSearch() },
+				{ keywords.ScopedSearch, standardSearch },
+				{ Keyword.Empty, standardSearch },
 			};
 		}
 		
-		private bool TryParseKeywords(string search, out (Keyword keyword, SearchData searchData) data)
+		//Get the keyword 
+		private static bool TryParseSearch(ref SearchData searchData, [NotNullWhen(true)] out Keyword? keyword, IEnumerable<Keyword> keywordsToMatch, Keywords keywords)
 		{
-			foreach (Keyword keyword in searchFunctions.Keys)	
+			foreach (Keyword key in keywordsToMatch)	
 			{
-				if (TryParse(keyword, out var searchData))
+				if (TryParse(key, ref searchData, keywords))
 				{
-					data = (keyword, searchData.Value);
+					keyword = key;
 					return true;
 				}
 			}
 
 			//Should never fail;
 			//context.API.LogWarn(nameof(SearchManager), $"Could not parse keywords from search: {search}. This should never happen...");
-			data = default;
+			keyword = null;
 			return false;
 			
-			bool TryParse(Keyword keyword, [NotNullWhen(true)] out SearchData? searchData) //TODO: Use span for performance
+			static bool TryParse(Keyword keyword, ref SearchData searchData, Keywords keywords) //TODO: Use span for performance
 			{
+				(var search, _,_,_) = searchData;
 				if (!search.StartsWithOrd(keyword))
 				{
-					searchData = null;
 					return false;
 				}
 				
 				if ( /*keyword != keywords.NotebookExplorer &&*/ search[keyword.Length..].StartsWith(keywords.RecentPages)) //TODO maybe allow NotebookExplorer+ RecentPAges?
 				{
-					searchData = new SearchData(
-						search[(keyword.Length + keywords.RecentPages.Length)..],
-						null,
-						RootCache.Root.Notebooks,
-						SortOrder.RecentlyModified
-					);
+					searchData.search = search[(keyword.Length + keywords.RecentPages.Length)..];
+					searchData.sortOrder = SortOrder.RecentlyModified;
 					return true;
 				}
 
-				searchData = new SearchData(search[keyword.Length..], null, RootCache.Root.Notebooks, SortOrder.Default);
+				searchData.search = search[keyword.Length..];
+				searchData.sortOrder = SortOrder.Default;
 				return true;
 			}
 		}
@@ -78,15 +77,15 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 				RootCache.SetDirty();
 			}
 
-			if (!TryParseKeywords(query.Search, out var data))
+			var searchData = new SearchData(query.Search, null, RootCache.Root.Notebooks, SortOrder.Default);
+			if (!TryParseSearch(ref searchData, out var keyword, searchFunctions.Keys, keywords))
 				return ResultCreator.SingleResult("Failed at parsing keywords", string.Empty, string.Empty);
 			
-			var (keyword, searchData) = data;
 			var searchFunction = searchFunctions[keyword];
 			
 			var results = string.IsNullOrWhiteSpace(searchData.search) 
-				? searchFunction.EmptySearch(in searchData) 
-				: searchFunction.GetResults(in searchData);
+				? searchFunction.EmptySearch(ref searchData) 
+				: searchFunction.GetResults(ref searchData);
 			
 			return results.Count != 0 ? results : ResultCreator.NoMatchesFound();
 		}
@@ -97,13 +96,13 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 		protected ResultCreator resultCreator;
 		protected Settings settings;
 		protected PluginInitContext context;
-		public abstract List<Result> GetResults(in SearchData searchData);
-		public abstract List<Result> EmptySearch(in SearchData searchData);
+		public abstract List<Result> GetResults(ref SearchData searchData);
+		public abstract List<Result> EmptySearch(ref SearchData searchData);
 	}
 
 	public class StandardSearch : SearchFunction
 	{
-		public override List<Result> GetResults(in SearchData searchData)
+		public override List<Result> GetResults(ref SearchData searchData)
 		{
 			var (search, parent, _, sortOrder) = searchData;
 			
@@ -123,12 +122,12 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			};
 		}
 
-		public override List<Result> EmptySearch(in SearchData searchData) => resultCreator.SearchType("Now searching all pages", searchData.parent?.Name);
+		public override List<Result> EmptySearch(ref SearchData searchData) => resultCreator.SearchType("Now searching all pages", searchData.parent?.Name);
 	}
 
 	public class TitleSearch : SearchFunction
 	{
-		public override List<Result> GetResults(in SearchData searchData)
+		public override List<Result> GetResults(ref SearchData searchData)
 		{
 			var (search, _, collection, sortOrder) = searchData;
 			var results = collection.Descendants()
@@ -145,7 +144,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			};
 		}
 
-		public override List<Result> EmptySearch(in SearchData searchData)
+		public override List<Result> EmptySearch(ref SearchData searchData)
 		{
 			const string emptySearchPrefix = "Now searching by title";
 			return searchData.sortOrder switch
@@ -158,15 +157,15 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 
 	public class NotebookExplorer : SearchFunction
 	{
-		private Explorer explorer;
+		private Explorer explorer = new Explorer();
 
-		public override List<Result> GetResults(in SearchData searchData)
+		public override List<Result> GetResults(ref SearchData searchData)
 		{
 				//TODO: check if searchData.search is empty and searchData.sortOrder is recently modified
-			if (ValidateSearch(in searchData, out SearchData data)) 
+			if (!ValidateSearch(ref searchData)) 
 				return resultCreator.InvalidQuery(false);
-			
-			
+
+			return null;
 			// if (parent == null)
 			// 	return results;
 			//
@@ -177,9 +176,9 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			// return results;
 		}
 		
-		private bool ValidateSearch(in SearchData inData, out SearchData searchData) 
+		private bool ValidateSearch(ref SearchData searchData) 
 		{
-			(var search, IOneNoteItem? parent, IEnumerable<IOneNoteItem>? collection, _) = inData;
+			(var search, IOneNoteItem? parent, IEnumerable<IOneNoteItem>? collection, _) = searchData;
 			Debug.Assert(collection != null, nameof(collection) + " != null");
 			//parent is null here
 			//collection is rootCache.Root.Notebooks as this functions validates the search with the whole query;
@@ -195,10 +194,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 				var itemName = search[prevIndex..currIndex];
 				parent = collection.FirstOrDefault(item => item.Name == itemName);
 				if (parent == null)
-				{
-					searchData = default;
 					return false;
-				}
                 
 				collection = parent.Children;
                     
@@ -207,16 +203,18 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			}
 
 			lastSearch = search[prevIndex..];
-			searchData = inData with { search = lastSearch, parent = parent, collection = collection }; 
+			searchData.search = lastSearch;
+			searchData.parent = parent;
+			searchData.collection = collection;
 			return true;
 		}
 
-		public override List<Result> EmptySearch(in SearchData searchData) => explorer.EmptySearch(in searchData);
+		public override List<Result> EmptySearch(ref SearchData searchData) => explorer.EmptySearch(ref searchData);
 
 
 		private class Explorer : SearchFunction
 		{
-			public override List<Result> GetResults(in SearchData searchData)
+			public override List<Result> GetResults(ref SearchData searchData)
 			{
 				var (search, parent, collection, sortOrder) = searchData; //TODO: sort order
 				
@@ -253,7 +251,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 				return results;
 			}
 
-			public override List<Result> EmptySearch(in SearchData searchData)
+			public override List<Result> EmptySearch(ref SearchData searchData)
 			{
 				Debug.Assert(searchData.collection != null);
 				var results = searchData.collection.FilterBySettings(settings) 
@@ -265,7 +263,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 		}
 	}
 	
-	public readonly record struct SearchData(string search, IOneNoteItem? parent, IEnumerable<IOneNoteItem>? collection, SortOrder sortOrder);
+	public record struct SearchData(string search, IOneNoteItem? parent, IEnumerable<IOneNoteItem>? collection, SortOrder sortOrder);
 
 	public enum SortOrder
 	{
