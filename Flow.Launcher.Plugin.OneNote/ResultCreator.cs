@@ -224,7 +224,7 @@ namespace Flow.Launcher.Plugin.OneNote
         public Result CreatePageResult(Page page, string query) 
             => CreateOneNoteItemResult(page, false, string.IsNullOrWhiteSpace(query) ? null : context.API.FuzzySearch(query, page.Name).MatchData);
 
-        public Result CreateRecentPageResult(Page page) //TODO: make it accept any IOneNoteItem type
+        public Result CreateRecentPageResult(Page page) //TODO: make it accept any IOneNoteItem type and Remove
         {
             var result = CreateOneNoteItemResult(page, false);
             result.SubTitle = $"{page.LastModified.Humanize()}  |  {result.SubTitle}";
@@ -233,10 +233,12 @@ namespace Flow.Launcher.Plugin.OneNote
             return result;
         }
         
-        public Result CreateRecentItemResult(IOneNoteItem item, List<int>? highlightData = null)
+        public Result CreateRecentItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int>? highlightData = null)
         {
-            var result = CreateOneNoteItemResult(item, false, highlightData);
-            result.SubTitle = $"{item.LastModified.Humanize()}  |  {result.SubTitle}";
+            var result = CreateOneNoteItemResult(item, actionIsAutoComplete, highlightData);
+            result.SubTitle = string.IsNullOrWhiteSpace(result.SubTitle)
+                ? $"{item.LastModified.Humanize()}"
+                : $"{item.LastModified.Humanize()}  |  {result.SubTitle}";
             if(item is Page)
                 result.IcoPath = iconProvider.Recent;
             result.AddSelectedCount = false;

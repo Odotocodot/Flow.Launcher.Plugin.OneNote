@@ -13,6 +13,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 	{
 		private readonly OrderedDictionary<Keyword, SearchFunction> searchFunctions; //TODO: mutable keys beware/ need to fix
 		private readonly Keywords keywords;
+		private readonly PluginInitContext context;
 		public RootCache RootCache { get; }
 
 		public SearchManager(PluginInitContext context, Settings settings, ResultCreator resultCreator)
@@ -42,7 +43,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 					continue;
 
 				keyword = key;
-				if ( /*keyword != keywords.NotebookExplorer &&*/ search[key.Length..].StartsWith(keywords.RecentPages)) //TODO maybe allow NotebookExplorer+ RecentPAges?
+				if (keyword != keywords.NotebookExplorer && search[key.Length..].StartsWith(keywords.RecentPages)) //TODO maybe allow NotebookExplorer+ RecentPAges?
 				{
 					searchData.Search = search[(key.Length + keywords.RecentPages.Length)..];
 					searchData.SortOrder = SortOrder.RecentlyModified;
@@ -106,7 +107,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			return sortOrder switch
 			{
 				SortOrder.RecentlyModified => pages.OrderByDescending(pg => pg.LastModified)
-				                                   .Select(pg => resultCreator.CreateRecentItemResult(pg))
+				                                   .Select(pg => resultCreator.CreateRecentItemResult(pg, false))
 				                                   .ToList(),
 				_ => pages.Select(pg => resultCreator.CreatePageResult(pg, search)).ToList()
 			};
@@ -120,7 +121,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 				                                        .GetAllPages()
 				                                        .FilterBySettings(settings)
 				                                        .OrderByDescending(pg => pg.LastModified)
-				                                        .Select(pg => resultCreator.CreateRecentItemResult(pg))
+				                                        .Select(pg => resultCreator.CreateRecentItemResult(pg, false))
 				                                        .ToList(),
 				_ => resultCreator.SearchType("Now searching all pages", searchData.Parent?.Name),
 			};
@@ -139,7 +140,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			return sortOrder switch
 			{
 				SortOrder.RecentlyModified => results.OrderByDescending(sr => sr.Item.LastModified)
-				                                     .Select(sr => resultCreator.CreateRecentItemResult(sr.Item, sr.HighlightData))
+				                                     .Select(sr => resultCreator.CreateRecentItemResult(sr.Item, false, sr.HighlightData))
 				                                     .ToList(),
 				_ => results.Select(sr => resultCreator.CreateOneNoteItemResult(sr.Item, false, sr.HighlightData, sr.Score))
 				            .ToList(),
@@ -194,7 +195,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 			return results;
 		}
 		
-		private bool ValidateSearch(ref SearchData searchData) 
+		private static bool ValidateSearch(ref SearchData searchData) 
 		{
 			(var search, IOneNoteItem? parent, IEnumerable<IOneNoteItem>? collection, _) = searchData;
 			
@@ -236,14 +237,13 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 
 				Debug.Assert(collection != null, nameof(collection) + " != null");
 				
-				var searchResults = collection.FilterBySettings(settings)
-				                              .FuzzySearch(search, context);
+				var searchResults = collection.FilterBySettings(settings).FuzzySearch(search, context);
 				var results = sortOrder switch
 				{
 					SortOrder.RecentlyModified => searchResults.OrderByDescending(sr => sr.Item.LastModified)
-					                                           .Select(sr => resultCreator.CreateRecentItemResult(sr.Item, sr.HighlightData))
+					                                           .Select(sr => resultCreator.CreateRecentItemResult(sr.Item, true, sr.HighlightData))
 					                                           .ToList(),
-					_ => searchResults.Select(r => resultCreator.CreateOneNoteItemResult(r.Item, true, r.HighlightData, r.Score))
+					_ => searchResults.Select(sr => resultCreator.CreateOneNoteItemResult(sr.Item, true, sr.HighlightData, sr.Score))
 					                  .ToList(),
 				};
 
@@ -277,12 +277,21 @@ namespace Flow.Launcher.Plugin.OneNote.Search.Rework
 
 			public override List<Result> EmptySearch(ref SearchData searchData)
 			{
-				Debug.Assert(searchData.Collection != null);
-				var results = searchData.Collection.FilterBySettings(settings) 
-				                        .Select(item => resultCreator.CreateOneNoteItemResult(item, true))
-				                        .ToList();
+				var (_, parent, collection, sortOrder) = searchData;
+				
+				Debug.Assert(collection != null);
+				var results = sortOrder switch
+				{
+					SortOrder.RecentlyModified => collection.FilterBySettings(settings)
+					                                        .OrderByDescending(item => item.LastModified)
+					                                        .Select(item => resultCreator.CreateRecentItemResult(item, true))
+					                                        .ToList(),
+					_ => collection.FilterBySettings(settings)
+					               .Select(item => resultCreator.CreateOneNoteItemResult(item, true))
+					               .ToList(),
+				};
 			
-				return results.Count != 0 ? results : resultCreator.EmptyCollection(results, searchData.Parent);
+				return results.Count != 0 ? results : resultCreator.EmptyCollection(results, parent);
 			}
 		}
 	}
