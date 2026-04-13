@@ -16,9 +16,11 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			return sortOrder switch
 			{
 				SortOrder.RecentlyModified => results.OrderByDescending(sr => sr.Item.LastModified)
+				                                     .Take(settings)
 				                                     .Select(sr => resultCreator.CreateRecentItemResult(sr.Item, false, sr.HighlightData))
 				                                     .ToList(),
-				_ => results.Select(sr => resultCreator.CreateOneNoteItemResult(sr.Item, false, sr.HighlightData, sr.Score))
+				_ => results.Take(settings)
+				            .Select(sr => resultCreator.CreateOneNoteItemResult(sr.Item, false, sr.HighlightData, sr.Score))
 				            .ToList(),
 			};
 		}

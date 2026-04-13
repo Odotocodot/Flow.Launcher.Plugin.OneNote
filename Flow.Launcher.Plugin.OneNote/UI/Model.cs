@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Flow.Launcher.Plugin.OneNote.UI
 {
@@ -6,7 +7,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI
     {
         protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string? propertyName = null)
         {
-            if (Equals(field, newValue))
+            if (EqualityComparer<T>.Default.Equals(field, newValue))
                 return false;
 
             field = newValue;

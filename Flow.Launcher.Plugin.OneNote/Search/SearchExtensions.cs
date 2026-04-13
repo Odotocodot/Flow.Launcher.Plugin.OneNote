@@ -46,6 +46,11 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			});
 		}
 
+		public static IEnumerable<T> Take<T>(this IEnumerable<T> source, Settings settings) =>
+			settings.UseMaxResults 
+				? source.Take(settings.MaxResults)
+				: source;
+
 		/// <summary>
 		/// Gets the keyword from the search, and removes it from the search string. Also gets the sort order
 		/// </summary>
@@ -57,9 +62,9 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			Keyword? keyword = null;
 			var searchSpan = searchData.Search.AsSpan();
 
-			for (var i = 0; i < keywords.Count; i++)
+			for (var i = 0; i < keywords.All.Length; i++)
 			{
-				Keyword key = keywords[i];
+				Keyword key = keywords.All[i];
 				if (!StartsWithKeyword(ref searchSpan, key))
 					continue;
 

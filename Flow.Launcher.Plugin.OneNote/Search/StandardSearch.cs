@@ -20,9 +20,11 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			return sortOrder switch
 			{
 				SortOrder.RecentlyModified => pages.OrderByDescending(pg => pg.LastModified)
+				                                   .Take(settings)
 				                                   .Select(pg => resultCreator.CreateRecentItemResult(pg, false))
 				                                   .ToList(),
-				_ => pages.Select(pg => resultCreator.CreateOneNoteItemResult(pg, false,
+				_ => pages.Take(settings)
+				          .Select(pg => resultCreator.CreateOneNoteItemResult(pg, false,
 					          string.IsNullOrWhiteSpace(search)
 						          ? null
 						          : context.API.FuzzySearch(search, pg.Name).MatchData))
@@ -38,6 +40,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 				                                        .GetAllPages()
 				                                        .FilterBySettings(settings)
 				                                        .OrderByDescending(pg => pg.LastModified)
+				                                        .Take(settings)
 				                                        .Select(pg => resultCreator.CreateRecentItemResult(pg, false))
 				                                        .ToList(),
 				_ => resultCreator.SearchType("Now searching all pages", searchData.Parent?.Name),

@@ -19,15 +19,6 @@
                 <ui:ThemeResources />
                 <ResourceDictionary Source="/Flow.Launcher.Plugin.OneNote;component/UI/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <ObjectDataProvider
-                x:Key="DefaultRecentCountOptions"
-                MethodName="Range"
-                ObjectType="{x:Type linq:Enumerable}">
-                <ObjectDataProvider.MethodParameters>
-                    <sys:Int32>1</sys:Int32>
-                    <sys:Int32>20</sys:Int32>
-                </ObjectDataProvider.MethodParameters>
-            </ObjectDataProvider>
         </ResourceDictionary>
     </UserControl.Resources>
     <StackPanel Margin="25,0,25,25">
@@ -164,25 +155,28 @@
             </ItemsControl>
         </Border>
         <!--#endregion-->
-
-        <!--#region Recent pages-->
+        
+        <!--#region Max Results-->
         <Border Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
                 <StackPanel Style="{StaticResource TextPanel}">
-                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Default number of recent pages" />
-                    <TextBlock
-                        d:Text="The initial number of recent pages to show when using &quot;{0}&quot;"
-                        Style="{DynamicResource SettingSubTitleLabel}"
-                        Text="{Binding RecentPagesKeyword.Value, StringFormat='The initial number of recent pages to show when using &quot;{0}&quot;'}" />
+                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Limit the of results" />
+                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="The max number of results to show when searching, can improve performance. Turn off to always show all results" />
                 </StackPanel>
-                <ComboBox
-                    Grid.Column="2"
-                    Width="130"
-                    Margin="10,0,18,0"
-                    HorizontalContentAlignment="Center"
-                    ItemsSource="{Binding Source={StaticResource DefaultRecentCountOptions}}"
-                    SelectedItem="{Binding Settings.DefaultRecentsCount}" />
-                <ui:FontIcon Glyph="&#xe823;" Style="{StaticResource Glyph}" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <ui:NumberBox
+                        Width="140"
+                        MinWidth="140"
+                        Margin="0,4,22,4"
+                        IsEnabled="{Binding Settings.UseMaxResults}"
+                        Maximum="100000"
+                        Minimum="1"
+                        SmallChange="5"
+                        SpinButtonPlacementMode="Compact"
+                        Value="{Binding Settings.MaxResults}" />
+                    <ui:ToggleSwitch IsOn="{Binding Settings.UseMaxResults}" Style="{DynamicResource SideToggleSwitch}" />
+                </StackPanel>
+                <ui:FontIcon Glyph="&#xe8fd;" Style="{StaticResource Glyph}" />
             </ItemsControl>
         </Border>
         <!--#endregion-->
