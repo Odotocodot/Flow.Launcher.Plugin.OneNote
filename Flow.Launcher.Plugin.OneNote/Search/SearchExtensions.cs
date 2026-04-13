@@ -57,9 +57,9 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			Keyword? keyword = null;
 			var searchSpan = searchData.Search.AsSpan();
 
-			for (var i = 0; i < keywords.ActionKeywords.Length; i++)
+			for (var i = 0; i < keywords.Count; i++)
 			{
-				Keyword key = keywords.ActionKeywords[i];
+				Keyword key = keywords[i];
 				if (!StartsWithKeyword(ref searchSpan, key))
 					continue;
 
