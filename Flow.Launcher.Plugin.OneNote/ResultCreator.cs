@@ -220,15 +220,15 @@ namespace Flow.Launcher.Plugin.OneNote
                 },
             };
         }
-        
-        public Result CreatePageResult(Page page, string query) 
-            => CreateOneNoteItemResult(page, false, string.IsNullOrWhiteSpace(query) ? null : context.API.FuzzySearch(query, page.Name).MatchData);
 
-        public Result CreateRecentPageResult(Page page)
+        public Result CreateRecentItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int>? highlightData = null)
         {
-            var result = CreateOneNoteItemResult(page, false);
-            result.SubTitle = $"{page.LastModified.Humanize()}  |  {result.SubTitle}";
-            result.IcoPath = iconProvider.Recent;
+            var result = CreateOneNoteItemResult(item, actionIsAutoComplete, highlightData);
+            result.SubTitle = string.IsNullOrWhiteSpace(result.SubTitle)
+                ? $"{item.LastModified.Humanize()}"
+                : $"{item.LastModified.Humanize()}  |  {result.SubTitle}";
+            if(item is Page)
+                result.IcoPath = iconProvider.Recent;
             result.AddSelectedCount = false;
             return result;
         }
