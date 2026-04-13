@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -12,6 +14,14 @@ namespace Flow.Launcher.Plugin.OneNote
         public Keyword RecentPages { get; set; } = new ("rp:");
         public Keyword TitleSearch { get; set; } = new ("*");
         public Keyword ScopedSearch { get; set; } = new (">");
+
+        private Keyword[]? actionKeywords;
+        // /// <summary>
+        // /// Action Keywords i.e. keywords that aren't a modifier, i.e. everything but <see cref="RecentPages"/> (as of right now)
+        // /// </summary>
+        //Replace with fast reflection.
+        //TODO: make class IEnumerable, Dictionary or IList if recentpages is used, else use fast reflectiono
+        public Keyword[] ActionKeywords => actionKeywords ??= [NotebookExplorer, TitleSearch, ScopedSearch, RecentPages];
     }
     
     [JsonConverter(typeof(KeywordJsonConverter))]
