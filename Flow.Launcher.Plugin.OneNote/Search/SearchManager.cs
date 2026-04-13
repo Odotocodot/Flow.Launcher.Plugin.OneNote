@@ -4,19 +4,20 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 {
 	public class SearchManager
 	{
-		private readonly TitleSearch titleSearch;
+		private readonly Keywords keywords;
 		private readonly NotebookExplorer notebookExplorer;
 		private readonly StandardSearch standardSearch;
-		private readonly RecentPages recentPages;
+		private readonly TitleSearch titleSearch;
 		public RootCache RootCache { get; }
 
 		public SearchManager(PluginInitContext context, Settings settings, ResultCreator resultCreator)
 		{
-			RootCache = new RootCache();
-			titleSearch = new TitleSearch(context, settings, resultCreator, RootCache);
-			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, RootCache);
-			recentPages = new RecentPages(context, settings, resultCreator, RootCache);
 			standardSearch = new StandardSearch(context, settings, resultCreator);
+			titleSearch = new TitleSearch(context, settings, resultCreator);
+			notebookExplorer = new NotebookExplorer(context, settings, resultCreator, titleSearch, standardSearch);
+			
+			RootCache = new RootCache();
+			keywords = settings.Keywords;
 		}
 
 		public List<Result> Query(Query query)
@@ -25,14 +26,20 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			{
 				RootCache.SetDirty();
 			}
-			string search = query.Search;
-			return search switch
+
+			var searchData = new SearchData(query.Search, null, RootCache.Root.Notebooks, SortOrder.Default);
+			Keyword? keyword = SearchExtensions.GetKeyword(ref searchData, keywords);
+
+			SearchBase searchBase = keyword switch
 			{
-				{ } when search.StartsWithOrd(titleSearch.keyword) => titleSearch.GetResults(query),
-				{ } when search.StartsWithOrd(notebookExplorer.keyword) => notebookExplorer.GetResults(query),
-				{ } when search.StartsWithOrd(recentPages.keyword) => recentPages.GetResults(query),
-				_ => standardSearch.GetResults(query),
+				not null when keyword == keywords.NotebookExplorer => notebookExplorer,
+				not null when keyword == keywords.TitleSearch => titleSearch,
+				_ => standardSearch,
 			};
+			
+			var results = searchBase.GetResults(ref searchData);
+			
+			return results.Count != 0 ? results : ResultCreator.NoMatchesFound();
 		}
 	}
 }

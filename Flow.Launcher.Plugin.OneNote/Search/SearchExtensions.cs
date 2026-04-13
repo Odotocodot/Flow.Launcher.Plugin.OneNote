@@ -6,14 +6,22 @@ using LinqToOneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public record SearchResult<T>(T Item, List<int>? HighlightData, int Score) where T : IOneNoteItem
+	public enum SortOrder
 	{
-		public int Score { get; set; } = Score;
+		Default = 0,
+		RecentlyModified = 1,
 	}
+
+	//Parent => parent of the current item/search area
+	//Collection => children of the parent, if parent == null; Collection = rootCache.Root.Notebooks
+	public record struct SearchData(string Search, IOneNoteItem? Parent, IEnumerable<IOneNoteItem>? Collection, SortOrder SortOrder);
+
+	public record SearchResult<T>(T Item, List<int>? HighlightData, int Score) where T : IOneNoteItem;
 
 	public static class SearchExtensions
 	{
-		public static IEnumerable<SearchResult<T>> FuzzySearch<T>(this IEnumerable<T> source, string search, PluginInitContext context) where T: IOneNoteItem
+		public static IEnumerable<SearchResult<T>> FuzzySearch<T>(this IEnumerable<T> source, string search, PluginInitContext context)
+			where T : IOneNoteItem
 		{
 			foreach (var item in source)
 			{
@@ -24,40 +32,58 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 				}
 			}
 		}
+
 		public static IEnumerable<T> FilterBySettings<T>(this IEnumerable<T> source, Settings settings) where T : IOneNoteItem
 		{
-			foreach (var item in source)
+			return source.Where(item =>
 			{
-				var success = true;
 				if (!settings.ShowEncrypted && item is Section section)
 				{
-					success = !section.Encrypted;
+					return !section.Encrypted;
 				}
 
-				if (!settings.ShowRecycleBin && item.IsInRecycleBin())
+				return settings.ShowRecycleBin || !item.IsInRecycleBin();
+			});
+		}
+
+		/// <summary>
+		/// Gets the keyword from the search, and removes it from the search string. Also gets the sort order
+		/// </summary>
+		/// <param name="searchData"></param>
+		/// <param name="keywords"></param>
+		/// <returns></returns>
+		public static Keyword? GetKeyword(ref SearchData searchData, Keywords keywords)
+		{
+			Keyword? keyword = null;
+			var searchSpan = searchData.Search.AsSpan();
+
+			for (var i = 0; i < keywords.ActionKeywords.Length; i++)
+			{
+				Keyword key = keywords.ActionKeywords[i];
+				if (!StartsWithKeyword(ref searchSpan, key))
+					continue;
+
+				keyword = key;
+				break;
+			}
+
+			if (keyword == keywords.RecentPages || StartsWithKeyword(ref searchSpan, keywords.RecentPages))
+				searchData.SortOrder = SortOrder.RecentlyModified;
+
+			searchData.Search = searchSpan.ToString();
+			return keyword;
+
+			//Check if starts with keyword and if so trim the keyword
+			static bool StartsWithKeyword(ref ReadOnlySpan<char> searchSpan, Keyword keyword)
+			{
+				if (searchSpan.StartsWith(keyword.Value.AsSpan(), StringComparison.Ordinal))
 				{
-					success = false;
+					searchSpan = searchSpan[keyword.Length..];
+					return true;
 				}
 
-				if (success)
-				{
-					yield return item;
-				}
+				return false;
 			}
 		}
-
-		public static IEnumerable<Result> OrderByLastModified(this IEnumerable<Result> source, bool sortByLastModified)
-		{
-			return sortByLastModified 
-				? source.OrderByDescending(result =>
-				{
-					result.Score = 0;
-					result.AddSelectedCount = !sortByLastModified;
-					return ((IOneNoteItem)result.ContextData).LastModified;
-				})
-				: source;
-		}
-			
-		public static bool StartsWithOrd(this string str, string value) => str.StartsWith(value, StringComparison.Ordinal);
 	}
 }

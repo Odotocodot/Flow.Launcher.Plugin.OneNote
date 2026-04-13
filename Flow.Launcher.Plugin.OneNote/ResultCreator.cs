@@ -220,19 +220,7 @@ namespace Flow.Launcher.Plugin.OneNote
                 },
             };
         }
-        
-        public Result CreatePageResult(Page page, string query) 
-            => CreateOneNoteItemResult(page, false, string.IsNullOrWhiteSpace(query) ? null : context.API.FuzzySearch(query, page.Name).MatchData);
 
-        public Result CreateRecentPageResult(Page page) //TODO: make it accept any IOneNoteItem type and Remove
-        {
-            var result = CreateOneNoteItemResult(page, false);
-            result.SubTitle = $"{page.LastModified.Humanize()}  |  {result.SubTitle}";
-            result.IcoPath = iconProvider.Recent;
-            result.AddSelectedCount = false;
-            return result;
-        }
-        
         public Result CreateRecentItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int>? highlightData = null)
         {
             var result = CreateOneNoteItemResult(item, actionIsAutoComplete, highlightData);
@@ -418,7 +406,7 @@ namespace Flow.Launcher.Plugin.OneNote
             return SingleResult(title, subTitle, iconProvider.Search);
         }
 
-        public static List<Result> SingleResult(string title, string subTitle, string iconPath)
+        private static List<Result> SingleResult(string title, string subTitle, string iconPath)
         {
             return new List<Result>
             {

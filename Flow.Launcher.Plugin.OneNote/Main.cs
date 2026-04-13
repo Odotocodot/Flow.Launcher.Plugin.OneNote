@@ -4,9 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using Flow.Launcher.Plugin.OneNote.Icons;
+using Flow.Launcher.Plugin.OneNote.Search;
 using Flow.Launcher.Plugin.OneNote.UI.Views;
 using OneNoteApp = LinqToOneNote.OneNote;
-using SearchManager = Flow.Launcher.Plugin.OneNote.Search.Rework.SearchManager;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
