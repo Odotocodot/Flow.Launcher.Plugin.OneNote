@@ -11,13 +11,14 @@ namespace Flow.Launcher.Plugin.OneNote
     {
         public const string NotebookExplorerSeparator = "\\";
         public Keyword NotebookExplorer { get; init; } = new($"nb:{NotebookExplorerSeparator}");
-        public Keyword RecentPages { get; init; } = new ("rp:");
+        [JsonPropertyName("RecentPages")]
+        public Keyword SortByLastModified { get; init; } = new ("rp:");
         public Keyword TitleSearch { get; init; } = new ("*");
         public Keyword ScopedSearch { get; init; } = new (">");
 
         private Keyword[]? keywords;
         [JsonIgnore]
-        public Keyword[] All => keywords ??= [NotebookExplorer, RecentPages, TitleSearch, ScopedSearch];
+        public Keyword[] All => keywords ??= [NotebookExplorer, SortByLastModified, TitleSearch, ScopedSearch];
     }
     
     [JsonConverter(typeof(KeywordJsonConverter))]

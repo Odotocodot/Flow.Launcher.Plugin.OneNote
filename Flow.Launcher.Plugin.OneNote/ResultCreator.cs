@@ -84,14 +84,14 @@ namespace Flow.Launcher.Plugin.OneNote
                 new Result
                 {
                     Title = "See recent pages",
-                    SubTitle = $"Type \"{settings.Keywords.RecentPages}\" or select this option to see recently modified pages",
-                    AutoCompleteText = $"{ActionKeyword} {settings.Keywords.RecentPages}",
+                    SubTitle = $"Type \"{settings.Keywords.SortByLastModified}\" or select this option to see recently modified pages",
+                    AutoCompleteText = $"{ActionKeyword} {settings.Keywords.SortByLastModified}",
                     IcoPath = iconProvider.Recent,
                     AddSelectedCount = false,
                     Score = -1000,
                     Action = _ =>
                     {
-                        context.API.ChangeQuery($"{ActionKeyword} {settings.Keywords.RecentPages}", true);
+                        context.API.ChangeQuery($"{ActionKeyword} {settings.Keywords.SortByLastModified}", true);
                         return false;
                     },
                 },

@@ -72,7 +72,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 				break;
 			}
 
-			if (keyword == keywords.RecentPages || StartsWithKeyword(ref searchSpan, keywords.RecentPages))
+			if (keyword == keywords.SortByLastModified || StartsWithKeyword(ref searchSpan, keywords.SortByLastModified))
 				searchData.SortOrder = SortOrder.RecentlyModified;
 
 			searchData.Search = searchSpan.ToString();

@@ -35,7 +35,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			
 			Result result = resultCreator.CreateOneNoteItemResult(parent, false, score: Result.MaxScore);
 			result.Title = $"Open \"{parent.Name}\" in OneNote";
-			result.SubTitle = $"Use \'{keywords.ScopedSearch}\' to search this item. Use \'{keywords.TitleSearch}\' to search by title in this item. Use \'{keywords.RecentPages}\' to sort by recently modified";
+			result.SubTitle = $"Use \'{keywords.ScopedSearch}\' to search this item. Use \'{keywords.TitleSearch}\' to search by title in this item. Use \'{keywords.SortByLastModified}\' to sort by recently modified";
 			results.Add(result);
 			return results;
 		}
