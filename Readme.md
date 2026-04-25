@@ -3,7 +3,7 @@
     <img src="doc/flow.png" width=12.5%>
   </a>
   <a href="https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-taking-app">
-    <img src= "doc/onenote.png" width=12.5%>
+    <img src= "Flow.Launcher.Plugin.OneNote/Images/logo.png" width="12.5%">
   </a>
 </p>
 <h1 align="center">OneNote for Flow Launcher</h1>
@@ -235,7 +235,7 @@ All the keywords used can be changed according to user preference.
 
 ## Changelog
 
-See [here](Changelog.md) for the full list of changes.
+See [Changelog.md](Changelog.md) for the full list of changes.
 
 ## Additional Information
 

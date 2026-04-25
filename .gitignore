@@ -354,3 +354,4 @@ MigrationBackup/
 #VSCode
 .vscode/
 .idea/
+*.lscache
