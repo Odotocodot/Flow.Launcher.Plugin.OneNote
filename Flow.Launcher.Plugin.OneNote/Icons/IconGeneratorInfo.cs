@@ -3,30 +3,27 @@ using LinqToOneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Icons
 {
-	public struct IconGeneratorInfo
+	public readonly struct IconGeneratorInfo
 	{
 		public readonly string prefix = string.Empty;
 		public readonly Color? color;
-		
-		public IconGeneratorInfo(IOneNoteItem item)
+
+		private IconGeneratorInfo(string prefix, Color? color = null)
 		{
-			switch (item)
+			this.prefix = prefix;
+			this.color = color;
+		}
+
+		public static IconGeneratorInfo Create(IOneNoteItem item)
+		{
+			return item switch
 			{
-				case Notebook n:
-					prefix = IconConstants.Notebook;
-					color = n.Color;
-					break;
-				case SectionGroup sg:
-					prefix = sg.IsRecycleBin ? IconConstants.RecycleBin : IconConstants.SectionGroup;
-					break;
-				case Section s:
-					prefix = IconConstants.Section;
-					color = s.Color;
-					break;
-				case Page:
-					prefix = IconConstants.Page;
-					break;
-			}
+				Notebook n => new (IconConstants.Notebook, n.Color),
+				SectionGroup sg => new (sg.IsRecycleBin ? IconConstants.RecycleBin : IconConstants.SectionGroup),
+				Section s => new (IconConstants.Section, s.Color),
+				Page => new (IconConstants.Page),
+				_ => new (),
+			};
 		}
 	}
 }

@@ -10,6 +10,7 @@ namespace Flow.Launcher.Plugin.OneNote
 		private bool createColoredIcons = true;
 		private int maxResults = 30;
 		private bool useMaxResults = true;
+		private bool alwaysOpenInNewWindow = false;
 		private IconTheme iconTheme = IconTheme.Color;
 		public Keywords Keywords { get; init; } = new Keywords();
 
@@ -53,6 +54,12 @@ namespace Flow.Launcher.Plugin.OneNote
 		{
 			get => iconTheme;
 			set => SetProperty(ref iconTheme, value);
+		}
+
+		public bool AlwaysOpenInNewWindow
+		{
+			get => alwaysOpenInNewWindow;
+			set => alwaysOpenInNewWindow = value;
 		}
 	}
 }

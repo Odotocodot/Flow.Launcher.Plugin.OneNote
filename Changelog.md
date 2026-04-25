@@ -2,7 +2,7 @@
 
 ## 3.1.0
 
-- :star: **Recent pages** is dead, long live **sort by last modified**  ([#32](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/32))
+- :star: **Recent pages** is dead, long live **sort by last modified**.  ([#32](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/32))
   - Using the **sort by last modified** keyword, as the name implies, allows you to sort results by last modified. But unlike **recent pages** you can now use it in multiple places, i.e. with **title search**, **scoped search** and **notebook explorer**. Note it must be placed after the aforementioned keywords.
   - Examples:\
     (`#` = **sort by last modified** keyword, `*` = **title search** keyword, `nb:\` = **notebook explorer** keyword, `>` = **scoped search** keyword)
@@ -11,7 +11,7 @@
     - ```on: nb:\PathToItem\#{your search query}```
     - ```on: nb:\PathToItem\>#{your search query}```
     - ```on: nb:\PathToItem\*#{your search query}```  
-
+- Added a setting to allow users to always open items in a new OneNote window. ([#40](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/issues/40))
 
 ## 3.0.1 - 2026-03-13
 

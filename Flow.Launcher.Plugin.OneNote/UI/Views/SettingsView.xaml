@@ -76,6 +76,47 @@
         </Border>
         <!--#endregion-->
 
+        <!--#region Always Open In New Window-->
+        <Border Style="{DynamicResource SettingGroupBox}">
+            <ItemsControl Style="{StaticResource SettingGrid}">
+                <StackPanel Style="{StaticResource TextPanel}">
+                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Always open items in a new OneNote window" />
+                </StackPanel>
+                <ui:ToggleSwitch
+                    Grid.Column="2"
+                    IsOn="{Binding Settings.AlwaysOpenInNewWindow}"
+                    Style="{DynamicResource SideToggleSwitch}" />
+                <ui:FontIcon Glyph="&#xe8a7;" Style="{StaticResource Glyph}" />
+            </ItemsControl>
+        </Border>
+        <!--#endregion-->
+
+        <!--#region Max Results-->
+        <Border Style="{DynamicResource SettingGroupBox}">
+            <ItemsControl Style="{StaticResource SettingGrid}">
+                <StackPanel Style="{StaticResource TextPanel}">
+                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Limit the of results" />
+                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="The max number of results to show when searching, can improve performance. Turn off to always show all results" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <ui:NumberBox
+                        Width="140"
+                        MinWidth="140"
+                        Margin="0,4,22,4"
+                        VerticalAlignment="Center"
+                        IsEnabled="{Binding Settings.UseMaxResults}"
+                        Maximum="100000"
+                        Minimum="1"
+                        SmallChange="5"
+                        SpinButtonPlacementMode="Compact"
+                        Value="{Binding Settings.MaxResults}" />
+                    <ui:ToggleSwitch IsOn="{Binding Settings.UseMaxResults}" Style="{DynamicResource SideToggleSwitch}" />
+                </StackPanel>
+                <ui:FontIcon Glyph="&#xe8fd;" Style="{StaticResource Glyph}" />
+            </ItemsControl>
+        </Border>
+        <!--#endregion-->
+
         <!--#region Coloured icons-->
         <Border Style="{DynamicResource SettingGroupBox}">
             <ItemsControl Style="{StaticResource SettingGrid}">
@@ -152,31 +193,6 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
                 <ui:FontIcon Glyph="&#xe790;" Style="{StaticResource Glyph}" />
-            </ItemsControl>
-        </Border>
-        <!--#endregion-->
-        
-        <!--#region Max Results-->
-        <Border Style="{DynamicResource SettingGroupBox}">
-            <ItemsControl Style="{StaticResource SettingGrid}">
-                <StackPanel Style="{StaticResource TextPanel}">
-                    <TextBlock Style="{DynamicResource SettingTitleLabel}" Text="Limit the of results" />
-                    <TextBlock Style="{DynamicResource SettingSubTitleLabel}" Text="The max number of results to show when searching, can improve performance. Turn off to always show all results" />
-                </StackPanel>
-                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <ui:NumberBox
-                        Width="140"
-                        MinWidth="140"
-                        Margin="0,4,22,4"
-                        IsEnabled="{Binding Settings.UseMaxResults}"
-                        Maximum="100000"
-                        Minimum="1"
-                        SmallChange="5"
-                        SpinButtonPlacementMode="Compact"
-                        Value="{Binding Settings.MaxResults}" />
-                    <ui:ToggleSwitch IsOn="{Binding Settings.UseMaxResults}" Style="{DynamicResource SideToggleSwitch}" />
-                </StackPanel>
-                <ui:FontIcon Glyph="&#xe8fd;" Style="{StaticResource Glyph}" />
             </ItemsControl>
         </Border>
         <!--#endregion-->
