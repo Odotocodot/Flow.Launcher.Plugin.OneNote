@@ -4,25 +4,35 @@ using LinqToOneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public class TitleSearch(PluginInitContext context, Settings settings, ResultCreator resultCreator, RootCache rootCache)
-		: SearchBase(context, settings, resultCreator, settings.Keywords.TitleSearch)
+	public class TitleSearch(PluginInitContext context, Settings settings, ResultCreator resultCreator) : SearchBase(context, settings, resultCreator)
 	{
-		public override List<Result> GetResults(Query query) => Filter(query.Search, null, rootCache.Root.Notebooks);
-
-		public List<Result> Filter(string query, IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)
+		protected override List<Result> GetResultsInternal(ref SearchData searchData)
 		{
-			if (query.Length == keyword.Length)
-				return resultCreator.SearchType("Now searching by title", parent?.Name);
-
-			var currentSearch = query[keyword.Length..];
-
+			var (search, _, collection, sortOrder) = searchData;
 			var results = collection.Descendants()
 			                        .FilterBySettings(settings)
-			                        .FuzzySearch(currentSearch, context)
-			                        .Select(x => resultCreator.CreateOneNoteItemResult(x.Item, false, x.HighlightData, x.Score))
-			                        .ToList();
+			                        .FuzzySearch(search, context);
 
-			return results.Count != 0 ? results : ResultCreator.NoMatchesFound();
+			return sortOrder switch
+			{
+				SortOrder.RecentlyModified => results.OrderByDescending(sr => sr.Item.LastModified)
+				                                     .Take(settings)
+				                                     .Select(sr => resultCreator.CreateRecentItemResult(sr.Item, false, sr.HighlightData))
+				                                     .ToList(),
+				_ => results.Take(settings)
+				            .Select(sr => resultCreator.CreateOneNoteItemResult(sr.Item, false, sr.HighlightData, sr.Score))
+				            .ToList(),
+			};
+		}
+
+		protected override List<Result> EmptySearch(ref SearchData searchData)
+		{
+			const string emptySearchPrefix = "Now searching by title";
+			return searchData.SortOrder switch
+			{
+				SortOrder.RecentlyModified => resultCreator.SearchType($"{emptySearchPrefix} ordered by last modified", searchData.Parent?.Name),
+				_ => resultCreator.SearchType(emptySearchPrefix, searchData.Parent?.Name),
+			};
 		}
 	}
 }

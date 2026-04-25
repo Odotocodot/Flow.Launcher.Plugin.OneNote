@@ -1,46 +1,53 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using LinqToOneNote;
 using LinqToOneNote.Abstractions;
-using OneNoteApp = LinqToOneNote.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote.Search
 {
-	public class NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch, RootCache rootCache)
-		: SearchBase(context, settings, resultCreator, settings.Keywords.NotebookExplorer)
+	public class NotebookExplorer(PluginInitContext context, Settings settings, ResultCreator resultCreator, TitleSearch titleSearch, StandardSearch standardSearch)
+		: SearchBase(context, settings, resultCreator)
 	{
-		public override List<Result> GetResults(Query query)
+		private readonly Explorer explorer = new(context, settings, resultCreator);
+		private readonly Keywords keywords = settings.Keywords;
+
+		protected override List<Result> GetResultsInternal(ref SearchData searchData)
 		{
-			if (!ValidateSearch(query, out string? search, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection))
+			if (!ValidateSearch(ref searchData)) 
 				return resultCreator.InvalidQuery(false);
 
-			List<Result> results = search switch
+			Keyword? keyword = SearchExtensions.GetKeyword(ref searchData, keywords);
+			
+			IOneNoteItem? parent = searchData.Parent;
+			SearchBase searchBase = (keyword, parent) switch
 			{
-				{ } when search.StartsWithOrd(Keywords.TitleSearch) && parent is not Page => titleSearch.Filter(search, parent, collection),
-				{ } when search.StartsWithOrd(Keywords.ScopedSearch) && parent is INotebookOrSectionGroup => ScopedSearch(search, parent),
-				{ } when !string.IsNullOrWhiteSpace(search) => Explorer(search, parent, collection),
-				_  => ShowAll(parent, collection),
+				(not null, not Page) when keyword == keywords.TitleSearch => titleSearch,
+				(not null, INotebookOrSectionGroup) when keyword == keywords.ScopedSearch => standardSearch,
+				_ => explorer,
 			};
+
+			var results = searchBase.GetResults(ref searchData);
 
 			if (parent == null)
 				return results;
 			
 			Result result = resultCreator.CreateOneNoteItemResult(parent, false, score: Result.MaxScore);
 			result.Title = $"Open \"{parent.Name}\" in OneNote";
-			result.SubTitle = $"Use \'{Keywords.ScopedSearch}\' to search this item. Use \'{Keywords.TitleSearch}\' to search by title in this item";
+			result.SubTitle = $"Use \'{keywords.ScopedSearch}\' to search this item. Use \'{keywords.TitleSearch}\' to search by title in this item. Use \'{keywords.SortByLastModified}\' to sort by recently modified";
 			results.Add(result);
 			return results;
 		}
-
-		private bool ValidateSearch(Query query, out string? lastSearch, out IOneNoteItem? parent, out IEnumerable<IOneNoteItem> collection)
+		
+		private static bool ValidateSearch(ref SearchData searchData) 
 		{
-			lastSearch = null;
-			parent = null;
+			(var search, IOneNoteItem? parent, IEnumerable<IOneNoteItem>? collection, _) = searchData;
+			
+			//From SearchManager.Query SearchData
+			//parent is null here
+			//collection is rootCache.Root.Notebooks as this functions validates the search with the whole query;
 
-			collection = rootCache.Root.Notebooks;
-
-			string search = query.Search[(query.Search.IndexOf(Keywords.NotebookExplorer, StringComparison.Ordinal) + Keywords.NotebookExplorer.Length)..];
 			const string separator = Keywords.NotebookExplorerSeparator;
 			var currIndex = search.IndexOf(separator, StringComparison.Ordinal);
 			var prevIndex = 0;
@@ -48,7 +55,7 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 			while (currIndex != -1)
 			{
 				var itemName = search[prevIndex..currIndex];
-				parent = collection.FirstOrDefault(item => item.Name == itemName);
+				parent = collection?.FirstOrDefault(item => item.Name == itemName);
 				if (parent == null)
 					return false;
                 
@@ -58,69 +65,78 @@ namespace Flow.Launcher.Plugin.OneNote.Search
 				currIndex = search.IndexOf(separator, currIndex + separator.Length, StringComparison.Ordinal);
 			}
 
-			lastSearch = search[prevIndex..];
+			searchData.Search = search[prevIndex..];
+			searchData.Parent = parent;
+			searchData.Collection = collection;
 			return true;
 		}
+
+		protected override List<Result> EmptySearch(ref SearchData searchData) => explorer.GetResults(ref searchData);
 		
-		private List<Result> ShowAll(IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)
+		private class Explorer(PluginInitContext context, Settings settings, ResultCreator resultCreator) : SearchBase(context, settings, resultCreator)
 		{
-			var results = collection.FilterBySettings(settings) 
-			                        .Select(item => resultCreator.CreateOneNoteItemResult(item, true))
-			                        .ToList();
-			
-			return results.Count != 0 ? results : resultCreator.EmptyCollection(results, parent);
-		}
-		
-		private List<Result> ScopedSearch(string query, IOneNoteItem parent)
-		{
-			if (query.Length == Keywords.ScopedSearch.Length)
-				return resultCreator.SearchType("Now searching all pages", parent.Name);
-
-			if (!char.IsLetterOrDigit(query[Keywords.ScopedSearch.Length]))
-				return resultCreator.InvalidQuery();
-
-			string currentSearch = query[Keywords.ScopedSearch.Length..];
-
-			var results = OneNoteApp.FindPages(currentSearch, parent)
-			                        .Select(pg => resultCreator.CreatePageResult(pg, currentSearch))
-									.ToList();
-
-            return results.Count != 0 ? results : ResultCreator.NoMatchesFound();
-		}
-		
-		private List<Result> Explorer(string search, IOneNoteItem? parent, IEnumerable<IOneNoteItem> collection)
-		{
-			var results = collection.FilterBySettings(settings)
-			                        .FuzzySearch(search, context)
-			                        .Select(r => resultCreator.CreateOneNoteItemResult(r.Item, true, r.HighlightData, r.Score))
-			                        .ToList();
-
-			// If parent is a section, pages inside can have the same name
-			if (parent is not Section && results.Any(result => string.Equals(search.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
-				return results;
-
-			if (parent?.IsInRecycleBin() == true)
-				return results;
-
-			//Add option to create new items
-			switch (parent)
+			protected override List<Result> GetResultsInternal(ref SearchData searchData)
 			{
-				case null:
-					results.Add(resultCreator.CreateNewNotebookResult(search));
-					break;
-				case INotebookOrSectionGroup x:
-					results.Add(resultCreator.CreateNewSectionResult(search, x));
-					results.Add(resultCreator.CreateNewSectionGroupResult(search, x));
-					break;
-				case Section section:
-					if (!section.Locked)
-					{
-						results.Add(resultCreator.CreateNewPageResult(search, section));
-					}
-					break;
+				var (search, parent, collection, sortOrder) = searchData; 
+
+				Debug.Assert(collection != null, nameof(collection) + " != null");
+				
+				var searchResults = collection.FilterBySettings(settings).FuzzySearch(search, context);
+				var results = sortOrder switch
+				{
+					SortOrder.RecentlyModified => searchResults.OrderByDescending(sr => sr.Item.LastModified)
+					                                           .Select(sr => resultCreator.CreateRecentItemResult(sr.Item, true, sr.HighlightData))
+					                                           .ToList(),
+					_ => searchResults.Select(sr => resultCreator.CreateOneNoteItemResult(sr.Item, true, sr.HighlightData, sr.Score))
+					                  .ToList(),
+				};
+
+				// If parent is a section, pages inside can have the same name
+				if (parent is not Section && results.Any(result => string.Equals(search.Trim(), result.Title, StringComparison.OrdinalIgnoreCase)))
+					return results;
+
+				if (parent?.IsInRecycleBin() == true)
+					return results;
+
+				//Add option to create new items
+				switch (parent)
+				{
+					case null:
+						results.Add(resultCreator.CreateNewNotebookResult(search));
+						break;
+					case INotebookOrSectionGroup x:
+						results.Add(resultCreator.CreateNewSectionResult(search, x));
+						results.Add(resultCreator.CreateNewSectionGroupResult(search, x));
+						break;
+					case Section section:
+						if (!section.Locked)
+						{
+							results.Add(resultCreator.CreateNewPageResult(search, section));
+						}
+						break;
+				}
+
+				return results;
 			}
 
-			return results;
+			protected override List<Result> EmptySearch(ref SearchData searchData)
+			{
+				var (_, parent, collection, sortOrder) = searchData;
+				
+				Debug.Assert(collection != null);
+				var results = sortOrder switch
+				{
+					SortOrder.RecentlyModified => collection.FilterBySettings(settings)
+					                                        .OrderByDescending(item => item.LastModified)
+					                                        .Select(item => resultCreator.CreateRecentItemResult(item, true))
+					                                        .ToList(),
+					_ => collection.FilterBySettings(settings)
+					               .Select(item => resultCreator.CreateOneNoteItemResult(item, true))
+					               .ToList(),
+				};
+			
+				return results.Count != 0 ? results : resultCreator.EmptyCollection(results, parent);
+			}
 		}
 	}
 }
