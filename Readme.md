@@ -151,11 +151,11 @@ Can be used with [default search](#default-search), [notebook explorer](#noteboo
 <details>
   <summary><h4>Examples</h4></summary>
   
-- ```on: #{your search query}```
-- ```on: *#{your search query}```
-- ```on: nb:\PathToItem\#{your search query}```
-- ```on: nb:\PathToItem\>#{your search query}```
-- ```on: nb:\PathToItem\*#{your search query}```
+- ```on #{your search query}```
+- ```on *#{your search query}```
+- ```on nb:\PathToItem\#{your search query}```
+- ```on nb:\PathToItem\>#{your search query}```
+- ```on nb:\PathToItem\*#{your search query}```
   
 </details>
 
