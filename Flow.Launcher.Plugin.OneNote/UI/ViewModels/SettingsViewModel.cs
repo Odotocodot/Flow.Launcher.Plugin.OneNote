@@ -21,6 +21,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
             Keywords = settings.Keywords //Order is the order they are written in Keywords.cs
                                .GetType()
                                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                               .Where(p => p.PropertyType == typeof(Keyword))
                                .Select(p => new KeywordViewModel(p.Name.Humanize(LetterCasing.Title), (Keyword)p.GetValue(settings.Keywords)!))
                                .ToArray();
             IconThemes = Enum.GetValues<IconTheme>()
@@ -61,7 +62,6 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
         public Settings Settings { get; }
         public KeywordViewModel[] Keywords { get; }
         public KeywordViewModel NotebookExplorerKeyword => Keywords[0];
-        public KeywordViewModel RecentPagesKeyword => Keywords[1];
         public IconThemeViewModel[] IconThemes { get; }
         public string CachedIconsFileSize => iconProvider.GeneratedImagesDirectoryInfo.EnumerateFiles()
 			.Select(file => file.Length)

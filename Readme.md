@@ -3,7 +3,7 @@
     <img src="doc/flow.png" width=12.5%>
   </a>
   <a href="https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-taking-app">
-    <img src= "doc/onenote.png" width=12.5%>
+    <img src= "Flow.Launcher.Plugin.OneNote/Images/logo.png" width="12.5%">
   </a>
 </p>
 <h1 align="center">OneNote for Flow Launcher</h1>
@@ -24,11 +24,11 @@ A [OneNote](https://www.microsoft.com/en-gb/microsoft-365/onenote/digital-note-t
 - [Installation](#installation)
 - [Features](#features)
   - [At a Glance](#at-a-glance)
-  - [New with Version 2.1.0](#new-with-version-210)
   - [Default Search](#default-search)
   - [Notebook Explorer](#notebook-explorer)
     - [Create New Items](#create-new-items)
-  - [Recent Pages](#recent-pages)
+      - [Create Pages](#create-pages)
+  - [Sort by Last Modified](#sort-by-last-modified)
   - [Scoped Search](#scoped-search)
   - [Title Search](#title-search)
 - [Settings](#settings)
@@ -48,7 +48,7 @@ pm install OneNote
 > [!IMPORTANT]
 >
 > - [Versions `2.0+`](Changelog.md#200---2023-10-05) requires Flow Launcher version `1.16+`. For earlier versions see [releases](https://github.com/Odotocodot/Flow.Launcher.Plugin.OneNote/releases).
-> - [Versions `3.0+`](Changelog.md#300---2026-03-04) requires Flow Launcher version `2.1+`. 
+> - [Versions `3.0+`](Changelog.md#300---2026-03-04) requires Flow Launcher version `2.1+`.
 > - This plugin is local only! It requires an installation of OneNote on you system!
 > - Some features require Windows/Microsoft Search to be enabled on your system. See more info [here](#additional-information).
 
@@ -60,23 +60,21 @@ pm install OneNote
 | -------------------------- | --------------------------------------- | ---------------------------- |
 | ` on {your search query} ` | [Default Search](#default-search)       | Search OneNote pages         |
 | ` on nb:\ `                | [Notebook Explorer](#notebook-explorer) | Navigate notebooks hierarchy |
-| ` on rp: `                 | [Recent Pages](#recent-pages)           | View recently modified pages |
 
 <!-- omit from toc -->
 #### Modifiers
 
-| Keyword | Name                            | Notes                                        |
-| ------- | ------------------------------- | -------------------------------------------- |
-| ` > `   | [Scoped Search](#scoped-search) | Search only within a specific hierarchy item |
-| ` * `   | [Title Search](#title-search)   | Search only the title of hierarchy items     |
+| Keyword | Name                                            | Notes                                        |
+| ------- | ----------------------------------------------- | -------------------------------------------- |
+| ` > `   | [Scoped Search](#scoped-search)                 | Search only within a specific hierarchy item |
+| ` * `   | [Title Search](#title-search)                   | Search only the title of hierarchy items     |
+| ` # `   | [Sort by Last Modified](#sort-by-last-modified) | Sort results by last modified                |
 
 > [!NOTE]
 > Hierarchy items are notebooks, section groups, sections and pages.
 
-### New with Version 2.1.0
-
-- :star: [New page preview panel](#create-pages) :star: for quickly creating pages with text!
-- Added icons for different themes. The themes available are color, light, dark and one that matches Flow Launcher's current theme. Change it in the settings!
+> [!NOTE]
+> Keywords are customisable in the [settings](#settings).
 
 ### Default Search
 
@@ -140,17 +138,30 @@ This preview panel is available on all *create a page* results in the plugin and
 
 ![create pages gif](doc/create_page.gif)
 
-### Recent Pages
+### Sort by Last Modified
 
 ```
-on rp:
+on #{your search query}
 ```
 
-Displays your recently modified OneNote pages.
+Displays your results sorted by last modified.
 
-Add a number after `` rp: `` to display that number of recent pages. E.g. the full query ``on rp:10`` will show the 10 most recently modified pages.
+Can be used with [default search](#default-search), [notebook explorer](#notebook-explorer), [title search](#title-search) and [scoped search](#scoped-search).
 
-![recent pages gif](doc/recent_pages.gif)
+<details>
+  <summary><h4>Examples</h4></summary>
+  
+- ```on #{your search query}```
+- ```on *#{your search query}```
+- ```on nb:\PathToItem\#{your search query}```
+- ```on nb:\PathToItem\>#{your search query}```
+- ```on nb:\PathToItem\*#{your search query}```
+  
+</details>
+
+
+> [!IMPORTANT]
+> The sort by last modified keyword must be placed after other keywords but before your search.
 
 ### Scoped Search
 
@@ -224,7 +235,7 @@ All the keywords used can be changed according to user preference.
 
 ## Changelog
 
-See [here](Changelog.md) for the full list of changes.
+See [Changelog.md](Changelog.md) for the full list of changes.
 
 ## Additional Information
 

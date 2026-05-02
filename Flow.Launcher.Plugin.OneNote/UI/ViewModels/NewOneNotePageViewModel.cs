@@ -12,10 +12,12 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 		private string pageContent = string.Empty;
 		private readonly Section? section;
 		private readonly PluginInitContext context;
+		private readonly Settings settings;
 
-		public NewOneNotePageViewModel(PluginInitContext context, Section? section, string? pageTitle)
+		public NewOneNotePageViewModel(PluginInitContext context, Settings settings, Section? section, string? pageTitle)
 		{
 			this.context = context;
+			this.settings = settings;
 			this.section = section;
 			PageTitle = pageTitle;
 			CreateCommand = new RelayCommand(() => CreatePage(false));
@@ -33,6 +35,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			{
 				page = OneNoteApp.CreatePage(section, PageTitle);
 			}
+			
 			var xmlWrap = $"""
 						<one:Outline>
 							<one:Position x="36.0" y="86.4000015258789" z="0"/>
@@ -52,7 +55,7 @@ namespace Flow.Launcher.Plugin.OneNote.UI.ViewModels
 			context.API.ReQuery();
 			if (openImmediately)
 			{
-				page.Open();
+				OneNoteApp.Open(page, settings.AlwaysOpenInNewWindow);
 				context.API.HideMainWindow();
 				WindowHelper.FocusOneNote();
 			}

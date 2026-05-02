@@ -8,26 +8,27 @@ namespace Flow.Launcher.Plugin.OneNote
     public class Keywords
     {
         public const string NotebookExplorerSeparator = "\\";
-        public Keyword NotebookExplorer { get; set; } = new($"nb:{NotebookExplorerSeparator}");
-        public Keyword RecentPages { get; set; } = new ("rp:");
-        public Keyword TitleSearch { get; set; } = new ("*");
-        public Keyword ScopedSearch { get; set; } = new (">");
-        
+        public Keyword NotebookExplorer { get; init; } = new($"nb:{NotebookExplorerSeparator}");
+        [JsonPropertyName("RecentPages")]
+        public Keyword SortByLastModified { get; init; } = new ("rp:");
+        public Keyword TitleSearch { get; init; } = new ("*");
+        public Keyword ScopedSearch { get; init; } = new (">");
+
+        private Keyword[]? keywords;
+        [JsonIgnore]
+        public Keyword[] All => keywords ??= [NotebookExplorer, SortByLastModified, TitleSearch, ScopedSearch];
     }
     
     [JsonConverter(typeof(KeywordJsonConverter))]
-    public class Keyword
+    public class Keyword(string value)
     {
-        public Keyword(string value) => Value = value;
-        public string Value { get; private set; }
+        public string Value { get; private set; } = value;
 
         public void ChangeKeyword(string newValue) => Value = newValue;
 
         public int Length => Value.Length;
         public static implicit operator string(Keyword keyword) => keyword.Value; 
         public override string ToString() => Value;
-
-        public static Keyword Empty { get; } = new ("");
     }
     
     //Needed for legacy as keywords where just saved as a string
@@ -39,5 +40,4 @@ namespace Flow.Launcher.Plugin.OneNote
         public override void Write(Utf8JsonWriter writer, Keyword value, JsonSerializerOptions options) 
             => JsonSerializer.Serialize(writer, value.Value, options);
     }
-
 }

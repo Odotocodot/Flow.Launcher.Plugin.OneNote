@@ -11,22 +11,12 @@ using OneNoteApp = LinqToOneNote.OneNote;
 
 namespace Flow.Launcher.Plugin.OneNote
 {
-    public class ResultCreator
+    public class ResultCreator(PluginInitContext context, Settings settings, IconProvider iconProvider)
     {
-        private readonly PluginInitContext context;
-        private readonly Settings settings;
-        private readonly IconProvider iconProvider;
-
         private const string PathSeparator = " > ";
         private const string BulletPoint = "\u2022  ";
         private const string TrianglePoint = "\u2023  ";
         private string ActionKeyword => context.CurrentPluginMetadata.ActionKeyword;
-        public ResultCreator(PluginInitContext context, Settings settings, IconProvider iconProvider)
-        {
-            this.settings = settings;
-            this.iconProvider = iconProvider;
-            this.context = context;
-        }
 
         private static string GetNicePath(IOneNoteItem item, string separator = PathSeparator) => item.GetRelativePath(false, separator); 
 
@@ -84,14 +74,14 @@ namespace Flow.Launcher.Plugin.OneNote
                 new Result
                 {
                     Title = "See recent pages",
-                    SubTitle = $"Type \"{settings.Keywords.RecentPages}\" or select this option to see recently modified pages",
-                    AutoCompleteText = $"{ActionKeyword} {settings.Keywords.RecentPages}",
+                    SubTitle = $"Type \"{settings.Keywords.SortByLastModified}\" or select this option to see recently modified pages",
+                    AutoCompleteText = $"{ActionKeyword} {settings.Keywords.SortByLastModified}",
                     IcoPath = iconProvider.Recent,
                     AddSelectedCount = false,
                     Score = -1000,
                     Action = _ =>
                     {
-                        context.API.ChangeQuery($"{ActionKeyword} {settings.Keywords.RecentPages}", true);
+                        context.API.ChangeQuery($"{ActionKeyword} {settings.Keywords.SortByLastModified}", true);
                         return false;
                     },
                 },
@@ -104,7 +94,7 @@ namespace Flow.Launcher.Plugin.OneNote
                     PreviewPanel = GetNewPagePreviewPanel(null, null),
                     Action = _ =>
                     {
-                        OneNoteApp.CreateQuickNote(OpenMode.ExistingOrNewWindow);
+                        OneNoteApp.CreateQuickNote(settings.AlwaysOpenInNewWindow ? OpenMode.NewWindow : OpenMode.ExistingOrNewWindow);
                         WindowHelper.FocusOneNote();
                         return true;
                     },
@@ -142,7 +132,7 @@ namespace Flow.Launcher.Plugin.OneNote
             var toolTip = string.Empty;
             var subTitle = GetNicePath(item);
             var autoCompleteText = GetAutoCompleteText(item);
-            var iconInfo = new IconGeneratorInfo(item);
+            var iconInfo = IconGeneratorInfo.Create(item);
             
             switch (item)
             {
@@ -213,27 +203,27 @@ namespace Flow.Launcher.Plugin.OneNote
                     await Task.Run(() =>
                     {
                         item.Sync();
-                        item.Open();
+                        OneNoteApp.Open(item, settings.AlwaysOpenInNewWindow);
                     });
                     WindowHelper.FocusOneNote();
                     return true;
                 },
             };
         }
-        
-        public Result CreatePageResult(Page page, string query) 
-            => CreateOneNoteItemResult(page, false, string.IsNullOrWhiteSpace(query) ? null : context.API.FuzzySearch(query, page.Name).MatchData);
 
-        public Result CreateRecentPageResult(Page page)
+        public Result CreateRecentItemResult(IOneNoteItem item, bool actionIsAutoComplete, List<int>? highlightData = null)
         {
-            var result = CreateOneNoteItemResult(page, false);
-            result.SubTitle = $"{page.LastModified.Humanize()}  |  {result.SubTitle}";
-            result.IcoPath = iconProvider.Recent;
+            var result = CreateOneNoteItemResult(item, actionIsAutoComplete, highlightData);
+            result.SubTitle = string.IsNullOrWhiteSpace(result.SubTitle)
+                ? $"{item.LastModified.Humanize()}"
+                : $"{item.LastModified.Humanize()}  |  {result.SubTitle}";
+            if(item is Page)
+                result.IcoPath = iconProvider.Recent;
             result.AddSelectedCount = false;
             return result;
         }
 
-        //When name can have invalid chars
+        //When new name can have invalid chars
         private Result CreateNewItemResult<TNew, TParent>(string newName, TParent? parent, string iconPath, Func<TParent?, string, OpenMode, TNew> createFunc)
             where TNew : IOneNoteItem, INameInvalidCharacters
             where TParent : IOneNoteItem
@@ -261,7 +251,10 @@ namespace Flow.Launcher.Plugin.OneNote
                         return false;
 
                     bool showOneNote = !c.SpecialKeyState.CtrlPressed;
-                    createFunc(parent, newName, showOneNote ? OpenMode.ExistingOrNewWindow : OpenMode.None);
+                    bool newWindow = settings.AlwaysOpenInNewWindow;
+
+                    OpenMode openMode = showOneNote ? newWindow ? OpenMode.NewWindow : OpenMode.ExistingOrNewWindow : OpenMode.None;
+                    createFunc(parent, newName, openMode);
 
                     context.API.ReQuery();
 
@@ -291,18 +284,27 @@ namespace Flow.Launcher.Plugin.OneNote
             var results = new List<Result>();
             if (selectedResult.ContextData is IOneNoteItem item)
             {
-                var result = CreateOneNoteItemResult(item, false);
-                result.Title = $"Open and sync \"{item.Name}\"";
-                result.SubTitle = string.Empty;
-                result.Score = 30;
-                result.AddSelectedCount = false;
-                result.ContextData = null;
-                results.Add(result);
+                Result.IconDelegate icon = iconProvider.GetIcon(IconGeneratorInfo.Create(item));                
+                results.Add(new Result
+                {
+                    Title =  $"Open and sync \"{item.Name}\"",
+                    Icon = icon,
+                    Score = 30,
+                    AddSelectedCount = false,
+                    Action = _ =>
+                    {
+                        OneNoteApp.Open(item);
+                        OneNoteApp.SyncItem(item);
+                        WindowHelper.FocusOneNote();
+                        return true;
+                    }
+                });
+                
                 
                 results.Add(new Result
                 {
                     Title = $"Open \"{item.Name}\" in new OneNote window",
-                    Icon = result.Icon,
+                    Icon = icon,
                     Score = 20,
                     AddSelectedCount = false,
                     Action = _ =>
@@ -381,7 +383,7 @@ namespace Flow.Launcher.Plugin.OneNote
         }
 
         private Lazy<System.Windows.Controls.UserControl> GetNewPagePreviewPanel(Section? section, string? pageTitle)
-            => new(() => new NewOneNotePagePreviewPanel(context, section, pageTitle));
+            => new(() => new NewOneNotePagePreviewPanel(context, settings, section, pageTitle));
 
         public static List<Result> NoMatchesFound()
         {
